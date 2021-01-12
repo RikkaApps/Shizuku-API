@@ -10,9 +10,7 @@ android {
         versionCode api_version_code
         versionName api_version_name
         consumerProguardFiles "consumer-rules.pro"
-    }
-    buildFeatures {
-        buildConfig false
+        buildConfigField "int", "SHIZUKU_API_VERSION", "$api_version_major"
     }
     buildTypes {
         release {
