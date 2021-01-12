@@ -1,0 +1,2 @@
+include ':aidl'
+rootProject.name = "Shizuku-API"
