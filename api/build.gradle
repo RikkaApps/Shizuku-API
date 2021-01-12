@@ -27,8 +27,8 @@ android {
 }
 
 dependencies {
-    implementation project(':aidl')
-    implementation project(':shared')
+    api project(':aidl')
+    api project(':shared')
 
     implementation "androidx.annotation:annotation:1.1.0"
 }

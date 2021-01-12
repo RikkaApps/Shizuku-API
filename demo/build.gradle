@@ -1,0 +1,51 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion api_target_sdk
+    defaultConfig {
+        applicationId "rikka.shizuku.demo"
+        minSdkVersion api_min_sdk
+        targetSdkVersion api_target_sdk
+        versionCode api_version_code
+        versionName api_version_name
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        externalNativeBuild {
+            cmake {
+                abiFilters "armeabi-v7a", 'arm64-v8a', 'x86', 'x86_64'
+                cppFlags "-std=c++17"
+                arguments '-DANDROID_TOOLCHAIN=clang', '-DANDROID_STL=c++_static'
+            }
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
+        }
+    }
+    buildFeatures {
+        viewBinding = true
+    }
+    signingConfigs {
+        sign
+    }
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    compileOnly project(':demo-hidden-api-stub')
+    //implementation project(':hidden-api-common-bridge')
+    implementation "androidx.annotation:annotation:1.1.0"
+    implementation project(':api')
+
+    implementation 'me.weishu:free_reflection:3.0.1' // bypass hidden api restriction, https://github.com/tiann/FreeReflection
+}

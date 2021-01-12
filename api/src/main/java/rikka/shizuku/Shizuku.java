@@ -413,6 +413,13 @@ public class Shizuku {
             return this;
         }
 
+        public UserServiceArgs useStandaloneProcess(String processNameSuffix, boolean debuggable) {
+            this.standalone = true;
+            this.debuggable = debuggable;
+            this.processName = processNameSuffix;
+            return this;
+        }
+
         private Bundle forAdd() {
             Bundle options = new Bundle();
             options.putParcelable(ShizukuApiConstants.USER_SERVICE_ARG_COMPONENT, componentName);

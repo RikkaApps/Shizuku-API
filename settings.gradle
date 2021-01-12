@@ -1,2 +1,3 @@
 include ':aidl', ':shared', ':api'
+include ':demo', ':demo-hidden-api-stub'
 rootProject.name = "Shizuku-API"
