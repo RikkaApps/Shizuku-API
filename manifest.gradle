@@ -1,0 +1,6 @@
+ext {
+    api_min_sdk = 23
+    api_target_sdk = 30
+    api_version_code = Integer.parseInt('git rev-list --count HEAD'.execute([], project.rootDir).text.trim())
+    api_version_name = "11.0"
+}
