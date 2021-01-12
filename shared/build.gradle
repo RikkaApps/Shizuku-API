@@ -25,3 +25,9 @@ android {
         targetCompatibility JavaVersion.VERSION_1_7
     }
 }
+
+dependencies {
+    implementation project(':aidl')
+
+    implementation "androidx.annotation:annotation:1.1.0"
+}

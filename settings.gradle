@@ -1,2 +1,2 @@
-include ':aidl'
+include ':aidl', ':shared', ':api'
 rootProject.name = "Shizuku-API"
