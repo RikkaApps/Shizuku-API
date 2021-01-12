@@ -18,6 +18,8 @@ import android.os.Process;
 import android.os.RemoteException;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -27,6 +29,7 @@ import java.util.concurrent.CountDownLatch;
 
 import rikka.shizuku.Shizuku;
 import rikka.shizuku.ShizukuBinderWrapper;
+import rikka.shizuku.ShizukuProvider;
 import rikka.shizuku.ShizukuSystemProperties;
 import rikka.shizuku.demo.databinding.MainActivityBinding;
 import rikka.shizuku.demo.service.UserService;
@@ -34,11 +37,12 @@ import rikka.shizuku.demo.util.ApplicationUtils;
 import rikka.shizuku.demo.util.IIntentSenderAdaptor;
 import rikka.shizuku.demo.util.IntentSenderUtils;
 import rikka.shizuku.demo.util.PackageInstallerUtils;
+import rikka.shizuku.demo.util.ShizukuSystemServerApi;
 
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 
 @SuppressLint("SetTextI18n")
-public class SampleActivity extends Activity {
+public class DemoActivity extends Activity {
 
     private static final int REQUEST_CODE_BUTTON1 = 1;
     private static final int REQUEST_CODE_BUTTON2 = 2;
@@ -62,6 +66,8 @@ public class SampleActivity extends Activity {
 
         binding = MainActivityBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        binding.text2.setText("The \"backend\" is " + (DemoApplication.isSui() ? "Sui" : "Shizuku") + ".");
 
         binding.text1.setText("Waiting for binder");
         binding.button1.setOnClickListener((v) -> {
@@ -131,6 +137,15 @@ public class SampleActivity extends Activity {
     }
 
     @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        for (String perm : permissions) {
+            if (ShizukuProvider.PERMISSION.equals(perm)) {
+                onRequestPermissionsResult(requestCode, grantResults[0]);
+            }
+        }
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_CODE_PICK_APKS && resultCode == RESULT_OK) {
             List<Uri> uris;
@@ -153,7 +168,8 @@ public class SampleActivity extends Activity {
 
     private boolean checkPermission(int code) {
         try {
-            if (Shizuku.getVersion() >= 11) {
+            if (!Shizuku.isPreV11() && Shizuku.getVersion() >= 11) {
+                // Shizuku >= 11 or Sui use self-implemented permission
                 if (Shizuku.checkSelfPermission() == PERMISSION_GRANTED) {
                     return true;
                 } else if (Shizuku.shouldShowRequestPermissionRationale()) {
@@ -163,7 +179,17 @@ public class SampleActivity extends Activity {
                     Shizuku.requestPermission(code);
                     return false;
                 }
-
+            } else {
+                // Shizuku < 11 uses runtime permission
+                if (checkSelfPermission(ShizukuProvider.PERMISSION) == PERMISSION_GRANTED) {
+                    return true;
+                } else if (shouldShowRequestPermissionRationale(ShizukuProvider.PERMISSION)) {
+                    binding.text3.setText("User denied permission (shouldShowRequestPermissionRationale=true)");
+                    return false;
+                } else {
+                    requestPermissions(new String[]{ShizukuProvider.PERMISSION}, code);
+                    return false;
+                }
             }
         } catch (Throwable e) {
             binding.text3.setText(Log.getStackTraceString(e));

@@ -1,4 +1,4 @@
-package rikka.shizuku.demo;
+package rikka.shizuku.demo.util;
 
 import android.content.Context;
 import android.content.pm.IPackageInstaller;
@@ -12,7 +12,6 @@ import java.util.List;
 
 import rikka.shizuku.ShizukuBinderWrapper;
 import rikka.shizuku.SystemServiceHelper;
-import rikka.shizuku.demo.util.Singleton;
 
 public class ShizukuSystemServerApi {
 

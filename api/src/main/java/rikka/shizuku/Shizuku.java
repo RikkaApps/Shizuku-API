@@ -40,6 +40,7 @@ public class Shizuku {
     private static String serverContext = null;
     private static boolean permissionGranted = false;
     private static boolean shouldShowRequestPermissionRationale = false;
+    private static boolean preV11 = false;
 
     private static final IShizukuApplication SHIZUKU_APPLICATION = new IShizukuApplication.Stub() {
 
@@ -88,15 +89,32 @@ public class Shizuku {
             } catch (Throwable e) {
                 Log.i("ShizukuApplication", "attachApplication");
             }
+
             try {
-                service.attachApplication(SHIZUKU_APPLICATION, packageName);
+                //service.attachApplication(SHIZUKU_APPLICATION, packageName);
+
+                Parcel data = Parcel.obtain();
+                Parcel reply = Parcel.obtain();
+                try {
+                    data.writeInterfaceToken("moe.shizuku.server.IShizukuService");
+                    data.writeStrongBinder(SHIZUKU_APPLICATION.asBinder());
+                    data.writeString(packageName);
+                    preV11 = !binder.transact(14 /*IShizukuService.Stub.TRANSACTION_attachApplication*/, data, reply, 0);
+                    reply.readException();
+                }
+                finally {
+                    reply.recycle();
+                    data.recycle();
+                }
+
                 Log.i("ShizukuApplication", "attachApplication");
             } catch (Throwable e) {
                 Log.w("ShizukuApplication", Log.getStackTraceString(e));
             }
+
+            scheduleBinderReceivedListeners();
         }
     }
-
 
     public interface OnBinderReceivedListener {
         void onBinderReceived();
@@ -162,7 +180,7 @@ public class Shizuku {
         return RECEIVED_LISTENERS.remove(listener);
     }
 
-    static void scheduleBinderReceivedListeners() {
+    private static void scheduleBinderReceivedListeners() {
         if (Looper.myLooper() == Looper.getMainLooper()) {
             dispatchBinderReceivedListeners();
         } else {
@@ -170,7 +188,7 @@ public class Shizuku {
         }
     }
 
-    static void dispatchBinderReceivedListeners() {
+    private static void dispatchBinderReceivedListeners() {
         for (OnBinderReceivedListener listener : RECEIVED_LISTENERS) {
             listener.onBinderReceived();
         }
@@ -200,7 +218,7 @@ public class Shizuku {
         return DEAD_LISTENERS.remove(listener);
     }
 
-    static void scheduleBinderDeadListeners() {
+    private static void scheduleBinderDeadListeners() {
         if (Looper.myLooper() == Looper.getMainLooper()) {
             dispatchBinderDeadListeners();
         } else {
@@ -208,7 +226,7 @@ public class Shizuku {
         }
     }
 
-    static void dispatchBinderDeadListeners() {
+    private static void dispatchBinderDeadListeners() {
         for (OnBinderDeadListener listener : DEAD_LISTENERS) {
             listener.onBinderDead();
         }
@@ -316,6 +334,7 @@ public class Shizuku {
      * Returns uid of remote service.
      *
      * @return uid
+     * @throws SecurityException if service version below v11 and the app have't get the permission
      */
     public static int getUid() {
         if (serverUid != -1) return serverUid;
@@ -331,6 +350,7 @@ public class Shizuku {
      * Returns remote service version.
      *
      * @return server version
+     * @throws SecurityException if service version below v11 and the app have't get the permission
      */
     public static int getVersion() {
         if (serverVersion != -1) return serverVersion;
@@ -340,6 +360,15 @@ public class Shizuku {
             throw rethrowAsRuntimeException(e);
         }
         return serverVersion;
+    }
+
+    /**
+     * Returns if the remote service version belows 11.
+     *
+     * @return If the remote service version belows 11
+     */
+    public static boolean isPreV11() {
+        return preV11;
     }
 
     /**
@@ -379,6 +408,7 @@ public class Shizuku {
      *
      * @return SELinux context
      * @since added from version 6
+     * @throws SecurityException if service version below v11 and the app have't get the permission
      */
     public static String getSELinuxContext() {
         if (serverContext != null) return serverContext;

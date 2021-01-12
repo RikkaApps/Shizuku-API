@@ -11,12 +11,18 @@
         android:orientation="vertical"
         android:padding="16dp">
 
+        <TextView
+            android:id="@android:id/text2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
         <Button
             android:id="@android:id/button1"
             style="?android:borderlessButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="-12dp"
+            android:layout_marginTop="8dp"
             android:text="IUserManager#getUsers"
             android:textAllCaps="false"
             android:textColor="?android:colorAccent" />

@@ -42,10 +42,11 @@ android {
 }
 
 dependencies {
-    compileOnly project(':demo-hidden-api-stub')
-    //implementation project(':hidden-api-common-bridge')
     implementation "androidx.annotation:annotation:1.1.0"
-    implementation project(':api')
 
+    implementation project(':api') // required by Shizuku and Sui
+    implementation project(':provider') // required by Shizuku only
+
+    compileOnly project(':demo-hidden-api-stub')
     implementation 'me.weishu:free_reflection:3.0.1' // bypass hidden api restriction, https://github.com/tiann/FreeReflection
 }

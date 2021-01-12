@@ -5,15 +5,24 @@ import android.content.Context;
 import android.util.Log;
 
 import me.weishu.reflection.Reflection;
+import rikka.shizuku.ShizukuProvider;
 import rikka.shizuku.demo.util.ApplicationUtils;
 import rikka.sui.Sui;
 
-public class SampleApplication extends Application {
+public class DemoApplication extends Application {
+
+    private static boolean isSui;
+
+    public static boolean isSui() {
+        return isSui;
+    }
 
     static {
-        boolean isProviderProcess = ApplicationUtils.getProcessName().endsWith(":test");
-        //ShizukuProvider.enableMultiProcessSupport(isProviderProcess);
-        Sui.init(BuildConfig.APPLICATION_ID);
+        isSui = Sui.init(BuildConfig.APPLICATION_ID);
+        if (!isSui) {
+            // If this is a multi-process application
+            //ShizukuProvider.enableMultiProcessSupport( /* is current process the same process of ShizukuProvider's */ );
+        }
     }
 
     @Override
@@ -22,7 +31,10 @@ public class SampleApplication extends Application {
 
         Log.d("ShizukuSample", getClass().getSimpleName() + " onCreate | Process=" + ApplicationUtils.getProcessName());
 
-        //ShizukuProvider.requestBinderForNonProviderProcess(this);
+        if (!isSui) {
+            // If this is a multi-process application
+            //ShizukuProvider.requestBinderForNonProviderProcess(this);
+        }
     }
 
     @Override
