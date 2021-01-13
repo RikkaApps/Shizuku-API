@@ -67,7 +67,7 @@ public class DemoActivity extends Activity {
         binding = MainActivityBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        binding.text2.setText("The \"backend\" is " + (DemoApplication.isSui() ? "Sui" : "Shizuku") + ".");
+        binding.text2.setText("Using " + (DemoApplication.isSui() ? "Sui" : "Shizuku or nothing is installed") + ".");
 
         binding.text1.setText("Waiting for binder");
         binding.button1.setOnClickListener((v) -> {
