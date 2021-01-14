@@ -10,7 +10,6 @@ android {
         versionCode api_version_code
         versionName api_version_name
         consumerProguardFiles "consumer-rules.pro"
-        buildConfigField "int", "SHIZUKU_API_VERSION", "$api_version_major"
     }
     buildTypes {
         release {
@@ -29,3 +28,13 @@ dependencies {
 
     implementation "androidx.annotation:annotation:1.1.0"
 }
+
+project.ext {
+    mavProjectName = 'rikka.shizuku:shared'
+    mavLibraryDescription = 'The API for Shizuku & Sui.'
+}
+
+group = 'rikka.shizuku'
+version = android.defaultConfig.versionName
+
+apply from: rootProject.file('publish.gradle')

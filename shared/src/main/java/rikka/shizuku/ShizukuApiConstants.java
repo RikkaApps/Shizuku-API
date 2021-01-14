@@ -2,13 +2,11 @@ package rikka.shizuku;
 
 import androidx.annotation.RestrictTo;
 
-import rikka.shizuku.shared.BuildConfig;
-
 import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP_PREFIX;
 
 public class ShizukuApiConstants {
 
-    public static final int SERVER_VERSION = BuildConfig.SHIZUKU_API_VERSION;
+    public static final int SERVER_VERSION = 11;
 
     // binder
     public static final String BINDER_DESCRIPTOR = "moe.shizuku.server.IShizukuService";

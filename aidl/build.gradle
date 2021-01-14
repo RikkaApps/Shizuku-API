@@ -25,3 +25,13 @@ android {
         targetCompatibility JavaVersion.VERSION_1_7
     }
 }
+
+project.ext {
+    mavProjectName = 'rikka.shizuku:aidl'
+    mavLibraryDescription = 'The low-level aidl of Shizuku/Sui.'
+}
+
+group = 'rikka.shizuku'
+version = android.defaultConfig.versionName
+
+apply from: rootProject.file('publish.gradle')

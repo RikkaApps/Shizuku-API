@@ -1,0 +1,45 @@
+apply plugin: 'com.jfrog.bintray'
+
+project.ext {
+    mavSiteUrl = 'https://github.com/RikkaApps/Shizuku-API'
+    mavGitUrl = 'https://github.com/RikkaApps/Shizuku-API.git'
+    mavLibraryLicenses = ["MIT": 'https://opensource.org/licenses/MIT']
+    mavPublishToMavenLocal = true
+}
+
+apply from: 'https://raw.githubusercontent.com/sky-uk/gradle-maven-plugin/master/gradle-mavenizer.gradle'
+
+project.afterEvaluate {
+    def file = rootProject.file('local.properties')
+    def props = new Properties()
+    if (file.canRead()) {
+        props.load(new FileInputStream(file))
+
+        if (props != null) {
+            bintray.user = props["bintray.user"]
+            bintray.key = props["bintray.apikey"]
+        }
+    } else {
+        println '\'local.properties\' not found!'
+    }
+
+    bintray {
+        publications = ['mavenPublish']
+        configurations = ['archives']
+        override = true
+        pkg {
+            repo = 'Libraries'
+            name = mavProjectName
+            desc = mavLibraryDescription
+            publicDownloadNumbers = true
+            publish = true
+            licenses = ['MIT']
+            vcsUrl = mavSiteUrl
+            version {
+                name = this.version
+                desc = "v${this.version}"
+                released = new Date()
+            }
+        }
+    }
+}

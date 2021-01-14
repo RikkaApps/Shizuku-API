@@ -30,3 +30,13 @@ dependencies {
     implementation project(':api')
     implementation "androidx.annotation:annotation:1.1.0"
 }
+
+project.ext {
+    mavProjectName = 'rikka.shizuku:provider'
+    mavLibraryDescription = 'The API for Shizuku.'
+}
+
+group = 'rikka.shizuku'
+version = android.defaultConfig.versionName
+
+apply from: rootProject.file('publish.gradle')
