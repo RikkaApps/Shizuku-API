@@ -77,6 +77,8 @@ public class Shizuku {
             serverUid = -1;
             serverVersion = -1;
             serverContext = null;
+
+            scheduleBinderDeadListeners();
         } else {
             if (binder != null) {
                 binder.unlinkToDeath(DEATH_RECIPIENT, 0);
@@ -313,12 +315,16 @@ public class Shizuku {
 
     /**
      * Start a new process at remote service, parameters are passed to {@link Runtime#exec(String, String[], java.io.File)}.
+     * <br>From version 11, like "su", the process will be killed when the caller process is dead. If you have complicated
+     * requirements, use {@link Shizuku#bindUserService(UserServiceArgs, ServiceConnection)}.
      * <p>
      * Note, you may need to read/write streams from RemoteProcess in different threads.
      * </p>
      *
      * @return RemoteProcess holds the binder of remote process
-     * @deprecated If transactRemote is not enough for you, use UserService.
+     * @deprecated This method should only be used when you are transitioning from "su".
+     * Use {@link Shizuku#transactRemote(Parcel, Parcel, int)} for binder calls and {@link Shizuku#bindUserService(UserServiceArgs, ServiceConnection)}
+     * for complicated requirements.
      */
     @Deprecated
     public static ShizukuRemoteProcess newProcess(@NonNull String[] cmd, @Nullable String[] env, @Nullable String dir) {
@@ -381,12 +387,12 @@ public class Shizuku {
     }
 
     /**
-     * Check permission at remote service.
+     * Check if remote service has specific permission.
      *
      * @param permission permission name
      * @return PackageManager.PERMISSION_DENIED or PackageManager.PERMISSION_GRANTED
      */
-    public static int checkPermission(String permission) {
+    public static int checkRemotePermission(String permission) {
         if (serverUid == 0) return PackageManager.PERMISSION_GRANTED;
         try {
             return requireService().checkPermission(permission);
