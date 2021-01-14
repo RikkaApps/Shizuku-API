@@ -101,8 +101,7 @@ public class Shizuku {
                     data.writeString(packageName);
                     preV11 = !binder.transact(14 /*IShizukuService.Stub.TRANSACTION_attachApplication*/, data, reply, 0);
                     reply.readException();
-                }
-                finally {
+                } finally {
                     reply.recycle();
                     data.recycle();
                 }
@@ -407,8 +406,8 @@ public class Shizuku {
      * </p>
      *
      * @return SELinux context
-     * @since added from version 6
      * @throws SecurityException if service version below v11 and the app have't get the permission
+     * @since added from version 6
      */
     public static String getSELinuxContext() {
         if (serverContext != null) return serverContext;

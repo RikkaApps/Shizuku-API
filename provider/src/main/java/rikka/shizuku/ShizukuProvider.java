@@ -6,6 +6,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
 import android.database.Cursor;
 import android.net.Uri;
@@ -141,11 +142,15 @@ public class ShizukuProvider extends ContentProvider {
      *
      * @param context Context
      * @return true if Shizuku app is installed
-     * @deprecated When Shizuku is installed, binder is granted to be received
+     * @deprecated When Shizuku is installed, binder is guaranteed to be received
      */
     @Deprecated
     public static boolean isShizukuInstalled(@NonNull Context context) {
-        return Shizuku.pingBinder();
+        try {
+            return context.getPackageManager().getPermissionInfo(ShizukuProvider.PERMISSION, 0) != null;
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
+        }
     }
 
     @Override
