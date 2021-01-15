@@ -1,8 +1,8 @@
 # Shizuku-API
 
-API for [Shizuku](https://github.com/RikkaApps/Shizuku) and [Sui](https://github.com/RikkaApps/Sui).
+API and developer guide for [Shizuku](https://github.com/RikkaApps/Shizuku) and [Sui](https://github.com/RikkaApps/Sui).
 
-The concept is "same API, different implementation", Shizuku and Sui shares the API design.
+The concept is "same API, different implementation", Shizuku and Sui shares the API design. As the application developer, you only need to write the code once to support both Shizuku and Sui.
 
 ## Introduction
 
@@ -12,11 +12,33 @@ The most important functions provided by Shizuku API is "remote binder call" and
 
 * Remote binder call
 
-  Binder calls as root (or adb). In short, the experience is same to calling Android APIs such as `getInstalledPackages`, but as the identity of root (or adb).
+  Call any Android APIs which uses binder (such as `getInstalledPackages`) as the identity of root (or adb).
 
 * User service
 
-  Run app's own Java service under root (or adb). The experience is petty similar to [Bound services](https://developer.android.com/guide/components/bound-services). JNI is  supported.
+  Similar to [Bound services](https://developer.android.com/guide/components/bound-services), but the service runs as the identity of root (or adb). JNI is also supported.
+
+## Requirements
+
+Shizuku and Sui requires the user to install something first.
+
+#### Sui
+
+- Requires Magisk
+- Requires the user to install two Magisk modules, "Riru" and "Riru - Sui"
+
+#### Shizuku
+
+- Requires root or adb
+  - For adb, it's required to manually restart with adb everytime on boot
+  - For adb, of course, only has limited permissions of adb
+- Requires the user to install a standalone app, Shizuku
+
+## Make a choice
+
+For root-only apps, continue to support the old school "su" or not, you may have to make this choice.
+
+Since Sui is possible to be bundled in Magisk in the future (Riru is already in Magisk), abandon old school "su" is not a bad choice.
 
 For existing applications, there is an API that allows you to create a "sh" as root (or adb), so you can always do what was previously possible.
 
@@ -33,22 +55,6 @@ For existing applications, there is an API that allows you to create a "sh" as r
 * Complicated applications which heavily depend on commands in Linux world
 
   Use "User service" with JNI or continue to use shell.
-
-## Different between Sui and Shizuku
-
-### Sui
-
-- Requires Magisk
-- Requires the user to install two Magisk modules, "Riru" and "Riru - Sui"
-- Does NOT required to install a manager app
-- Possible to be bundled in Magisk in the future
-
-### Shizuku
-
-- Requires root or adb
-  - For adb, it's required to manually restart with adb everytime on boot
-  - For adb, of course, only has limited permissions of adb
-- Requires the user to install a standalone app, Shizuku
 
 ## Guide
 

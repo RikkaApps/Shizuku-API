@@ -169,7 +169,7 @@ public class DemoActivity extends Activity {
     private boolean checkPermission(int code) {
         try {
             if (!Shizuku.isPreV11() && Shizuku.getVersion() >= 11) {
-                // Shizuku >= 11 or Sui use self-implemented permission
+                // Sui and Shizuku >= 11 use self-implemented permission
                 if (Shizuku.checkSelfPermission() == PERMISSION_GRANTED) {
                     return true;
                 } else if (Shizuku.shouldShowRequestPermissionRationale()) {
