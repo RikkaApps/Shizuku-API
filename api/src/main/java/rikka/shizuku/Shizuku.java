@@ -429,7 +429,6 @@ public class Shizuku {
 
         final ComponentName componentName;
         int versionCode = 1;
-        boolean standalone = true;
         String processName;
         String tag;
         boolean debuggable = false;
@@ -438,19 +437,46 @@ public class Shizuku {
             this.componentName = componentName;
         }
 
+        /**
+         * Tag is used to distinguish different services.
+         * <p>By default, user service is shared by the same packages installed in all users.
+         *
+         * @param tag Tag
+         */
         public UserServiceArgs tag(@NonNull String tag) {
             this.tag = tag;
             return this;
         }
 
+        /**
+         * Version code is used to distinguish different services.
+         * <p>By default, user service lives longer than app's process. Use a different version code after upgrade can
+         * tell the server to recreate the user service.
+         *
+         * @param versionCode Version code
+         */
         public UserServiceArgs version(int versionCode) {
             this.versionCode = versionCode;
             return this;
         }
 
-        public UserServiceArgs useStandaloneProcess(String processNameSuffix, boolean debuggable) {
-            this.standalone = true;
+        /**
+         * Set if the service is debuggable. The process can be found when "Show all processes" is enabled.
+         *
+         * @param debuggable Debuggable
+         */
+        public UserServiceArgs debuggable(boolean debuggable) {
             this.debuggable = debuggable;
+            return this;
+        }
+
+        /**
+         * Set if the name suffix of the user service process. The final process name will like
+         * <code>com.example:suffix</code>.
+         *
+         * @param processNameSuffix Name suffix
+         */
+        public UserServiceArgs processNameSuffix(String processNameSuffix) {
             this.processName = processNameSuffix;
             return this;
         }
@@ -460,10 +486,8 @@ public class Shizuku {
             options.putParcelable(ShizukuApiConstants.USER_SERVICE_ARG_COMPONENT, componentName);
             options.putBoolean(ShizukuApiConstants.USER_SERVICE_ARG_DEBUGGABLE, debuggable);
             options.putInt(ShizukuApiConstants.USER_SERVICE_ARG_VERSION_CODE, versionCode);
-            if (standalone) {
-                options.putString(ShizukuApiConstants.USER_SERVICE_ARG_PROCESS_NAME,
-                        Objects.requireNonNull(processName, "process name suffix must not be null when using standalone process mode"));
-            }
+            options.putString(ShizukuApiConstants.USER_SERVICE_ARG_PROCESS_NAME,
+                    Objects.requireNonNull(processName, "process name suffix must not be null when using standalone process mode"));
             if (tag != null) {
                 options.putString(ShizukuApiConstants.USER_SERVICE_ARG_TAG, tag);
             }

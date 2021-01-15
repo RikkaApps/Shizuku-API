@@ -43,11 +43,9 @@ class ShizukuServiceConnection extends IShizukuServiceConnection.Stub {
 
     private final Set<ServiceConnection> connections = new HashSet<>();
     private final ComponentName componentName;
-    private final boolean standalone;
 
     public ShizukuServiceConnection(Shizuku.UserServiceArgs args) {
         this.componentName = args.componentName;
-        this.standalone = args.standalone;
     }
 
     private boolean dead = false;
@@ -73,11 +71,9 @@ class ShizukuServiceConnection extends IShizukuServiceConnection.Stub {
                 }
         );
 
-        if (standalone) {
-            try {
-                binder.linkToDeath(this::dead, 0);
-            } catch (RemoteException ignored) {
-            }
+        try {
+            binder.linkToDeath(this::dead, 0);
+        } catch (RemoteException ignored) {
         }
     }
 

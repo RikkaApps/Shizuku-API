@@ -394,7 +394,8 @@ public class DemoActivity extends Activity {
 
     private final Shizuku.UserServiceArgs userServiceStandaloneProcessArgs =
             new Shizuku.UserServiceArgs(new ComponentName(BuildConfig.APPLICATION_ID, UserService.class.getName()))
-                    .useStandaloneProcess("service", BuildConfig.DEBUG)
+                    .processNameSuffix("service")
+                    .debuggable(BuildConfig.DEBUG)
                     .version(BuildConfig.VERSION_CODE);
 
     private void bindUserServiceStandaloneProcess() {
