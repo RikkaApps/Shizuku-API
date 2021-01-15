@@ -37,6 +37,12 @@ public class Sui {
         return null;
     }
 
+    private static boolean isSui;
+
+    public static boolean isSui() {
+        return isSui;
+    }
+
     /**
      * Request binder from Sui. This method must only be called once.
      *
@@ -47,8 +53,10 @@ public class Sui {
         IBinder binder = requestBinder();
         if (binder != null) {
             Shizuku.onBinderReceived(binder, packageName);
+            isSui = true;
             return true;
         }
+        isSui = false;
         return false;
     }
 }

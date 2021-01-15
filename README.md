@@ -67,7 +67,7 @@ Note, something is not mentioned below, please be sure to read the [demo](https:
    ```
    
    ```
-   def shizuku_version = '11.0.0'
+   def shizuku_version = '11.0.1'
 
    // required by Shizuku and Sui
    implementation "rikka.shizuku:api:$shizuku_version"

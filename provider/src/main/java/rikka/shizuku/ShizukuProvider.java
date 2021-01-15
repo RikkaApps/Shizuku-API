@@ -75,6 +75,8 @@ public class ShizukuProvider extends ContentProvider {
 
     public static final String PERMISSION = "moe.shizuku.manager.permission.API_V23";
 
+    public static final String MANAGER_APPLICATION_ID = "moe.shizuku.privileged.api";
+
     private static boolean enableMultiProcess = false;
 
     private static boolean isProviderProcess = false;
