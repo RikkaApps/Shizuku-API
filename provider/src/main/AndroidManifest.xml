@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="rikka.shizuku.provider">
 
+    <uses-permission android:name="moe.shizuku.manager.permission.API_V23" />
+
     <application tools:ignore="AllowBackup,GoogleAppIndexingWarning">
         <meta-data
             android:name="moe.shizuku.client.V3_SUPPORT"

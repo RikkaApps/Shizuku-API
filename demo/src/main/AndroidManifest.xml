@@ -3,9 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="rikka.shizuku.demo">
 
-    <!-- This permission is required by Shizuku, remove if your app only supports Sui -->
-    <uses-permission android:name="moe.shizuku.manager.permission.API_V23" />
-
     <application
         android:name=".DemoApplication"
         android:allowBackup="false"
