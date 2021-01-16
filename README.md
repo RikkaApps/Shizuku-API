@@ -56,6 +56,27 @@ For existing applications, there is an API that allows you to create a "sh" as r
 
   Use "User service" with JNI or continue to use shell.
 
+## Migration guide for existing applications use Shizuku pre-v11
+<details>
+  <summary>Click to expand</summary>
+
+### Changes
+
+- Dependency changed (see Guide below)
+- Self-implemented permission is used from v11, the API is same to runtime permission (see demo, and existing runtime permission still works)
+- Package name is rename to `rikka.shizuku` (replace all `moe.shizuku.api.` to `rikka.shizuku.`)
+- `ShizukuService` class is renamed to `Shizuku`
+- Methods in `Shizuku` class now throw `RuntimeException` rather than `RemoteException` like other Android APIs
+- Listeners are moved from `ShizukuProvider` class to `Shizuku` class
+
+### Add support for Sui
+
+- Call `Sui#init()`
+- Do not use `ShizukuProvider#isShizukuInstalled` since Sui does not have a manager
+- It's better to use check Sui with `Sui#isSui` before using Shizuku only methods in `ShizukuProvider`
+
+</details>
+
 ## Guide
 
 Note, something is not mentioned below, please be sure to read the [demo](https://github.com/RikkaApps/Shizuku-API/tree/master/demo).
@@ -76,6 +97,8 @@ Note, something is not mentioned below, please be sure to read the [demo](https:
    implementation "rikka.shizuku:provider:$shizuku_version"
    ```
 2. Add `ShizukuProvider` (Shizuku only)
+
+   Since all root users using Shizuku will eventually switch to Sui, if your application requires root, it's better not to support Shizuku in the begining.
 
    Add to your `AndroidManifest.xml`.
 
