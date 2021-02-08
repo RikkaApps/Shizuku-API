@@ -89,16 +89,17 @@ Note, something is not mentioned below, please be sure to read the [demo](https:
    
    ```
    def shizuku_version = '11.0.1'
-
-   // required by Shizuku and Sui
    implementation "rikka.shizuku:api:$shizuku_version"
 
-   // required by Shizuku
+   // add this if you want to support Shizuku
    implementation "rikka.shizuku:provider:$shizuku_version"
    ```
+
+   Since all root users using Shizuku will eventually switch to Sui, if your application requires root, it's better not to support Shizuku from the begining.
+
 2. Add `ShizukuProvider` (Shizuku only)
 
-   Since all root users using Shizuku will eventually switch to Sui, if your application requires root, it's better not to support Shizuku in the begining.
+   Don't add this if your app only supports Sui.
 
    Add to your `AndroidManifest.xml`.
 
