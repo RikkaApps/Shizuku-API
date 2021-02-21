@@ -24,6 +24,7 @@ import moe.shizuku.server.IShizukuService;
 
 import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP_PREFIX;
 import static rikka.shizuku.ShizukuApiConstants.ATTACH_REPLY_PERMISSION_GRANTED;
+import static rikka.shizuku.ShizukuApiConstants.ATTACH_REPLY_SERVER_PATCH_VERSION;
 import static rikka.shizuku.ShizukuApiConstants.ATTACH_REPLY_SERVER_SECONTEXT;
 import static rikka.shizuku.ShizukuApiConstants.ATTACH_REPLY_SERVER_UID;
 import static rikka.shizuku.ShizukuApiConstants.ATTACH_REPLY_SERVER_VERSION;
@@ -36,7 +37,8 @@ public class Shizuku {
     private static IShizukuService service;
 
     private static int serverUid = -1;
-    private static int serverVersion = -1;
+    private static int serverApiVersion = -1;
+    private static int serverPatchVersion = -1;
     private static String serverContext = null;
     private static boolean permissionGranted = false;
     private static boolean shouldShowRequestPermissionRationale = false;
@@ -47,7 +49,8 @@ public class Shizuku {
         @Override
         public void bindApplication(Bundle data) {
             serverUid = data.getInt(ATTACH_REPLY_SERVER_UID, -1);
-            serverVersion = data.getInt(ATTACH_REPLY_SERVER_VERSION, -1);
+            serverApiVersion = data.getInt(ATTACH_REPLY_SERVER_VERSION, -1);
+            serverPatchVersion = data.getInt(ATTACH_REPLY_SERVER_PATCH_VERSION, -1);
             serverContext = data.getString(ATTACH_REPLY_SERVER_SECONTEXT);
             permissionGranted = data.getBoolean(ATTACH_REPLY_PERMISSION_GRANTED, false);
             shouldShowRequestPermissionRationale = data.getBoolean(ATTACH_REPLY_SHOULD_SHOW_REQUEST_PERMISSION_RATIONALE, false);
@@ -75,7 +78,7 @@ public class Shizuku {
             binder = null;
             service = null;
             serverUid = -1;
-            serverVersion = -1;
+            serverApiVersion = -1;
             serverContext = null;
 
             scheduleBinderDeadListeners();
@@ -358,13 +361,13 @@ public class Shizuku {
      * @throws SecurityException if service version below v11 and the app have't get the permission
      */
     public static int getVersion() {
-        if (serverVersion != -1) return serverVersion;
+        if (serverApiVersion != -1) return serverApiVersion;
         try {
-            serverVersion = requireService().getVersion();
+            serverApiVersion = requireService().getVersion();
         } catch (RemoteException e) {
             throw rethrowAsRuntimeException(e);
         }
-        return serverVersion;
+        return serverApiVersion;
     }
 
     /**
@@ -627,6 +630,11 @@ public class Shizuku {
         } catch (RemoteException e) {
             throw rethrowAsRuntimeException(e);
         }
+    }
+
+    @RestrictTo(LIBRARY_GROUP_PREFIX)
+    public static int getServerPatchVersion() {
+        return serverPatchVersion;
     }
 
 }

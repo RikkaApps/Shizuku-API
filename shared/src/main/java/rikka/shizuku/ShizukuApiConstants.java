@@ -27,6 +27,7 @@ public class ShizukuApiConstants {
 
     // attach client
     public static final String ATTACH_REPLY_SERVER_VERSION = "shizuku:attach-reply-version";
+    public static final String ATTACH_REPLY_SERVER_PATCH_VERSION = "shizuku:attach-reply-patch-version";
     public static final String ATTACH_REPLY_SERVER_UID = "shizuku:attach-reply-uid";
     public static final String ATTACH_REPLY_SERVER_SECONTEXT = "shizuku:attach-reply-secontext";
     public static final String ATTACH_REPLY_PERMISSION_GRANTED = "shizuku:attach-reply-permission-granted";
