@@ -43,3 +43,23 @@ subprojects {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+
+ext {
+    GROUP = "dev.rikka.shizuku"
+
+    POM_INCEPTION_YEAR = "2021"
+    POM_PACKAGING = "aar"
+
+    POM_URL = "https://github.com/RikkaApps/Shizuku-API"
+    POM_SCM_URL = "https://github.com/RikkaApps/Shizuku-API"
+    POM_SCM_CONNECTION = "scm:git@github.com:RikkaApps/Shizuku-API.git"
+    POM_SCM_DEV_CONNECTION = "scm:git@github.com:RikkaApps/Shizuku-API.git"
+
+    POM_LICENCE_NAME = "MIT License"
+    POM_LICENCE_URL = "https://github.com/RikkaApps/Shizuku-API/blob/master/LICENSE"
+    POM_LICENCE_DIST = "repo"
+
+    POM_DEVELOPER_ID = "rikka"
+    POM_DEVELOPER_NAME = "Rikka"
+    POM_DEVELOPER_URL = "https://github.com/RikkaW"
+}

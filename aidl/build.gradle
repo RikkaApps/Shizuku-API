@@ -28,3 +28,8 @@ android {
 }
 
 version = android.defaultConfig.versionName
+
+ext {
+    POM_NAME = "Shizuku API - aidl"
+    POM_DESCRIPTION = "Low level aidl of Shizuku and Sui."
+}

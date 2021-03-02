@@ -35,3 +35,8 @@ dependencies {
 }
 
 version = android.defaultConfig.versionName
+
+ext {
+    POM_NAME = "Shizuku API - API"
+    POM_DESCRIPTION = "API of Shizuku and Sui."
+}
