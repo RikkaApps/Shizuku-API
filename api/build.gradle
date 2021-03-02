@@ -34,8 +34,6 @@ dependencies {
     implementation "androidx.annotation:annotation:1.1.0"
 }
 
-version = android.defaultConfig.versionName
-
 ext {
     POM_NAME = "Shizuku API - API"
     POM_DESCRIPTION = "API of Shizuku and Sui."

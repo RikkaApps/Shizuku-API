@@ -30,6 +30,9 @@ allprojects {
 subprojects {
     afterEvaluate {
         if (plugins.hasPlugin('com.vanniktech.maven.publish')) {
+            version = android.defaultConfig.versionName
+            println("${it.displayName}: ${group}:${it.name}:${version}")
+
             mavenPublish {
                 nexus {
                     baseUrl = "https://s01.oss.sonatype.org"
