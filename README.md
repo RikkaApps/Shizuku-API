@@ -84,15 +84,17 @@ Note, something is not mentioned below, please be sure to read the [demo](https:
 1. Add dependency
 
    ```
-   maven { url 'https://dl.bintray.com/rikkaw/Libraries' }
+   repositories {
+       mavenCentral()
+   }
    ```
    
    ```
-   def shizuku_version = '11.0.1'
-   implementation "rikka.shizuku:api:$shizuku_version"
+   def shizuku_version = '11.0.2'
+   implementation "dev.rikka.shizuku:api:$shizuku_version"
 
    // add this if you want to support Shizuku
-   implementation "rikka.shizuku:provider:$shizuku_version"
+   implementation "dev.rikka.shizuku:provider:$shizuku_version"
    ```
 
    Since all root users using Shizuku will eventually switch to Sui, if your application requires root, it's better not to support Shizuku from the begining.
