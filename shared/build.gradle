@@ -1,5 +1,6 @@
 plugins {
-    id 'com.android.library'
+    id('com.android.library')
+    id('com.vanniktech.maven.publish')
 }
 
 android {
@@ -29,14 +30,4 @@ dependencies {
     implementation "androidx.annotation:annotation:1.1.0"
 }
 
-project.ext {
-    mavProjectName = 'rikka.shizuku:shared'
-    mavLibraryDescription = 'The API for Shizuku & Sui.'
-}
-
-group = 'rikka.shizuku'
 version = android.defaultConfig.versionName
-
-if (rootProject.file('publish.gradle').canRead()) {
-    apply from: rootProject.file('publish.gradle')
-}
