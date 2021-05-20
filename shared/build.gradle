@@ -27,7 +27,7 @@ android {
 dependencies {
     implementation project(':aidl')
 
-    implementation "androidx.annotation:annotation:1.1.0"
+    implementation "androidx.annotation:annotation:1.2.0"
 }
 
 ext {

@@ -42,7 +42,7 @@ android {
 }
 
 dependencies {
-    implementation "androidx.annotation:annotation:1.1.0"
+    implementation "androidx.annotation:annotation:1.2.0"
 
     implementation project(':api') // required by Shizuku and Sui
     implementation project(':provider') // required by Shizuku only

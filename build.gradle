@@ -2,28 +2,32 @@
 buildscript {
     apply from: 'manifest.gradle'
 
-    ext.kotlinVersion = '1.4.31'
+    ext.kotlinVersion = '1.5.0'
     repositories {
+        mavenCentral()
         google()
-        jcenter()
         maven { url 'https://jitpack.io' }
     }
     dependencies {
-        classpath "com.android.tools.build:gradle:4.1.2"
+        classpath 'com.android.tools.build:gradle:4.2.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
 
-        // vanniktech/gradle-maven-publish-plugin has hardcoded "oss.sonatype.org"
-        classpath 'com.github.RikkaW:gradle-maven-publish-plugin:87b40318c2'
+        classpath 'com.vanniktech:gradle-maven-publish-plugin:0.15.1'
     }
 }
 
 allprojects {
     repositories {
+        mavenCentral()
         google()
-        jcenter()
     }
     tasks.withType(Javadoc) {
         options.addStringOption('Xdoclint:none', '-quiet')
+    }
+    plugins.withId("com.vanniktech.maven.publish") {
+        mavenPublish {
+            sonatypeHost = "S01"
+        }
     }
 }
 
@@ -32,13 +36,6 @@ subprojects {
         if (plugins.hasPlugin('com.vanniktech.maven.publish')) {
             version = android.defaultConfig.versionName
             println("${it.displayName}: ${group}:${it.name}:${version}")
-
-            mavenPublish {
-                nexus {
-                    baseUrl = "https://s01.oss.sonatype.org"
-                    stagingProfile = "dev.rikka"
-                }
-            }
         }
     }
 }

@@ -31,7 +31,7 @@ dependencies {
     api project(':aidl')
     api project(':shared')
 
-    implementation "androidx.annotation:annotation:1.1.0"
+    implementation "androidx.annotation:annotation:1.2.0"
 }
 
 ext {
