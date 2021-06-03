@@ -4,6 +4,6 @@ ext {
     api_version_code = 1
     api_version_major = 11
     api_version_minor = 0
-    api_version_patch = 2
+    api_version_patch = 3
     api_version_name = "${api_version_major}.${api_version_minor}.${api_version_patch}"
 }
