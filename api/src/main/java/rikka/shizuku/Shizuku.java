@@ -527,7 +527,7 @@ public class Shizuku {
      *
      * @param remove Remove (kill) the remote user service.
      */
-    public static void unbindUserService(@NonNull UserServiceArgs args, @NonNull ServiceConnection conn, boolean remove) {
+    public static void unbindUserService(@NonNull UserServiceArgs args, @Nullable ServiceConnection conn, boolean remove) {
         ShizukuServiceConnection connection = ShizukuServiceConnection.get(args);
         if (connection != null) {
             connection.removeConnection(conn);
