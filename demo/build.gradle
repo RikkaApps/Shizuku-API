@@ -48,5 +48,5 @@ dependencies {
     implementation project(':provider') // required by Shizuku only
 
     compileOnly project(':demo-hidden-api-stub')
-    implementation 'me.weishu:free_reflection:3.0.1' // bypass hidden api restriction, https://github.com/tiann/FreeReflection
+    implementation 'org.lsposed.hiddenapibypass:hiddenapibypass:2.0' // bypass hidden api restriction, https://github.com/LSPosed/AndroidHiddenApiBypass
 }

@@ -2,10 +2,11 @@ package rikka.shizuku.demo;
 
 import android.app.Application;
 import android.content.Context;
+import android.os.Build;
 import android.util.Log;
 
-import me.weishu.reflection.Reflection;
-import rikka.shizuku.ShizukuProvider;
+import org.lsposed.hiddenapibypass.HiddenApiBypass;
+
 import rikka.shizuku.demo.util.ApplicationUtils;
 import rikka.sui.Sui;
 
@@ -40,7 +41,9 @@ public class DemoApplication extends Application {
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
-        Reflection.unseal(this); // bypass hidden api restriction, https://github.com/tiann/FreeReflection
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            HiddenApiBypass.addHiddenApiExemptions("L");
+        }
         ApplicationUtils.setApplication(this);
 
         Log.d("ShizukuSample", getClass().getSimpleName() + " attachBaseContext | Process=" + ApplicationUtils.getProcessName());
