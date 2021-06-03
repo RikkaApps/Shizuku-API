@@ -104,6 +104,10 @@ Add `ShizukuProvider` to `AndroidManifest.xml`.
 
 For multi-process applications, call `ShizukuProvider.enableMultiProcessSupport( /* is current process the same process of ShizukuProvider's */ )` in every process which needs to use Shizuku API.
 
+### Request permission
+
+Requesting the permission of Shizuku/Sui is similar to [requesting runtime permissions](https://developer.android.com/training/permissions/requesting). The only difference is you need to use methods from `Shizuku` class. See demo for more.
+
 ### Use
 
 See demo.
