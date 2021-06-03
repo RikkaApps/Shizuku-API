@@ -2,7 +2,7 @@
 buildscript {
     apply from: 'manifest.gradle'
 
-    ext.kotlinVersion = '1.5.0'
+    ext.kotlinVersion = '1.5.10'
     repositories {
         mavenCentral()
         google()
@@ -33,7 +33,8 @@ allprojects {
 
 subprojects {
     afterEvaluate {
-        if (plugins.hasPlugin('com.vanniktech.maven.publish')) {
+        if (it.findProperty('publishLibrary') ?: false) {
+            plugins.apply('com.vanniktech.maven.publish')
             version = android.defaultConfig.versionName
             println("${it.displayName}: ${group}:${it.name}:${version}")
         }

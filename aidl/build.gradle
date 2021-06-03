@@ -1,6 +1,5 @@
 plugins {
     id('com.android.library')
-    id('com.vanniktech.maven.publish')
 }
 
 android {
@@ -28,6 +27,7 @@ android {
 }
 
 ext {
+    publishLibrary = true
     POM_NAME = "Shizuku API - aidl"
     POM_DESCRIPTION = "Low level aidl of Shizuku and Sui."
 }
