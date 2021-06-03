@@ -7,13 +7,9 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.RemoteException;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import moe.shizuku.server.IShizukuServiceConnection;
@@ -21,25 +17,6 @@ import moe.shizuku.server.IShizukuServiceConnection;
 class ShizukuServiceConnection extends IShizukuServiceConnection.Stub {
 
     private static final Handler MAIN_HANDLER = new Handler(Looper.getMainLooper());
-    private static final Map<String, ShizukuServiceConnection> CACHE = Collections.synchronizedMap(new HashMap<>());
-
-    @Nullable
-    static ShizukuServiceConnection get(Shizuku.UserServiceArgs args) {
-        String key = args.tag != null ? args.tag : args.componentName.getClassName();
-        return CACHE.get(key);
-    }
-
-    @NonNull
-    static ShizukuServiceConnection getOrCreate(Shizuku.UserServiceArgs args) {
-        String key = args.tag != null ? args.tag : args.componentName.getClassName();
-        ShizukuServiceConnection connection = CACHE.get(key);
-
-        if (connection == null) {
-            connection = new ShizukuServiceConnection(args);
-            CACHE.put(key, connection);
-        }
-        return connection;
-    }
 
     private final Set<ServiceConnection> connections = new HashSet<>();
     private final ComponentName componentName;

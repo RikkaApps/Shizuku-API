@@ -513,7 +513,7 @@ public class Shizuku {
      * @since added from version 10
      */
     public static void bindUserService(@NonNull UserServiceArgs args, @NonNull ServiceConnection conn) {
-        ShizukuServiceConnection connection = ShizukuServiceConnection.getOrCreate(args);
+        ShizukuServiceConnection connection = ShizukuServiceConnections.getOrCreate(args);
         connection.addConnection(conn);
         try {
             requireService().addUserService(connection, args.forAdd());
@@ -528,7 +528,7 @@ public class Shizuku {
      * @param remove Remove (kill) the remote user service.
      */
     public static void unbindUserService(@NonNull UserServiceArgs args, @Nullable ServiceConnection conn, boolean remove) {
-        ShizukuServiceConnection connection = ShizukuServiceConnection.get(args);
+        ShizukuServiceConnection connection = ShizukuServiceConnections.get(args);
         if (connection != null) {
             connection.removeConnection(conn);
         }
