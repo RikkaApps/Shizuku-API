@@ -4,6 +4,7 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.os.Parcel;
 import android.os.ParcelFileDescriptor;
+import android.system.Os;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -18,10 +19,29 @@ public abstract class BSHService {
 
     private static final Map<Integer, BSHHost> HOSTS = new HashMap<>();
 
-    private void createHost(ParcelFileDescriptor stdin, ParcelFileDescriptor stdout) {
+    private void createHost(String[] args, String[] env, ParcelFileDescriptor stdin, ParcelFileDescriptor stdout) {
         int callingPid = Binder.getCallingPid();
 
-        BSHHost host = BSHHost.create();
+        if (Os.getuid() != 0) {
+
+            // Termux app set PATH and LD_PRELOAD to Termux's internal path.
+            // Adb does not have sufficient permissions to access such places.
+            // Ignore env by default for adb, users need to set BSH_PRESERVE_ENV=1
+            // to preserve env under adb.
+
+            boolean allowEnv = false;
+            for (String e : env) {
+                if ("BSH_PRESERVE_ENV=1".equals(e)) {
+                    allowEnv = true;
+                    break;
+                }
+            }
+            if (!allowEnv) {
+                env = null;
+            }
+        }
+
+        BSHHost host = BSHHost.create(args, env);
         host.prepare(stdin, stdout);
         host.start();
         Log.d(TAG, "Forked " + host.getPid());
@@ -68,7 +88,9 @@ public abstract class BSHService {
             data.enforceInterface(BSHConfig.getInterfaceToken());
             ParcelFileDescriptor stdin = data.readFileDescriptor();
             ParcelFileDescriptor stdout = data.readFileDescriptor();
-            createHost(stdin, stdout);
+            String[] args = data.createStringArray();
+            String[] env = data.createStringArray();
+            createHost(args, env, stdin, stdout);
             reply.writeNoException();
             return true;
         } else if (code == BSHConfig.getTransactionCode(BSHConfig.TRANSACTION_setWindowSize)) {

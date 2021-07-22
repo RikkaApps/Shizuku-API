@@ -1,12 +1,15 @@
 package rikka.bsh;
 
 import android.os.IBinder;
+import android.util.Log;
 
 public class BSHConfig {
 
     static {
         System.loadLibrary("bsh");
     }
+
+    private static final String TAG = "BSHConfig";
 
     static final int TRANSACTION_createHost = 0;
     static final int TRANSACTION_setWindowSize = 1;
@@ -29,6 +32,14 @@ public class BSHConfig {
     }
 
     public static void init(String interfaceToken, int transactionCodeStart) {
+        Log.d(TAG, "init (server) " + interfaceToken + " " + transactionCodeStart);
+        BSHConfig.interfaceToken = interfaceToken;
+        BSHConfig.transactionCodeStart = transactionCodeStart;
+    }
+
+    public static void init(IBinder binder, String interfaceToken, int transactionCodeStart) {
+        Log.d(TAG, "init (client) " + binder + " " + interfaceToken + " " + transactionCodeStart);
+        BSHConfig.binder = binder;
         BSHConfig.interfaceToken = interfaceToken;
         BSHConfig.transactionCodeStart = transactionCodeStart;
     }

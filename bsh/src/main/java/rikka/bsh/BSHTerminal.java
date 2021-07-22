@@ -7,12 +7,15 @@ import android.system.Os;
 import android.util.Log;
 
 import java.io.FileDescriptor;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class BSHTerminal {
 
     private static final String TAG = "BSHTerminal";
 
-    public static BSHTerminal create() {
+    public static BSHTerminal create(String[] args) {
         FileDescriptor[] stdinPipe, stdoutPipe;
         try {
             stdinPipe = Os.pipe();
@@ -26,14 +29,16 @@ public class BSHTerminal {
             return null;
         }
 
-        return new BSHTerminal(stdinPipe, stdoutPipe);
+        return new BSHTerminal(args, stdinPipe, stdoutPipe);
     }
 
+    private final String[] args;
     private final FileDescriptor[] stdinPipe;
     private final FileDescriptor[] stdoutPipe;
     private int exitCode;
 
-    private BSHTerminal(FileDescriptor[] stdinPipe, FileDescriptor[] stdoutPipe) {
+    private BSHTerminal(String[] args, FileDescriptor[] stdinPipe, FileDescriptor[] stdoutPipe) {
+        this.args = args;
         this.stdinPipe = stdinPipe;
         this.stdoutPipe = stdoutPipe;
 
@@ -42,14 +47,21 @@ public class BSHTerminal {
 
     private void createHost() throws RemoteException {
         Log.d(TAG, "createHost");
-
         Parcel data = Parcel.obtain();
         Parcel reply = Parcel.obtain();
+
+        List<String> list = new ArrayList<>();
+        for (Map.Entry<String, String> entry : System.getenv().entrySet()) {
+            list.add(entry.getKey() + "=" + entry.getValue());
+        }
+        String[] env = list.toArray(new String[0]);
 
         try {
             data.writeInterfaceToken(BSHConfig.getInterfaceToken());
             data.writeFileDescriptor(stdinPipe[0]);
             data.writeFileDescriptor(stdoutPipe[1]);
+            data.writeStringArray(args);
+            data.writeStringArray(env);
             BSHConfig.getBinder().transact(BSHConfig.getTransactionCode(BSHConfig.TRANSACTION_createHost), data, reply, 0);
             reply.readException();
         } finally {

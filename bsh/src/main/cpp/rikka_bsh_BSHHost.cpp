@@ -22,7 +22,43 @@ static int setWindowSize(int ptmx, jlong size) {
     return 0;
 }
 
-static jintArray BSHHost_startHost(JNIEnv *env, jclass clazz, jint stdin_read_pipe, jint stdout_write_pipe) {
+// libcore/ojluni/src/main/native/UNIXProcess_md.c
+
+static void *xmalloc(JNIEnv *env, size_t size) {
+    void *p = malloc(size);
+    if (p == nullptr)
+        env->ThrowNew(env->FindClass("java/lang/OutOfMemoryError"), nullptr);
+    else
+        memset(p, 0, size);
+    return p;
+}
+
+#define NEW(type, n) ((type *) xmalloc(env, (n) * sizeof(type)))
+
+static const char *getBytes(JNIEnv *env, jbyteArray arr) {
+    return arr == nullptr ? nullptr : (const char *) env->GetByteArrayElements(arr, nullptr);
+}
+
+static void releaseBytes(JNIEnv *env, jbyteArray arr, const char *parr) {
+    if (parr != nullptr)
+        env->ReleaseByteArrayElements(arr, (jbyte *) parr, JNI_ABORT);
+}
+
+static void initVectorFromBlock(const char **vector, const char *block, int count) {
+    int i;
+    const char *p;
+    for (i = 0, p = block; i < count; i++) {
+        /* Invariant: p always points to the start of a C string. */
+        vector[i] = p;
+        while (*(p++));
+    }
+    vector[count] = nullptr;
+}
+
+static jintArray BSHHost_startHost(JNIEnv *env, jclass clazz,
+                                   jbyteArray argBlock, jint argc,
+                                   jbyteArray envBlock, jint envc,
+                                   jint stdin_read_pipe, jint stdout_write_pipe) {
     int ptmx = open_ptmx();
     if (ptmx == -1) {
         env->ThrowNew(env->FindClass("java/lang/IllegalStateException"), "Unable to open ptmx");
@@ -30,13 +66,37 @@ static jintArray BSHHost_startHost(JNIEnv *env, jclass clazz, jint stdin_read_pi
     }
     LOGD("ptmx %d", ptmx);
 
+    const char *pargBlock = getBytes(env, argBlock);
+    const char **argv = NEW(const char *, argc + 2);
+    argv[0] = "/system/bin/sh";
+    initVectorFromBlock(argv + 1, pargBlock, argc);
+
+    for (int i = 0; i < argc + 2; ++i) {
+        LOGD("arg%d=%s", i, argv[i]);
+    }
+
+    const char **envv = nullptr;
+    const char *penvBlock = nullptr;
+    if (envc > 0) {
+        penvBlock = getBytes(env, envBlock);
+        envv = NEW(const char *, envc + 1);
+
+        initVectorFromBlock(envv, penvBlock, envc);
+    }
+
     auto pid = fork();
     if (pid == -1) {
+        releaseBytes(env, argBlock, pargBlock);
+        releaseBytes(env, envBlock, penvBlock);
+
         env->ThrowNew(env->FindClass("java/lang/IllegalStateException"), "Unable to fork");
         return nullptr;
     }
 
     if (pid > 0) {
+        releaseBytes(env, argBlock, pargBlock);
+        releaseBytes(env, envBlock, penvBlock);
+
         auto called = std::make_shared<std::atomic_bool>(false);
         auto func = [pid, called]() {
             if (called->exchange(true)) {
@@ -74,9 +134,16 @@ static jintArray BSHHost_startHost(JNIEnv *env, jclass clazz, jint stdin_read_pi
 
         close(pts);
 
-        if (execv("/system/bin/sh", nullptr) == -1) {
-            PLOGE("execv");
-            exit(1);
+        if (envv) {
+            if (execvpe("/system/bin/sh", (char *const *) argv, (char *const *) envv) == -1) {
+                PLOGE("execv");
+                exit(1);
+            }
+        } else {
+            if (execvp("/system/bin/sh", (char *const *) argv) == -1) {
+                PLOGE("execv");
+                exit(1);
+            }
         }
         exit(0);
     }
@@ -117,9 +184,9 @@ static jint BSHHost_waitFor(JNIEnv *env, jclass clazz, jint pid) {
 int rikka_bsh_BSHHost_registerNatives(JNIEnv *env) {
     auto clazz = env->FindClass("rikka/bsh/BSHHost");
     JNINativeMethod methods[] = {
-            {"start",         "(II)[I", (void *) BSHHost_startHost},
-            {"setWindowSize", "(IJ)V",  (void *) BSHHost_setWindowSize},
-            {"waitFor",       "(I)I",   (void *) BSHHost_waitFor},
+            {"start",         "([BI[BIII)[I", (void *) BSHHost_startHost},
+            {"setWindowSize", "(IJ)V",        (void *) BSHHost_setWindowSize},
+            {"waitFor",       "(I)I",         (void *) BSHHost_waitFor},
     };
     return env->RegisterNatives(clazz, methods, sizeof(methods) / sizeof(methods[0]));
 }
