@@ -21,7 +21,11 @@ public abstract class BSHService {
 
     private static final boolean IS_ROOT = Os.getuid() == 0;
 
-    private void createHost(String[] args, String[] env, String dir, ParcelFileDescriptor stdin, ParcelFileDescriptor stdout) {
+    private void createHost(
+            String[] args, String[] env, String dir,
+            byte tty,
+            ParcelFileDescriptor stdin, ParcelFileDescriptor stdout, ParcelFileDescriptor stderr) {
+
         int callingPid = Binder.getCallingPid();
 
         // Termux app set PATH and LD_PRELOAD to Termux's internal path.
@@ -44,8 +48,7 @@ public abstract class BSHService {
             env = null;
         }
 
-        BSHHost host = BSHHost.create(args, env, dir);
-        host.prepare(stdin, stdout);
+        BSHHost host = new BSHHost(args, env, dir, tty, stdin, stdout, stderr);
         host.start();
         Log.d(TAG, "Forked " + host.getPid());
 
@@ -88,13 +91,21 @@ public abstract class BSHService {
                 return true;
             }
 
+            ParcelFileDescriptor stdin;
+            ParcelFileDescriptor stdout;
+            ParcelFileDescriptor stderr = null;
+
             data.enforceInterface(BSHConfig.getInterfaceToken());
-            ParcelFileDescriptor stdin = data.readFileDescriptor();
-            ParcelFileDescriptor stdout = data.readFileDescriptor();
+            byte tty = data.readByte();
+            stdin = data.readFileDescriptor();
+            stdout = data.readFileDescriptor();
+            if ((tty & BSHConstants.ATTY_ERR) == 0) {
+                stderr = data.readFileDescriptor();
+            }
             String[] args = data.createStringArray();
             String[] env = data.createStringArray();
             String dir = data.readString();
-            createHost(args, env, dir, stdin, stdout);
+            createHost(args, env, dir, tty, stdin, stdout, stderr);
             reply.writeNoException();
             return true;
         } else if (code == BSHConfig.getTransactionCode(BSHConfig.TRANSACTION_setWindowSize)) {

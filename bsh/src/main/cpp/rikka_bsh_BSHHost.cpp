@@ -55,17 +55,41 @@ static void initVectorFromBlock(const char **vector, const char *block, int coun
     vector[count] = nullptr;
 }
 
-static jintArray BSHHost_startHost(JNIEnv *env, jclass clazz,
-                                   jbyteArray argBlock, jint argc,
-                                   jbyteArray envBlock, jint envc,
-                                   jbyteArray dirBlock,
-                                   jint stdin_read_pipe, jint stdout_write_pipe) {
-    int ptmx = open_ptmx();
-    if (ptmx == -1) {
-        env->ThrowNew(env->FindClass("java/lang/IllegalStateException"), "Unable to open ptmx");
-        return nullptr;
+static jintArray BSHHost_startHost(
+        JNIEnv *env, jclass clazz,
+        jbyteArray argBlock, jint argc,
+        jbyteArray envBlock, jint envc,
+        jbyteArray dirBlock,
+        jbyte tty,
+        jint stdin_read, jint stdout_write, jint stderr_write) {
+
+    bool in_tty = tty & ATTY_IN;
+    bool out_tty = tty & ATTY_OUT;
+    bool err_tty = tty & ATTY_ERR;
+
+    int ptmx = -1;
+    if (tty) {
+        ptmx = open_ptmx();
+        if (ptmx == -1) {
+            env->ThrowNew(env->FindClass("java/lang/IllegalStateException"), "Unable to open ptmx");
+            return nullptr;
+        }
+        LOGD("ptmx %d", ptmx);
     }
-    LOGD("ptmx %d", ptmx);
+
+    int stdin_pipe[2]{-1}, stdout_pipe[2]{-1}, stderr_pipe[2]{-1};
+
+    LOGD("istty stdin %d stdout %d stderr %d", (tty & ATTY_IN) ? 1 : 0, (tty & ATTY_OUT) ? 1 : 0, (tty & ATTY_ERR) ? 1 : 0);
+
+    if (!in_tty) {
+        pipe2(stdin_pipe, 0);
+    }
+    if (!out_tty) {
+        pipe2(stdout_pipe, 0);
+    }
+    if (!err_tty) {
+        pipe2(stderr_pipe, 0);
+    }
 
     const char *pargBlock = getBytes(env, argBlock);
     const char **argv = NEW(const char *, argc + 2);
@@ -114,8 +138,25 @@ static jintArray BSHHost_startHost(JNIEnv *env, jclass clazz,
             LOGW("client dead, kill forked process");
             kill(pid, SIGKILL);
         };
-        transfer_async(stdin_read_pipe, ptmx/*, func*/);
-        transfer_async(ptmx, stdout_write_pipe, func);
+
+        if (in_tty) {
+            transfer_async(stdin_read, ptmx/*, func*/);
+        } else {
+            transfer_async(stdin_read, stdin_pipe[1]/*, func*/);
+            close(stdin_pipe[0]);
+        }
+
+        if (out_tty) {
+            transfer_async(ptmx, stdout_write, func);
+        } else {
+            transfer_async(stdout_pipe[0], stdout_write, func);
+            close(stdout_pipe[1]);
+        }
+
+        if (!err_tty) {
+            transfer_async(stderr_pipe[0], stderr_write/*, func*/);
+            close(stderr_pipe[1]);
+        }
 
         auto result = env->NewIntArray(2);
         env->SetIntArrayRegion(result, 0, 1, &pid);
@@ -140,20 +181,55 @@ static jintArray BSHHost_startHost(JNIEnv *env, jclass clazz,
                 PLOGE("access %s", pdir);
             }
         }
-        char pts_slave[PATH_MAX]{0};
-        if (ptsname_r(ptmx, pts_slave, PATH_MAX - 1) == -1) {
-            PLOGE("ptsname_r");
-            exit(1);
+
+        int pts = -1;
+        if (tty) {
+            char pts_slave[PATH_MAX]{0};
+            if (ptsname_r(ptmx, pts_slave, PATH_MAX - 1) == -1) {
+                PLOGE("ptsname_r");
+                exit(1);
+            }
+
+            if ((pts = open(pts_slave, O_RDWR)) == -1) {
+                PLOGE("open %s", pts_slave);
+            }
+            LOGD("pts %d", pts);
+        } else {
+            LOGD("no need pts");
         }
 
-        int pts = open(pts_slave, O_RDWR);
-        LOGD("pts %d", pts);
+        if (in_tty) {
+            dup2(pts, STDIN_FILENO);
+            LOGD("pts -> in");
+        } else {
+            dup2(stdin_pipe[0], STDIN_FILENO);
+            close(stdin_pipe[1]);
+            LOGD("pipe -> in");
+        }
 
-        dup2(pts, STDIN_FILENO);
-        dup2(pts, STDOUT_FILENO);
-        dup2(pts, STDERR_FILENO);
+        if (out_tty) {
+            dup2(pts, STDOUT_FILENO);
+            LOGD("pts -> out");
+        } else {
+            dup2(stdout_pipe[1], STDOUT_FILENO);
+            close(stdout_pipe[0]);
+            LOGD("pipe -> out");
+        }
 
-        close(pts);
+        if (err_tty) {
+            dup2(pts, STDERR_FILENO);
+            LOGD("pts -> err");
+        } else {
+            dup2(stderr_pipe[1], STDERR_FILENO);
+            close(stderr_pipe[0]);
+            LOGD("pipe -> err");
+        }
+
+        LOGD("istty stdin %d stdout %d stderr %d", isatty(STDIN_FILENO), isatty(STDOUT_FILENO), isatty(STDERR_FILENO));
+
+        if (pts != -1) {
+            close(pts);
+        }
 
         if (envv) {
             if (execvpe("/system/bin/sh", (char *const *) argv, (char *const *) envv) == -1) {
@@ -205,9 +281,9 @@ static jint BSHHost_waitFor(JNIEnv *env, jclass clazz, jint pid) {
 int rikka_bsh_BSHHost_registerNatives(JNIEnv *env) {
     auto clazz = env->FindClass("rikka/bsh/BSHHost");
     JNINativeMethod methods[] = {
-            {"start",         "([BI[BI[BII)[I", (void *) BSHHost_startHost},
-            {"setWindowSize", "(IJ)V",          (void *) BSHHost_setWindowSize},
-            {"waitFor",       "(I)I",           (void *) BSHHost_waitFor},
+            {"start",         "([BI[BI[BBIII)[I", (void *) BSHHost_startHost},
+            {"setWindowSize", "(IJ)V",            (void *) BSHHost_setWindowSize},
+            {"waitFor",       "(I)I",             (void *) BSHHost_waitFor},
     };
     return env->RegisterNatives(clazz, methods, sizeof(methods) / sizeof(methods[0]));
 }

@@ -16,37 +16,36 @@ public class BSHTerminal {
 
     private static final String TAG = "BSHTerminal";
 
-    public static BSHTerminal create(String[] args) {
-        FileDescriptor[] stdinPipe, stdoutPipe;
-        try {
-            stdinPipe = Os.pipe();
-        } catch (ErrnoException e) {
-            return null;
+    public static int getFd(FileDescriptor[] fileDescriptor, int i) {
+        if (fileDescriptor == null) {
+            return -1;
         }
-
-        try {
-            stdoutPipe = Os.pipe();
-        } catch (ErrnoException e) {
-            return null;
-        }
-
-        return new BSHTerminal(args, stdinPipe, stdoutPipe);
+        return FileDescriptors.getFd(fileDescriptor[i]);
     }
 
-    private final String[] args;
-    private final FileDescriptor[] stdinPipe;
-    private final FileDescriptor[] stdoutPipe;
+    public static void closeFd(FileDescriptor[] fileDescriptor, int i) {
+        if (fileDescriptor == null) {
+            return;
+        }
+        FileDescriptors.closeSilently(fileDescriptor[i]);
+    }
+
+    private final String[] argv;
+    private final byte tty;
+    private FileDescriptor[] stdin;
+    private FileDescriptor[] stdout;
+    private FileDescriptor[] stderr;
+    private int ttyFd = -1;
     private int exitCode;
 
-    private BSHTerminal(String[] args, FileDescriptor[] stdinPipe, FileDescriptor[] stdoutPipe) {
-        this.args = args;
-        this.stdinPipe = stdinPipe;
-        this.stdoutPipe = stdoutPipe;
+    public BSHTerminal(String[] argv) throws ErrnoException, RemoteException {
+        this.argv = argv;
+        this.tty = prepare();
 
-        prepareToWaitWindowSizeChange();
+        createHost();
     }
 
-    private void createHost() throws RemoteException {
+    private void createHost() throws ErrnoException, RemoteException {
         Log.d(TAG, "createHost");
         Parcel data = Parcel.obtain();
         Parcel reply = Parcel.obtain();
@@ -61,9 +60,16 @@ public class BSHTerminal {
 
         try {
             data.writeInterfaceToken(BSHConfig.getInterfaceToken());
-            data.writeFileDescriptor(stdinPipe[0]);
-            data.writeFileDescriptor(stdoutPipe[1]);
-            data.writeStringArray(args);
+            data.writeByte(tty);
+            stdin = Os.pipe();
+            data.writeFileDescriptor(stdin[0]);
+            stdout = Os.pipe();
+            data.writeFileDescriptor(stdout[1]);
+            if ((tty & BSHConstants.ATTY_ERR) == 0) {
+                stderr = Os.pipe();
+                data.writeFileDescriptor(stderr[1]);
+            }
+            data.writeStringArray(argv);
             data.writeStringArray(env);
             data.writeString(dir);
             BSHConfig.getBinder().transact(BSHConfig.getTransactionCode(BSHConfig.TRANSACTION_createHost), data, reply, 0);
@@ -71,15 +77,30 @@ public class BSHTerminal {
         } finally {
             data.recycle();
             reply.recycle();
-        }
 
-        try {
-            Os.close(stdinPipe[0]);
-        } catch (ErrnoException ignored) {
+            closeFd(stdin, 0);
+            closeFd(stdout, 1);
+            closeFd(stderr, 1);
         }
-        try {
-            Os.close(stdoutPipe[1]);
-        } catch (ErrnoException ignored) {
+    }
+
+    public void start() {
+        Log.d(TAG, "start");
+
+        ttyFd = start(tty, getFd(stdin, 1), getFd(stdout, 0), getFd(stdout, 0));
+
+        if (ttyFd != -1) {
+            Log.d(TAG, "waitForWindowSizeChange");
+
+            new Thread(() -> {
+                long size = waitForWindowSizeChange(ttyFd);
+
+                try {
+                    setWindowSize(size);
+                } catch (Throwable e) {
+                    Log.w(TAG, Log.getStackTraceString(e));
+                }
+            }).start();
         }
     }
 
@@ -117,24 +138,6 @@ public class BSHTerminal {
         }
     }
 
-    public void start() throws RemoteException {
-        createHost();
-
-        new Thread(() -> {
-            long size = waitForWindowSizeChange();
-
-            try {
-                setWindowSize(size);
-            } catch (Throwable e) {
-                Log.w(TAG, Log.getStackTraceString(e));
-            }
-        }).start();
-
-        Log.d(TAG, "start");
-
-        start(FileDescriptors.getFd(stdinPipe[1]), FileDescriptors.getFd(stdoutPipe[0]));
-    }
-
     public int waitFor() {
         Log.d(TAG, "waitFor");
 
@@ -152,11 +155,11 @@ public class BSHTerminal {
         return exitCode;
     }
 
-    public static native void prepareToWaitWindowSizeChange();
+    private static native byte prepare();
 
-    private static native int start(int stdin_write_pipe, int stdout_read_pipe);
+    private static native int start(byte tty, int stdin, int stdout, int stderr);
 
-    private static native long waitForWindowSizeChange();
+    private static native long waitForWindowSizeChange(int fd);
 
     private static native void waitForProcessExit();
 }

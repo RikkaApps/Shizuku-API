@@ -10,13 +10,13 @@
 
 static pthread_mutex_t mutex;
 static struct termios old_stdin{};
-static int is_stdin_raw = 0;
+static int tty_in_raw = 0;
 
-static int64_t getWindowSize() {
+static int64_t getWindowSize(int fd) {
     static_assert(sizeof(jlong) == sizeof(winsize));
     jlong screen_size;
 
-    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &screen_size) == -1) {
+    if (ioctl(fd, TIOCGWINSZ, &screen_size) == -1) {
         PLOGE("ioctl TIOCGWINSZ");
         return 0;
     }
@@ -24,21 +24,46 @@ static int64_t getWindowSize() {
     return screen_size;
 }
 
-static void BSHTerminal_prepareToWaitWindowSizeChange(JNIEnv *env, jclass clazz) {
-    sigset_t winch;
-    sigemptyset(&winch);
-    sigaddset(&winch, SIGWINCH);
-    pthread_sigmask(SIG_BLOCK, &winch, nullptr);
-}
+static jbyte BSHTerminal_prepare(JNIEnv *env, jclass clazz) {
+    jbyte atty = 0;
+    if (isatty(STDIN_FILENO)) atty |= ATTY_IN;
+    if (isatty(STDOUT_FILENO)) atty |= ATTY_OUT;
+    if (isatty(STDERR_FILENO)) atty |= ATTY_ERR;
 
-static jint BSHTerminal_start(JNIEnv *env, jclass clazz, jint stdin_write_pipe, jint stdout_read_pipe) {
-    if (!isatty(STDIN_FILENO) || !isatty(STDOUT_FILENO) || !isatty(STDERR_FILENO)) {
-        env->ThrowNew(env->FindClass("java/lang/IllegalStateException"), "stdin/stdout/stderr is not tty");
-        return 0;
+    LOGD("istty stdin %d stdout %d stderr %d", (atty & ATTY_IN) ? 1 : 0, (atty & ATTY_OUT) ? 1 : 0, (atty & ATTY_ERR) ? 1 : 0);
+
+    if (atty & ATTY_OUT) {
+        sigset_t winch;
+        sigemptyset(&winch);
+        sigaddset(&winch, SIGWINCH);
+        pthread_sigmask(SIG_BLOCK, &winch, nullptr);
     }
 
-    if (make_fd_raw(STDIN_FILENO, old_stdin) == 0) {
-        is_stdin_raw = 1;
+    return atty;
+}
+
+static jint BSHTerminal_start(
+        JNIEnv *env, jclass clazz, jbyte tty,
+        jint stdin_pipe, jint stdout_pipe, jint stderr_pipe) {
+
+    int tty_fd;
+    bool in_tty = tty & ATTY_IN;
+    bool out_tty = tty & ATTY_OUT;
+    bool err_tty = tty & ATTY_ERR;
+    if (in_tty) {
+        tty_fd = STDIN_FILENO;
+    } else if (out_tty) {
+        tty_fd = STDOUT_FILENO;
+    } else if (err_tty) {
+        tty_fd = STDERR_FILENO;
+    } else {
+        tty_fd = -1;
+    }
+
+    if (tty == ATTY_ALL) {
+        if (make_tty_raw(tty_fd, old_stdin) == 0) {
+            tty_in_raw = 1;
+        }
     }
 
     if (pthread_mutex_lock(&mutex) != 0) {
@@ -53,8 +78,10 @@ static jint BSHTerminal_start(JNIEnv *env, jclass clazz, jint stdin_write_pipe, 
 
         LOGI("remote exit");
 
-        if (is_stdin_raw) {
-            restore_fd(STDIN_FILENO, old_stdin);
+        if (tty_in_raw) {
+            if (restore_fd(tty_fd, old_stdin) == 0) {
+                tty_in_raw = 0;
+            }
         }
 
         if (pthread_mutex_unlock(&mutex) != 0) {
@@ -62,13 +89,16 @@ static jint BSHTerminal_start(JNIEnv *env, jclass clazz, jint stdin_write_pipe, 
         }
     };
 
-    transfer_async(STDIN_FILENO, stdin_write_pipe/*, func*/);
-    transfer_async(stdout_read_pipe, STDOUT_FILENO, func);
+    transfer_async(STDIN_FILENO, stdin_pipe/*, func*/);
+    transfer_async(stdout_pipe, STDOUT_FILENO, func);
+    if (!err_tty) {
+        transfer_async(stderr_pipe, STDERR_FILENO/*, func*/);
+    }
 
-    return 0;
+    return tty_fd;
 }
 
-static jlong BSHTerminal_waitForWindowSizeChange(JNIEnv *env, jclass clazz) {
+static jlong BSHTerminal_waitForWindowSizeChange(JNIEnv *env, jclass clazz, jint fd) {
     sigset_t winch;
     int sig;
 
@@ -85,7 +115,7 @@ static jlong BSHTerminal_waitForWindowSizeChange(JNIEnv *env, jclass clazz) {
         }
     }
 
-    return (jlong) getWindowSize();
+    return (jlong) getWindowSize(fd);
 }
 
 static void BSHTerminal_waitForProcessExit(JNIEnv *env, jclass clazz) {
@@ -103,10 +133,10 @@ int rikka_bsh_BSHTerminal_registerNatives(JNIEnv *env) {
 
     auto clazz = env->FindClass("rikka/bsh/BSHTerminal");
     JNINativeMethod methods[] = {
-            {"start",                         "(II)I", (void *) BSHTerminal_start},
-            {"prepareToWaitWindowSizeChange", "()V",   (void *) BSHTerminal_prepareToWaitWindowSizeChange},
-            {"waitForWindowSizeChange",       "()J",   (void *) BSHTerminal_waitForWindowSizeChange},
-            {"waitForProcessExit",            "()V",   (void *) BSHTerminal_waitForProcessExit},
+            {"prepare",                 "()B",     (void *) BSHTerminal_prepare},
+            {"start",                   "(BIII)I", (void *) BSHTerminal_start},
+            {"waitForWindowSizeChange", "(I)J",    (void *) BSHTerminal_waitForWindowSizeChange},
+            {"waitForProcessExit",      "()V",     (void *) BSHTerminal_waitForProcessExit},
     };
     return env->RegisterNatives(clazz, methods, sizeof(methods) / sizeof(methods[0]));
 }

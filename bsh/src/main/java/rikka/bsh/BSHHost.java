@@ -44,28 +44,36 @@ public class BSHHost {
         return result;
     }
 
-    public static BSHHost create(String[] args, String[] env, String dir) {
-        return new BSHHost(args, env, dir);
+    private static int detachFd(ParcelFileDescriptor pfd) {
+        if (pfd == null) {
+            return -1;
+        }
+        return pfd.detachFd();
     }
 
     private final String[] args;
     private final String[] env;
     private final String dir;
-    private int stdinReadPipe;
-    private int stdoutWritePipe;
+    private final byte tty;
+    private final int stdin;
+    private final int stdout;
+    private final int stderr;
     private int pid;
     private int ptmx;
     private int exitCode = Integer.MAX_VALUE;
 
-    private BSHHost(String[] args, String[] env, String dir) {
+    public BSHHost(
+            String[] args, String[] env, String dir,
+            byte tty,
+            ParcelFileDescriptor stdin, ParcelFileDescriptor stdout, ParcelFileDescriptor stderr) {
+
         this.args = args;
         this.env = env;
         this.dir = dir;
-    }
-
-    public void prepare(ParcelFileDescriptor stdin, ParcelFileDescriptor stdout) {
-        stdinReadPipe = stdin.detachFd();
-        stdoutWritePipe = stdout.detachFd();
+        this.tty = tty;
+        this.stdin = detachFd(stdin);
+        this.stdout = detachFd(stdout);
+        this.stderr = detachFd(stderr);
     }
 
     /**
@@ -79,7 +87,12 @@ public class BSHHost {
         byte[] envBlock = createCBytesForStringArray(env);
         byte[] dirBlock = createCBytesForString(dir);
 
-        int[] result = start(argBlock, args.length, envBlock, env != null ? env.length : -1, dirBlock, stdinReadPipe, stdoutWritePipe);
+        int[] result = start(
+                argBlock, args.length,
+                envBlock, env != null ? env.length : -1,
+                dirBlock,
+                tty, stdin, stdout, stderr);
+
         pid = result[0];
         ptmx = result[1];
 
@@ -100,7 +113,11 @@ public class BSHHost {
         setWindowSize(ptmx, size);
     }
 
-    private static native int[] start(byte[] argBlock, int argc, byte[] envBlock, int envc, byte[] dirBlock, int stdin_read_pipe, int stdout_write_pipe);
+    private static native int[] start(
+            byte[] argBlock, int argc,
+            byte[] envBlock, int envc,
+            byte[] dirBlock,
+            byte tty, int stdin, int stdout, int stderr);
 
     private static native void setWindowSize(int ptmx, long size);
 

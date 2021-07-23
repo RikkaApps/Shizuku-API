@@ -1,6 +1,8 @@
 package rikka.bsh;
 
 import android.annotation.SuppressLint;
+import android.system.ErrnoException;
+import android.system.Os;
 
 import java.io.FileDescriptor;
 import java.lang.reflect.InvocationTargetException;
@@ -38,6 +40,17 @@ class FileDescriptors {
             return (int) getInt.invoke(fileDescriptor);
         } catch (IllegalAccessException | InvocationTargetException ignored) {
             return -1;
+        }
+    }
+
+    public static void closeSilently(FileDescriptor fileDescriptor) {
+        if (fileDescriptor == null) {
+            return;
+        }
+
+        try {
+            Os.close(fileDescriptor);
+        } catch (ErrnoException ignored) {
         }
     }
 }

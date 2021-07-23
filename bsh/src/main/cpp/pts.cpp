@@ -9,7 +9,7 @@
 #include <functional>
 #include "logging.h"
 
-int make_fd_raw(int fd, termios &old_termios) {
+int make_tty_raw(int fd, termios &old_termios) {
     struct termios termios{};
 
     if (tcgetattr(fd, &termios) < 0) {

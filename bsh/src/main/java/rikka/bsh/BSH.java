@@ -24,25 +24,24 @@ public class BSH {
     }
 
     private void startShell(String[] args) {
-        BSHTerminal terminal = BSHTerminal.create(args);
         try {
-            if (terminal != null) {
-                terminal.start();
-                int exitCode = terminal.waitFor();
-                //verbose("Shell exited with " + exitCode);
-                System.exit(exitCode);
-                System.exit(0);
-            }
+            BSHTerminal terminal = new BSHTerminal(args);
+            terminal.start();
+            int exitCode = terminal.waitFor();
+            System.exit(exitCode);
         } catch (Throwable e) {
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
+            System.err.println(e.getMessage());
+            System.err.flush();
+            System.exit(1);
             //abort(e.getMessage());
         }
     }
 
     public void main(String[] args) {
-        Log.d(TAG, "bsh: "  + Arrays.toString(args));
+        Log.d(TAG, "bsh: " + Arrays.toString(args));
         startShell(args, false);
     }
 }
