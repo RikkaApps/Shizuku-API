@@ -43,6 +43,7 @@ public class Shizuku {
     private static boolean permissionGranted = false;
     private static boolean shouldShowRequestPermissionRationale = false;
     private static boolean preV11 = false;
+    private static boolean binderReady = false;
 
     private static final IShizukuApplication SHIZUKU_APPLICATION = new IShizukuApplication.Stub() {
 
@@ -55,6 +56,7 @@ public class Shizuku {
             permissionGranted = data.getBoolean(ATTACH_REPLY_PERMISSION_GRANTED, false);
             shouldShowRequestPermissionRationale = data.getBoolean(ATTACH_REPLY_SHOULD_SHOW_REQUEST_PERMISSION_RATIONALE, false);
 
+            binderReady = true;
             scheduleBinderReceivedListeners();
         }
 
@@ -70,7 +72,10 @@ public class Shizuku {
         }
     };
 
-    private static final IBinder.DeathRecipient DEATH_RECIPIENT = () -> onBinderReceived(null, null);
+    private static final IBinder.DeathRecipient DEATH_RECIPIENT = () -> {
+        binderReady = false;
+        onBinderReceived(null, null);
+    };
 
     @RestrictTo(LIBRARY_GROUP_PREFIX)
     public static void onBinderReceived(@Nullable IBinder newBinder, String packageName) {
@@ -119,7 +124,8 @@ public class Shizuku {
             }
 
             if (preV11) {
-                scheduleBinderDeadListeners();
+                binderReady = true;
+                scheduleBinderReceivedListeners();
             }
         }
     }
@@ -167,7 +173,7 @@ public class Shizuku {
     }
 
     private static void addBinderReceivedListener(@NonNull OnBinderReceivedListener listener, boolean sticky) {
-        if (sticky && pingBinder()) {
+        if (sticky && binderReady) {
             if (Looper.myLooper() == Looper.getMainLooper()) {
                 listener.onBinderReceived();
             } else {
