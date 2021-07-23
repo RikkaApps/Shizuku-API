@@ -24,7 +24,7 @@ static int64_t getWindowSize(int fd) {
     return screen_size;
 }
 
-static jbyte BSHTerminal_prepare(JNIEnv *env, jclass clazz) {
+static jbyte RishTerminal_prepare(JNIEnv *env, jclass clazz) {
     jbyte atty = 0;
     if (isatty(STDIN_FILENO)) atty |= ATTY_IN;
     if (isatty(STDOUT_FILENO)) atty |= ATTY_OUT;
@@ -42,7 +42,7 @@ static jbyte BSHTerminal_prepare(JNIEnv *env, jclass clazz) {
     return atty;
 }
 
-static jint BSHTerminal_start(
+static jint RishTerminal_start(
         JNIEnv *env, jclass clazz, jbyte tty,
         jint stdin_pipe, jint stdout_pipe, jint stderr_pipe) {
 
@@ -98,7 +98,7 @@ static jint BSHTerminal_start(
     return tty_fd;
 }
 
-static jlong BSHTerminal_waitForWindowSizeChange(JNIEnv *env, jclass clazz, jint fd) {
+static jlong RishTerminal_waitForWindowSizeChange(JNIEnv *env, jclass clazz, jint fd) {
     sigset_t winch;
     int sig;
 
@@ -118,7 +118,7 @@ static jlong BSHTerminal_waitForWindowSizeChange(JNIEnv *env, jclass clazz, jint
     return (jlong) getWindowSize(fd);
 }
 
-static void BSHTerminal_waitForProcessExit(JNIEnv *env, jclass clazz) {
+static void RishTerminal_waitForProcessExit(JNIEnv *env, jclass clazz) {
     if (pthread_mutex_lock(&mutex) != 0) {
         PLOGE("pthread_mutex_lock");
     }
@@ -128,15 +128,15 @@ static void BSHTerminal_waitForProcessExit(JNIEnv *env, jclass clazz) {
     }
 }
 
-int rikka_bsh_BSHTerminal_registerNatives(JNIEnv *env) {
+int rikka_rish_RishTerminal_registerNatives(JNIEnv *env) {
     pthread_mutex_init(&mutex, nullptr);
 
-    auto clazz = env->FindClass("rikka/bsh/BSHTerminal");
+    auto clazz = env->FindClass("rikka/rish/RishTerminal");
     JNINativeMethod methods[] = {
-            {"prepare",                 "()B",     (void *) BSHTerminal_prepare},
-            {"start",                   "(BIII)I", (void *) BSHTerminal_start},
-            {"waitForWindowSizeChange", "(I)J",    (void *) BSHTerminal_waitForWindowSizeChange},
-            {"waitForProcessExit",      "()V",     (void *) BSHTerminal_waitForProcessExit},
+            {"prepare",                 "()B",     (void *) RishTerminal_prepare},
+            {"start",                   "(BIII)I", (void *) RishTerminal_start},
+            {"waitForWindowSizeChange", "(I)J",    (void *) RishTerminal_waitForWindowSizeChange},
+            {"waitForProcessExit",      "()V",     (void *) RishTerminal_waitForProcessExit},
     };
     return env->RegisterNatives(clazz, methods, sizeof(methods) / sizeof(methods[0]));
 }

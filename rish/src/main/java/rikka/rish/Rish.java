@@ -1,14 +1,12 @@
-package rikka.bsh;
+package rikka.rish;
 
 import android.util.Log;
 
 import java.util.Arrays;
 
-import rikka.shizuku.shared.BuildConfig;
+public class Rish {
 
-public class BSH {
-
-    private static final String TAG = "BSH";
+    private static final String TAG = "RISH";
 
     public void requestPermission(Runnable onGrantedRunnable) {
 
@@ -25,14 +23,11 @@ public class BSH {
 
     private void startShell(String[] args) {
         try {
-            BSHTerminal terminal = new BSHTerminal(args);
+            RishTerminal terminal = new RishTerminal(args);
             terminal.start();
             int exitCode = terminal.waitFor();
             System.exit(exitCode);
         } catch (Throwable e) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
-            }
             System.err.println(e.getMessage());
             System.err.flush();
             System.exit(1);
@@ -41,7 +36,7 @@ public class BSH {
     }
 
     public void main(String[] args) {
-        Log.d(TAG, "bsh: " + Arrays.toString(args));
+        Log.d(TAG, "args: " + Arrays.toString(args));
         startShell(args, false);
     }
 }

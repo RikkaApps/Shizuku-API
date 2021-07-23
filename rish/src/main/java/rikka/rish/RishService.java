@@ -1,4 +1,4 @@
-package rikka.bsh;
+package rikka.rish;
 
 import android.os.Binder;
 import android.os.IBinder;
@@ -13,11 +13,11 @@ import androidx.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class BSHService {
+public abstract class RishService {
 
-    private static final String TAG = "BSHService";
+    private static final String TAG = "RishService";
 
-    private static final Map<Integer, BSHHost> HOSTS = new HashMap<>();
+    private static final Map<Integer, RishHost> HOSTS = new HashMap<>();
 
     private static final boolean IS_ROOT = Os.getuid() == 0;
 
@@ -31,15 +31,15 @@ public abstract class BSHService {
         // Termux app set PATH and LD_PRELOAD to Termux's internal path.
         // Adb does not have sufficient permissions to access such places.
 
-        // Under adb, users need to set BSH_PRESERVE_ENV=1 to preserve env.
-        // Under root, keep env unless BSH_PRESERVE_ENV=0 is set.
+        // Under adb, users need to set RISH_PRESERVE_ENV=1 to preserve env.
+        // Under root, keep env unless RISH_PRESERVE_ENV=0 is set.
 
         boolean allowEnv = IS_ROOT;
         for (String e : env) {
-            if ("BSH_PRESERVE_ENV=1".equals(e)) {
+            if ("RISH_PRESERVE_ENV=1".equals(e)) {
                 allowEnv = true;
                 break;
-            } else if ("BSH_PRESERVE_ENV=0".equals(e)) {
+            } else if ("RISH_PRESERVE_ENV=0".equals(e)) {
                 allowEnv = false;
                 break;
             }
@@ -48,7 +48,7 @@ public abstract class BSHService {
             env = null;
         }
 
-        BSHHost host = new BSHHost(args, env, dir, tty, stdin, stdout, stderr);
+        RishHost host = new RishHost(args, env, dir, tty, stdin, stdout, stderr);
         host.start();
         Log.d(TAG, "Forked " + host.getPid());
 
@@ -58,7 +58,7 @@ public abstract class BSHService {
     private void setWindowSize(long size) {
         int callingPid = Binder.getCallingPid();
 
-        BSHHost host = HOSTS.get(callingPid);
+        RishHost host = HOSTS.get(callingPid);
         if (host == null) {
             Log.d(TAG, "Not existing host created by " + callingPid);
             return;
@@ -70,7 +70,7 @@ public abstract class BSHService {
     private int getExitCode() {
         int callingPid = Binder.getCallingPid();
 
-        BSHHost host = HOSTS.get(callingPid);
+        RishHost host = HOSTS.get(callingPid);
         if (host == null) {
             Log.d(TAG, "Not existing host created by " + callingPid);
             return -1;
@@ -82,7 +82,7 @@ public abstract class BSHService {
     public abstract void enforceCallingPermission(String func);
 
     public boolean onTransact(int code, @NonNull Parcel data, @Nullable Parcel reply, int flags) {
-        if (code == BSHConfig.getTransactionCode(BSHConfig.TRANSACTION_createHost)) {
+        if (code == RishConfig.getTransactionCode(RishConfig.TRANSACTION_createHost)) {
             Log.d(TAG, "TRANSACTION_createHost");
 
             enforceCallingPermission("createHost");
@@ -95,11 +95,11 @@ public abstract class BSHService {
             ParcelFileDescriptor stdout;
             ParcelFileDescriptor stderr = null;
 
-            data.enforceInterface(BSHConfig.getInterfaceToken());
+            data.enforceInterface(RishConfig.getInterfaceToken());
             byte tty = data.readByte();
             stdin = data.readFileDescriptor();
             stdout = data.readFileDescriptor();
-            if ((tty & BSHConstants.ATTY_ERR) == 0) {
+            if ((tty & RishConstants.ATTY_ERR) == 0) {
                 stderr = data.readFileDescriptor();
             }
             String[] args = data.createStringArray();
@@ -108,24 +108,24 @@ public abstract class BSHService {
             createHost(args, env, dir, tty, stdin, stdout, stderr);
             reply.writeNoException();
             return true;
-        } else if (code == BSHConfig.getTransactionCode(BSHConfig.TRANSACTION_setWindowSize)) {
+        } else if (code == RishConfig.getTransactionCode(RishConfig.TRANSACTION_setWindowSize)) {
             Log.d(TAG, "TRANSACTION_setWindowSize");
 
             enforceCallingPermission("setWindowSize");
 
-            data.enforceInterface(BSHConfig.getInterfaceToken());
+            data.enforceInterface(RishConfig.getInterfaceToken());
             long size = data.readLong();
             setWindowSize(size);
             if (reply != null) {
                 reply.writeNoException();
             }
             return true;
-        } else if (code == BSHConfig.getTransactionCode(BSHConfig.TRANSACTION_getExitCode)) {
+        } else if (code == RishConfig.getTransactionCode(RishConfig.TRANSACTION_getExitCode)) {
             Log.d(TAG, "TRANSACTION_getExitCode");
 
             enforceCallingPermission("getExitCode");
 
-            data.enforceInterface(BSHConfig.getInterfaceToken());
+            data.enforceInterface(RishConfig.getInterfaceToken());
             int exitCode = getExitCode();
             if (reply != null) {
                 reply.writeNoException();

@@ -26,15 +26,15 @@ find_package(cxx REQUIRED CONFIG)
 
 include_directories(.)
 
-add_library(bsh SHARED
+add_library(rish SHARED
         main.cpp
         pts.cpp
-        rikka_bsh_BSHTerminal.cpp
-        rikka_bsh_BSHHost.cpp)
+        rikka_rish_RishTerminal.cpp
+        rikka_rish_RishHost.cpp)
 
-target_link_libraries(bsh log cxx::cxx)
+target_link_libraries(rish log cxx::cxx)
 
 if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_custom_command(TARGET bsh POST_BUILD
-            COMMAND ${CMAKE_STRIP} --remove-section=.comment "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libbsh.so")
+    add_custom_command(TARGET rish POST_BUILD
+            COMMAND ${CMAKE_STRIP} --remove-section=.comment "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/librish.so")
 endif ()

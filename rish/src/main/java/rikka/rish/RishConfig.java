@@ -1,15 +1,15 @@
-package rikka.bsh;
+package rikka.rish;
 
 import android.os.IBinder;
 import android.util.Log;
 
-public class BSHConfig {
+public class RishConfig {
 
     static {
-        System.loadLibrary("bsh");
+        System.loadLibrary("rish");
     }
 
-    private static final String TAG = "BSHConfig";
+    private static final String TAG = "RISHConfig";
 
     static final int TRANSACTION_createHost = 0;
     static final int TRANSACTION_setWindowSize = 1;
@@ -33,14 +33,14 @@ public class BSHConfig {
 
     public static void init(String interfaceToken, int transactionCodeStart) {
         Log.d(TAG, "init (server) " + interfaceToken + " " + transactionCodeStart);
-        BSHConfig.interfaceToken = interfaceToken;
-        BSHConfig.transactionCodeStart = transactionCodeStart;
+        RishConfig.interfaceToken = interfaceToken;
+        RishConfig.transactionCodeStart = transactionCodeStart;
     }
 
     public static void init(IBinder binder, String interfaceToken, int transactionCodeStart) {
         Log.d(TAG, "init (client) " + binder + " " + interfaceToken + " " + transactionCodeStart);
-        BSHConfig.binder = binder;
-        BSHConfig.interfaceToken = interfaceToken;
-        BSHConfig.transactionCodeStart = transactionCodeStart;
+        RishConfig.binder = binder;
+        RishConfig.interfaceToken = interfaceToken;
+        RishConfig.transactionCodeStart = transactionCodeStart;
     }
 }

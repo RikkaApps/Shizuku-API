@@ -45,6 +45,6 @@ dependencies {
 
 ext {
     publishLibrary = true
-    POM_NAME = "BSH"
-    POM_DESCRIPTION = "BSH"
+    POM_NAME = "RISH"
+    POM_DESCRIPTION = "RISH"
 }

@@ -6,7 +6,7 @@
 #include <android/log.h>
 
 #ifndef LOG_TAG
-#define LOG_TAG    "BSH"
+#define LOG_TAG    "RISH"
 #endif
 
 #ifndef NO_LOG

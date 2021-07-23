@@ -1,11 +1,11 @@
-package rikka.bsh;
+package rikka.rish;
 
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
-public class BSHHost {
+public class RishHost {
 
-    private static final String TAG = "BSHHost";
+    private static final String TAG = "RishHost";
 
     // libcore/ojluni/src/main/java/java/lang/ProcessImpl.java
 
@@ -62,7 +62,7 @@ public class BSHHost {
     private int ptmx;
     private int exitCode = Integer.MAX_VALUE;
 
-    public BSHHost(
+    public RishHost(
             String[] args, String[] env, String dir,
             byte tty,
             ParcelFileDescriptor stdin, ParcelFileDescriptor stdout, ParcelFileDescriptor stderr) {

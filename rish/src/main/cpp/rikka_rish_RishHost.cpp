@@ -55,7 +55,7 @@ static void initVectorFromBlock(const char **vector, const char *block, int coun
     vector[count] = nullptr;
 }
 
-static jintArray BSHHost_startHost(
+static jintArray RishHost_startHost(
         JNIEnv *env, jclass clazz,
         jbyteArray argBlock, jint argc,
         jbyteArray envBlock, jint envc,
@@ -246,11 +246,11 @@ static jintArray BSHHost_startHost(
     }
 }
 
-static void BSHHost_setWindowSize(JNIEnv *env, jclass clazz, jint ptmx, jlong size) {
+static void RishHost_setWindowSize(JNIEnv *env, jclass clazz, jint ptmx, jlong size) {
     setWindowSize(ptmx, size);
 }
 
-static jint BSHHost_waitFor(JNIEnv *env, jclass clazz, jint pid) {
+static jint RishHost_waitFor(JNIEnv *env, jclass clazz, jint pid) {
     if (pid < 0)
         return -1;
 
@@ -278,12 +278,12 @@ static jint BSHHost_waitFor(JNIEnv *env, jclass clazz, jint pid) {
     return -1;
 }
 
-int rikka_bsh_BSHHost_registerNatives(JNIEnv *env) {
-    auto clazz = env->FindClass("rikka/bsh/BSHHost");
+int rikka_rish_RishHost_registerNatives(JNIEnv *env) {
+    auto clazz = env->FindClass("rikka/rish/RishHost");
     JNINativeMethod methods[] = {
-            {"start",         "([BI[BI[BBIII)[I", (void *) BSHHost_startHost},
-            {"setWindowSize", "(IJ)V",            (void *) BSHHost_setWindowSize},
-            {"waitFor",       "(I)I",             (void *) BSHHost_waitFor},
+            {"start",         "([BI[BI[BBIII)[I", (void *) RishHost_startHost},
+            {"setWindowSize", "(IJ)V",            (void *) RishHost_setWindowSize},
+            {"waitFor",       "(I)I",             (void *) RishHost_waitFor},
     };
     return env->RegisterNatives(clazz, methods, sizeof(methods) / sizeof(methods[0]));
 }

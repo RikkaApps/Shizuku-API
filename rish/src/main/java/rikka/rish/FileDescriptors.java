@@ -1,4 +1,4 @@
-package rikka.bsh;
+package rikka.rish;
 
 import android.annotation.SuppressLint;
 import android.system.ErrnoException;

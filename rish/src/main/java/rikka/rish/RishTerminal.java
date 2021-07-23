@@ -1,4 +1,4 @@
-package rikka.bsh;
+package rikka.rish;
 
 import android.os.Parcel;
 import android.os.RemoteException;
@@ -12,9 +12,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class BSHTerminal {
+public class RishTerminal {
 
-    private static final String TAG = "BSHTerminal";
+    private static final String TAG = "RishTerminal";
 
     public static int getFd(FileDescriptor[] fileDescriptor, int i) {
         if (fileDescriptor == null) {
@@ -38,7 +38,7 @@ public class BSHTerminal {
     private int ttyFd = -1;
     private int exitCode;
 
-    public BSHTerminal(String[] argv) throws ErrnoException, RemoteException {
+    public RishTerminal(String[] argv) throws ErrnoException, RemoteException {
         this.argv = argv;
         this.tty = prepare();
 
@@ -59,20 +59,20 @@ public class BSHTerminal {
         String dir = new File("").getAbsolutePath();
 
         try {
-            data.writeInterfaceToken(BSHConfig.getInterfaceToken());
+            data.writeInterfaceToken(RishConfig.getInterfaceToken());
             data.writeByte(tty);
             stdin = Os.pipe();
             data.writeFileDescriptor(stdin[0]);
             stdout = Os.pipe();
             data.writeFileDescriptor(stdout[1]);
-            if ((tty & BSHConstants.ATTY_ERR) == 0) {
+            if ((tty & RishConstants.ATTY_ERR) == 0) {
                 stderr = Os.pipe();
                 data.writeFileDescriptor(stderr[1]);
             }
             data.writeStringArray(argv);
             data.writeStringArray(env);
             data.writeString(dir);
-            BSHConfig.getBinder().transact(BSHConfig.getTransactionCode(BSHConfig.TRANSACTION_createHost), data, reply, 0);
+            RishConfig.getBinder().transact(RishConfig.getTransactionCode(RishConfig.TRANSACTION_createHost), data, reply, 0);
             reply.readException();
         } finally {
             data.recycle();
@@ -111,9 +111,9 @@ public class BSHTerminal {
         Parcel reply = Parcel.obtain();
 
         try {
-            data.writeInterfaceToken(BSHConfig.getInterfaceToken());
+            data.writeInterfaceToken(RishConfig.getInterfaceToken());
             data.writeLong(size);
-            BSHConfig.getBinder().transact(BSHConfig.getTransactionCode(BSHConfig.TRANSACTION_setWindowSize), data, null, 0);
+            RishConfig.getBinder().transact(RishConfig.getTransactionCode(RishConfig.TRANSACTION_setWindowSize), data, null, 0);
             reply.readException();
         } finally {
             data.recycle();
@@ -128,8 +128,8 @@ public class BSHTerminal {
         Parcel reply = Parcel.obtain();
 
         try {
-            data.writeInterfaceToken(BSHConfig.getInterfaceToken());
-            BSHConfig.getBinder().transact(BSHConfig.getTransactionCode(BSHConfig.TRANSACTION_getExitCode), data, null, 0);
+            data.writeInterfaceToken(RishConfig.getInterfaceToken());
+            RishConfig.getBinder().transact(RishConfig.getTransactionCode(RishConfig.TRANSACTION_getExitCode), data, null, 0);
             reply.readException();
             return reply.readInt();
         } finally {
