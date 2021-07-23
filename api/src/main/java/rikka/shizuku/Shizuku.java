@@ -54,6 +54,8 @@ public class Shizuku {
             serverContext = data.getString(ATTACH_REPLY_SERVER_SECONTEXT);
             permissionGranted = data.getBoolean(ATTACH_REPLY_PERMISSION_GRANTED, false);
             shouldShowRequestPermissionRationale = data.getBoolean(ATTACH_REPLY_SHOULD_SHOW_REQUEST_PERMISSION_RATIONALE, false);
+
+            scheduleBinderReceivedListeners();
         }
 
         @Override
@@ -116,7 +118,9 @@ public class Shizuku {
                 Log.w("ShizukuApplication", Log.getStackTraceString(e));
             }
 
-            scheduleBinderReceivedListeners();
+            if (preV11) {
+                scheduleBinderDeadListeners();
+            }
         }
     }
 
