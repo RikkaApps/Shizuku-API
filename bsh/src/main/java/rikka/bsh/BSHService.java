@@ -19,26 +19,29 @@ public abstract class BSHService {
 
     private static final Map<Integer, BSHHost> HOSTS = new HashMap<>();
 
+    private static final boolean IS_ROOT = Os.getuid() == 0;
+
     private void createHost(String[] args, String[] env, ParcelFileDescriptor stdin, ParcelFileDescriptor stdout) {
         int callingPid = Binder.getCallingPid();
 
-        if (Os.getuid() != 0) {
+        // Termux app set PATH and LD_PRELOAD to Termux's internal path.
+        // Adb does not have sufficient permissions to access such places.
 
-            // Termux app set PATH and LD_PRELOAD to Termux's internal path.
-            // Adb does not have sufficient permissions to access such places.
-            // Ignore env by default for adb, users need to set BSH_PRESERVE_ENV=1
-            // to preserve env under adb.
+        // Under adb, users need to set BSH_PRESERVE_ENV=1 to preserve env.
+        // Under root, keep env unless BSH_PRESERVE_ENV=0 is set.
 
-            boolean allowEnv = false;
-            for (String e : env) {
-                if ("BSH_PRESERVE_ENV=1".equals(e)) {
-                    allowEnv = true;
-                    break;
-                }
+        boolean allowEnv = IS_ROOT;
+        for (String e : env) {
+            if ("BSH_PRESERVE_ENV=1".equals(e)) {
+                allowEnv = true;
+                break;
+            } else if ("BSH_PRESERVE_ENV=0".equals(e)) {
+                allowEnv = false;
+                break;
             }
-            if (!allowEnv) {
-                env = null;
-            }
+        }
+        if (!allowEnv) {
+            env = null;
         }
 
         BSHHost host = BSHHost.create(args, env);
