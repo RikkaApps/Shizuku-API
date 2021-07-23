@@ -21,7 +21,7 @@ public abstract class BSHService {
 
     private static final boolean IS_ROOT = Os.getuid() == 0;
 
-    private void createHost(String[] args, String[] env, ParcelFileDescriptor stdin, ParcelFileDescriptor stdout) {
+    private void createHost(String[] args, String[] env, String dir, ParcelFileDescriptor stdin, ParcelFileDescriptor stdout) {
         int callingPid = Binder.getCallingPid();
 
         // Termux app set PATH and LD_PRELOAD to Termux's internal path.
@@ -44,7 +44,7 @@ public abstract class BSHService {
             env = null;
         }
 
-        BSHHost host = BSHHost.create(args, env);
+        BSHHost host = BSHHost.create(args, env, dir);
         host.prepare(stdin, stdout);
         host.start();
         Log.d(TAG, "Forked " + host.getPid());
@@ -93,7 +93,8 @@ public abstract class BSHService {
             ParcelFileDescriptor stdout = data.readFileDescriptor();
             String[] args = data.createStringArray();
             String[] env = data.createStringArray();
-            createHost(args, env, stdin, stdout);
+            String dir = data.readString();
+            createHost(args, env, dir, stdin, stdout);
             reply.writeNoException();
             return true;
         } else if (code == BSHConfig.getTransactionCode(BSHConfig.TRANSACTION_setWindowSize)) {

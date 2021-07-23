@@ -58,6 +58,7 @@ static void initVectorFromBlock(const char **vector, const char *block, int coun
 static jintArray BSHHost_startHost(JNIEnv *env, jclass clazz,
                                    jbyteArray argBlock, jint argc,
                                    jbyteArray envBlock, jint envc,
+                                   jbyteArray dirBlock,
                                    jint stdin_read_pipe, jint stdout_write_pipe) {
     int ptmx = open_ptmx();
     if (ptmx == -1) {
@@ -84,10 +85,16 @@ static jintArray BSHHost_startHost(JNIEnv *env, jclass clazz,
         initVectorFromBlock(envv, penvBlock, envc);
     }
 
+    const char *pdir = nullptr;
+    if (dirBlock) {
+        pdir = getBytes(env, dirBlock);
+    }
+
     auto pid = fork();
     if (pid == -1) {
         releaseBytes(env, argBlock, pargBlock);
         releaseBytes(env, envBlock, penvBlock);
+        releaseBytes(env, dirBlock, pdir);
 
         env->ThrowNew(env->FindClass("java/lang/IllegalStateException"), "Unable to fork");
         return nullptr;
@@ -96,6 +103,7 @@ static jintArray BSHHost_startHost(JNIEnv *env, jclass clazz,
     if (pid > 0) {
         releaseBytes(env, argBlock, pargBlock);
         releaseBytes(env, envBlock, penvBlock);
+        releaseBytes(env, dirBlock, pdir);
 
         auto called = std::make_shared<std::atomic_bool>(false);
         auto func = [pid, called]() {
@@ -119,6 +127,19 @@ static jintArray BSHHost_startHost(JNIEnv *env, jclass clazz,
             exit(1);
         }
 
+        if (pdir) {
+            LOGD("attempt to chdir %s", pdir);
+
+            if (access(pdir, X_OK) == 0) {
+                if (chdir(pdir) == -1) {
+                    PLOGE("chdir %s", pdir);
+                } else {
+                    LOGD("chdir %s", pdir);
+                }
+            } else {
+                PLOGE("access %s", pdir);
+            }
+        }
         char pts_slave[PATH_MAX]{0};
         if (ptsname_r(ptmx, pts_slave, PATH_MAX - 1) == -1) {
             PLOGE("ptsname_r");
@@ -184,9 +205,9 @@ static jint BSHHost_waitFor(JNIEnv *env, jclass clazz, jint pid) {
 int rikka_bsh_BSHHost_registerNatives(JNIEnv *env) {
     auto clazz = env->FindClass("rikka/bsh/BSHHost");
     JNINativeMethod methods[] = {
-            {"start",         "([BI[BIII)[I", (void *) BSHHost_startHost},
-            {"setWindowSize", "(IJ)V",        (void *) BSHHost_setWindowSize},
-            {"waitFor",       "(I)I",         (void *) BSHHost_waitFor},
+            {"start",         "([BI[BI[BII)[I", (void *) BSHHost_startHost},
+            {"setWindowSize", "(IJ)V",          (void *) BSHHost_setWindowSize},
+            {"waitFor",       "(I)I",           (void *) BSHHost_waitFor},
     };
     return env->RegisterNatives(clazz, methods, sizeof(methods) / sizeof(methods[0]));
 }

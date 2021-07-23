@@ -6,6 +6,7 @@ import android.system.ErrnoException;
 import android.system.Os;
 import android.util.Log;
 
+import java.io.File;
 import java.io.FileDescriptor;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,12 +57,15 @@ public class BSHTerminal {
         }
         String[] env = list.toArray(new String[0]);
 
+        String dir = new File("").getAbsolutePath();
+
         try {
             data.writeInterfaceToken(BSHConfig.getInterfaceToken());
             data.writeFileDescriptor(stdinPipe[0]);
             data.writeFileDescriptor(stdoutPipe[1]);
             data.writeStringArray(args);
             data.writeStringArray(env);
+            data.writeString(dir);
             BSHConfig.getBinder().transact(BSHConfig.getTransactionCode(BSHConfig.TRANSACTION_createHost), data, reply, 0);
             reply.readException();
         } finally {
