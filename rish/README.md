@@ -26,6 +26,8 @@ This is what will be executed at remote:
 /system/bin/sh -c 'ls'
 ```
 
+If you want to use other shells rather than `/system/bin/sh`, use `rish exec /path/to/other/shell`.
+
 ## Options
 
 Since `rish` passes arguments directly to the remote, `rish` uses environment variable for options.
