@@ -7,8 +7,6 @@ android {
     defaultConfig {
         minSdkVersion api_min_sdk
         targetSdkVersion api_target_sdk
-        versionCode api_version_code
-        versionName api_version_name
         consumerProguardFiles "consumer-rules.pro"
     }
     buildTypes {

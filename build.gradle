@@ -9,7 +9,7 @@ buildscript {
         maven { url 'https://jitpack.io' }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.2.2'
+        classpath 'com.android.tools.build:gradle:7.0.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
 
         classpath 'com.vanniktech:gradle-maven-publish-plugin:0.15.1'
@@ -35,7 +35,7 @@ subprojects {
     afterEvaluate {
         if (it.findProperty('publishLibrary') ?: false) {
             plugins.apply('com.vanniktech.maven.publish')
-            version = android.defaultConfig.versionName
+            version = api_version_name
             println("${it.displayName}: ${group}:${it.name}:${version}")
         }
     }
