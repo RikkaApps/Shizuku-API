@@ -4,5 +4,5 @@ interface IShizukuServiceConnection {
 
     oneway void connected(IBinder service);
 
-    oneway void dead();
+    oneway void died();
 }

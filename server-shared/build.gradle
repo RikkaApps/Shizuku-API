@@ -1,0 +1,33 @@
+plugins {
+    id('com.android.library')
+}
+
+android {
+    compileSdkVersion api_target_sdk
+    defaultConfig {
+        minSdkVersion api_min_sdk
+        targetSdkVersion api_target_sdk
+        consumerProguardFiles "consumer-rules.pro"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
+    implementation "androidx.annotation:annotation:1.2.0"
+    implementation 'dev.rikka.rikkax.parcelablelist:parcelablelist:1.0.0'
+
+    implementation project(':aidl')
+    implementation project(':shared')
+
+    compileOnly project(':hidden-api-stub')
+}

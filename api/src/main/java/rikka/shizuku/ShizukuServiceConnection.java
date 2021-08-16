@@ -49,13 +49,13 @@ class ShizukuServiceConnection extends IShizukuServiceConnection.Stub {
         );
 
         try {
-            binder.linkToDeath(this::dead, 0);
+            binder.linkToDeath(this::died, 0);
         } catch (RemoteException ignored) {
         }
     }
 
     @Override
-    public void dead() {
+    public void died() {
         if (dead) return;
         dead = true;
 
