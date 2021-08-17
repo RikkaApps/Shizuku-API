@@ -452,10 +452,6 @@ public class Shizuku {
             this.componentName = componentName;
         }
 
-        public boolean daemon() {
-            return daemon;
-        }
-
         /**
          * Daemon controls if the service should be run as daemon mode.
          * <br>Under non-daemon mode, the service will be stopped when the app process is dead.
