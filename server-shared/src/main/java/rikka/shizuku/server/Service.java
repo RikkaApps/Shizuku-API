@@ -11,10 +11,16 @@ import android.system.Os;
 
 import androidx.annotation.Nullable;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+
+import moe.shizuku.server.IRemoteProcess;
 import moe.shizuku.server.IShizukuService;
 import moe.shizuku.server.IShizukuServiceConnection;
 import rikka.rish.RishService;
 import rikka.shizuku.ShizukuApiConstants;
+import rikka.shizuku.server.api.RemoteProcessHolder;
 import rikka.shizuku.server.api.SystemService;
 import rikka.shizuku.server.util.Logger;
 import rikka.shizuku.server.util.OsUtils;
@@ -247,6 +253,25 @@ public abstract class Service<
 
         ConfigPackageEntry entry = configManager.find(callingUid);
         return entry != null && entry.isDenied();
+    }
+
+    @Override
+    public final IRemoteProcess newProcess(String[] cmd, String[] env, String dir) {
+        enforceCallingPermission("newProcess");
+
+        LOGGER.d("newProcess: uid=%d, cmd=%s, env=%s, dir=%s", Binder.getCallingUid(), Arrays.toString(cmd), Arrays.toString(env), dir);
+
+        java.lang.Process process;
+        try {
+            process = Runtime.getRuntime().exec(cmd, env, dir != null ? new File(dir) : null);
+        } catch (IOException e) {
+            throw new IllegalStateException(e.getMessage());
+        }
+
+        ClientRecord clientRecord = clientManager.findClient(Binder.getCallingUid(), Binder.getCallingPid());
+        IBinder token = clientRecord != null ? clientRecord.client.asBinder() : null;
+
+        return new RemoteProcessHolder(process, token);
     }
 
     @Override
