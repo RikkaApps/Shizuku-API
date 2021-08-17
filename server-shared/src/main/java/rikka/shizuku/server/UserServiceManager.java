@@ -6,6 +6,7 @@ import static rikka.shizuku.ShizukuApiConstants.USER_SERVICE_ARG_DEBUGGABLE;
 import static rikka.shizuku.ShizukuApiConstants.USER_SERVICE_ARG_NO_CREATE;
 import static rikka.shizuku.ShizukuApiConstants.USER_SERVICE_ARG_PROCESS_NAME;
 import static rikka.shizuku.ShizukuApiConstants.USER_SERVICE_ARG_TAG;
+import static rikka.shizuku.ShizukuApiConstants.USER_SERVICE_ARG_USE_32_BIT_APP_PROCESS;
 import static rikka.shizuku.ShizukuApiConstants.USER_SERVICE_ARG_VERSION_CODE;
 
 import android.content.ComponentName;
@@ -25,6 +26,7 @@ import java.util.concurrent.Executors;
 import moe.shizuku.server.IShizukuServiceConnection;
 import rikka.shizuku.ShizukuApiConstants;
 import rikka.shizuku.server.api.SystemService;
+import rikka.shizuku.server.util.AbiUtil;
 import rikka.shizuku.server.util.Logger;
 import rikka.shizuku.server.util.UserHandleCompat;
 
@@ -100,6 +102,7 @@ public abstract class UserServiceManager {
         boolean debug = options.getBoolean(USER_SERVICE_ARG_DEBUGGABLE, false);
         boolean noCreate = options.getBoolean(USER_SERVICE_ARG_NO_CREATE, false);
         boolean daemon = options.getBoolean(USER_SERVICE_ARG_DAEMON, true);
+        boolean use32Bits = options.getBoolean(USER_SERVICE_ARG_USE_32_BIT_APP_PROCESS, false);
         String key = packageName + ":" + (tag != null ? tag : className);
 
         synchronized (this) {
@@ -117,7 +120,7 @@ public abstract class UserServiceManager {
                 if (newRecord.service != null && newRecord.service.pingBinder()) {
                     newRecord.broadcastBinderReceived();
                 } else {
-                    Runnable runnable = () -> startUserService(newRecord, key, newRecord.token, packageName, className, processNameSuffix, uid, debug);
+                    Runnable runnable = () -> startUserService(newRecord, key, newRecord.token, packageName, className, processNameSuffix, uid, use32Bits, debug);
                     executor.execute(runnable);
                     return 0;
                 }
@@ -130,7 +133,9 @@ public abstract class UserServiceManager {
         return userServiceRecords.get(key);
     }
 
-    private UserServiceRecord createUserServiceRecordIfNeededLocked(UserServiceRecord record, String key, int versionCode, boolean daemon, String apkPath) {
+    private UserServiceRecord createUserServiceRecordIfNeededLocked(
+            UserServiceRecord record, String key, int versionCode, boolean daemon, String apkPath) {
+
         if (record != null) {
             if (record.versionCode != versionCode) {
                 LOGGER.v("Remove service record %s (%s) because version code not matched (old=%d, new=%d)", key, record.token, record.versionCode, versionCode);
@@ -165,10 +170,13 @@ public abstract class UserServiceManager {
         return record;
     }
 
-    private void startUserService(UserServiceRecord record, String key, String token, String packageName, String classname, String processNameSuffix, int callingUid, boolean debug) {
+    private void startUserService(
+            UserServiceRecord record, String key, String token, String packageName,
+            String classname, String processNameSuffix, int callingUid, boolean use32Bits, boolean debug) {
+
         LOGGER.v("Starting process for service record %s (%s)...", key, token);
 
-        String cmd = getUserServiceStartCmd(record, key, token, packageName, classname, processNameSuffix, callingUid, debug);
+        String cmd = getUserServiceStartCmd(record, key, token, packageName, classname, processNameSuffix, callingUid, use32Bits && AbiUtil.has32Bit(), debug);
         int exitCode;
         try {
             java.lang.Process process = Runtime.getRuntime().exec("sh");
@@ -186,7 +194,9 @@ public abstract class UserServiceManager {
         }
     }
 
-    public abstract String getUserServiceStartCmd(UserServiceRecord record, String key, String token, String packageName, String classname, String processNameSuffix, int callingUid, boolean debug);
+    public abstract String getUserServiceStartCmd(
+            UserServiceRecord record, String key, String token, String packageName,
+            String classname, String processNameSuffix, int callingUid, boolean use32Bits, boolean debug);
 
     private void sendUserServiceLocked(IBinder binder, String token) {
         Map.Entry<String, UserServiceRecord> entry = null;

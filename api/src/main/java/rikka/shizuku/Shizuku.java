@@ -445,6 +445,7 @@ public class Shizuku {
         String tag;
         boolean debuggable = false;
         boolean daemon = true;
+        boolean use32BitAppProcess = false;
 
         public UserServiceArgs(@NonNull ComponentName componentName) {
             this.componentName = componentName;
@@ -467,10 +468,6 @@ public class Shizuku {
             return this;
         }
 
-        public String tag() {
-            return tag;
-        }
-
         /**
          * Tag is used to distinguish different services.
          * <p>If you want to obfuscate the user service class, you need to set a stable tag.
@@ -481,10 +478,6 @@ public class Shizuku {
         public UserServiceArgs tag(@NonNull String tag) {
             this.tag = tag;
             return this;
-        }
-
-        public int version() {
-            return versionCode;
         }
 
         /**
@@ -499,10 +492,6 @@ public class Shizuku {
             return this;
         }
 
-        public boolean debuggable() {
-            return debuggable;
-        }
-
         /**
          * Set if the service is debuggable. The process can be found when "Show all processes" is enabled.
          *
@@ -511,10 +500,6 @@ public class Shizuku {
         public UserServiceArgs debuggable(boolean debuggable) {
             this.debuggable = debuggable;
             return this;
-        }
-
-        public String processNameSuffix() {
-            return processName;
         }
 
         /**
@@ -528,12 +513,28 @@ public class Shizuku {
             return this;
         }
 
+        /**
+         * Set if the 32-bits app_process should be used on 64-bits devices.
+         * <p>This method will not work on 64-bits only devices.
+         * <p>You should NEVER use this method unless if you have special requirements.
+         * <p><strong>Reasons:</strong>
+         * <p><a href="https://developer.android.com/distribute/best-practices/develop/64-bit">Google has required since August 2019 that all apps submitted to Google Play are 64-bit.</a>
+         * <p><a href="https://www.arm.com/blogs/blueprint/64-bit">ARM announced that all Arm Cortex-A CPU mobile cores will be 64-bit only from 2023.</a>
+         *
+         * @param use32BitAppProcess Use 32bit app_process
+         */
+        public UserServiceArgs use32BitAppProcess(boolean use32BitAppProcess) {
+            this.use32BitAppProcess = use32BitAppProcess;
+            return this;
+        }
+
         private Bundle forAdd() {
             Bundle options = new Bundle();
             options.putParcelable(ShizukuApiConstants.USER_SERVICE_ARG_COMPONENT, componentName);
             options.putBoolean(ShizukuApiConstants.USER_SERVICE_ARG_DEBUGGABLE, debuggable);
             options.putInt(ShizukuApiConstants.USER_SERVICE_ARG_VERSION_CODE, versionCode);
             options.putBoolean(ShizukuApiConstants.USER_SERVICE_ARG_DAEMON, daemon);
+            options.putBoolean(ShizukuApiConstants.USER_SERVICE_ARG_USE_32_BIT_APP_PROCESS, use32BitAppProcess);
             options.putString(ShizukuApiConstants.USER_SERVICE_ARG_PROCESS_NAME,
                     Objects.requireNonNull(processName, "process name suffix must not be null"));
             if (tag != null) {

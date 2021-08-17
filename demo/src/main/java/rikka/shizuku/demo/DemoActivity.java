@@ -405,6 +405,7 @@ public class DemoActivity extends Activity {
                     .daemon(false)
                     .processNameSuffix("service")
                     .debuggable(BuildConfig.DEBUG)
+                    .use32BitAppProcess(true)
                     .version(BuildConfig.VERSION_CODE);
 
     private void bindUserService() {
