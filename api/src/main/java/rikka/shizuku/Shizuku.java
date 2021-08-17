@@ -1,5 +1,14 @@
 package rikka.shizuku;
 
+import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP_PREFIX;
+import static rikka.shizuku.ShizukuApiConstants.ATTACH_REPLY_PERMISSION_GRANTED;
+import static rikka.shizuku.ShizukuApiConstants.ATTACH_REPLY_SERVER_PATCH_VERSION;
+import static rikka.shizuku.ShizukuApiConstants.ATTACH_REPLY_SERVER_SECONTEXT;
+import static rikka.shizuku.ShizukuApiConstants.ATTACH_REPLY_SERVER_UID;
+import static rikka.shizuku.ShizukuApiConstants.ATTACH_REPLY_SERVER_VERSION;
+import static rikka.shizuku.ShizukuApiConstants.ATTACH_REPLY_SHOULD_SHOW_REQUEST_PERMISSION_RATIONALE;
+import static rikka.shizuku.ShizukuApiConstants.REQUEST_PERMISSION_REPLY_ALLOWED;
+
 import android.content.ComponentName;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
@@ -21,15 +30,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import moe.shizuku.server.IShizukuApplication;
 import moe.shizuku.server.IShizukuService;
-
-import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP_PREFIX;
-import static rikka.shizuku.ShizukuApiConstants.ATTACH_REPLY_PERMISSION_GRANTED;
-import static rikka.shizuku.ShizukuApiConstants.ATTACH_REPLY_SERVER_PATCH_VERSION;
-import static rikka.shizuku.ShizukuApiConstants.ATTACH_REPLY_SERVER_SECONTEXT;
-import static rikka.shizuku.ShizukuApiConstants.ATTACH_REPLY_SERVER_UID;
-import static rikka.shizuku.ShizukuApiConstants.ATTACH_REPLY_SERVER_VERSION;
-import static rikka.shizuku.ShizukuApiConstants.ATTACH_REPLY_SHOULD_SHOW_REQUEST_PERMISSION_RATIONALE;
-import static rikka.shizuku.ShizukuApiConstants.REQUEST_PERMISSION_REPLY_ALLOWED;
 
 public class Shizuku {
 
@@ -459,6 +459,7 @@ public class Shizuku {
          * <br>Under non-daemon mode, the service will be stopped when the app process is dead.
          * <br>Under daemon mode, the service will run forever until {@link Shizuku#unbindUserService(UserServiceArgs, ServiceConnection, boolean)} is called.
          * <p>For upward compatibility reason, {@code daemon} is {@code true} by default.
+         *
          * @param daemon Daemon
          */
         public UserServiceArgs daemon(boolean daemon) {
@@ -472,6 +473,7 @@ public class Shizuku {
 
         /**
          * Tag is used to distinguish different services.
+         * <p>If you want to obfuscate the user service class, you need to set a stable tag.
          * <p>By default, user service is shared by the same packages installed in all users.
          *
          * @param tag Tag
@@ -487,8 +489,8 @@ public class Shizuku {
 
         /**
          * Version code is used to distinguish different services.
-         * <p>By default, user service lives longer than app's process. Use a different version code after upgrade can
-         * tell the server to recreate the user service.
+         * <p>Use a different version code when the service code is updated, so that
+         * the Shizuku or Sui server can recreate the user service for you.
          *
          * @param versionCode Version code
          */
@@ -551,8 +553,25 @@ public class Shizuku {
     }
 
     /**
-     * Run service class from the apk of current app.
+     * User Service is similar to <a href="https://developer.android.com/guide/components/bound-services">Bound Services</a>.
+     * They are run in different processes and run as the identity of root or adb (if the user uses Shizuku with adb).
+     * <p>
+     * The user service is started from {@code app_process}, so there is no restrictions on non-SDK APIs.
+     * Note, the user service process is not an valid app process. Therefore, even you can acquire an
+     * {@code Context} instance from {@code android.app.ActivityThread.systemMain().getSystemContext()},
+     * many APIs, such as {@code Context#registerReceiver} and {@code Context#getContentResolver} will not work.
+     * <br>In most cases, it's more convenient and safe to use system APIs "directly". See demo for more.
+     * <p>
+     * The user service can run under "Daemon mode". Under "Daemon mode" (default behavior), the service will
+     * run forever until you call the "unbind" method. Under "Non-daemon mode", the service will be stopped
+     * when the process which called the "bind" method is dead.
+     * <p>
+     * When the "unbind" method is called, the user service will NOT be killed.
+     * You need to implement a "destroy" method in your service. The transaction code for that method
+     * is {@code 16777115} (use {@code 16777114} in aidl).
+     * In this method, you can do some cleanup jobs and call {@link System#exit(int)} in the end.
      *
+     * @see UserServiceArgs
      * @since added from version 10
      */
     public static void bindUserService(@NonNull UserServiceArgs args, @NonNull ServiceConnection conn) {
@@ -567,11 +586,11 @@ public class Shizuku {
 
     /**
      * Similar to {@link Shizuku#bindUserService(UserServiceArgs, ServiceConnection)}, but does not
-     * start service if it is not running.
+     * start user service if it is not running.
      *
+     * @return if the service is running
      * @see Shizuku#bindUserService(UserServiceArgs, ServiceConnection)
      * @since added from version 12
-     * @return if the service is running
      */
     public static boolean peekUserService(@NonNull UserServiceArgs args, @NonNull ServiceConnection conn) {
         ShizukuServiceConnection connection = ShizukuServiceConnections.getOrCreate(args);
@@ -589,7 +608,9 @@ public class Shizuku {
 
     /**
      * Remove user service.
+     * <p>You need to implement a "destroy" method in your service, or the service will not be killed.
      *
+     * @see Shizuku#bindUserService(UserServiceArgs, ServiceConnection)
      * @param remove Remove (kill) the remote user service.
      */
     public static void unbindUserService(@NonNull UserServiceArgs args, @Nullable ServiceConnection conn, boolean remove) {
