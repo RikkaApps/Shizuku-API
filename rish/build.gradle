@@ -42,7 +42,7 @@ dependencies {
 }
 
 ext {
-    publishLibrary = true
+    publishLibrary = false
     POM_NAME = "RISH"
     POM_DESCRIPTION = "RISH"
 }

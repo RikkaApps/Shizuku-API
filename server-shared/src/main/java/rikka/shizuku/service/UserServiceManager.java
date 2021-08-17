@@ -2,6 +2,7 @@ package rikka.shizuku.service;
 
 import static rikka.shizuku.ShizukuApiConstants.USER_SERVICE_ARG_COMPONENT;
 import static rikka.shizuku.ShizukuApiConstants.USER_SERVICE_ARG_DEBUGGABLE;
+import static rikka.shizuku.ShizukuApiConstants.USER_SERVICE_ARG_NO_CREATE;
 import static rikka.shizuku.ShizukuApiConstants.USER_SERVICE_ARG_PROCESS_NAME;
 import static rikka.shizuku.ShizukuApiConstants.USER_SERVICE_ARG_TAG;
 import static rikka.shizuku.ShizukuApiConstants.USER_SERVICE_ARG_VERSION_CODE;
@@ -96,19 +97,30 @@ public abstract class UserServiceManager {
         String tag = options.getString(USER_SERVICE_ARG_TAG);
         String processNameSuffix = options.getString(USER_SERVICE_ARG_PROCESS_NAME);
         boolean debug = options.getBoolean(USER_SERVICE_ARG_DEBUGGABLE, false);
+        boolean create = !options.getBoolean(USER_SERVICE_ARG_NO_CREATE, false);
         String key = packageName + ":" + (tag != null ? tag : className);
 
         synchronized (this) {
-            UserServiceRecord record = getOrCreateUserServiceRecordLocked(key, versionCode, sourceDir);
-            record.callbacks.register(conn);
+            UserServiceRecord record = getUserServiceRecordLocked(key);
+            if (create) {
+                UserServiceRecord newRecord = createUserServiceRecordIfNeededLocked(record, key, versionCode, sourceDir);
+                newRecord.callbacks.register(conn);
 
-            if (record.service != null && record.service.pingBinder()) {
-                record.broadcastBinderReceived();
+                if (newRecord.service != null && newRecord.service.pingBinder()) {
+                    newRecord.broadcastBinderReceived();
+                } else {
+                    Runnable runnable = () -> startUserService(newRecord, key, newRecord.token, packageName, className, processNameSuffix, uid, debug);
+                    executor.execute(runnable);
+                    return 0;
+                }
+                return 0;
             } else {
-                Runnable runnable = () -> startUserService(record, key, record.token, packageName, className, processNameSuffix, uid, debug);
-                executor.execute(runnable);
+                if (record != null && record.service != null && record.service.pingBinder()) {
+                    record.broadcastBinderReceived();
+                    return 0;
+                }
+                return 1;
             }
-            return 0;
         }
     }
 
@@ -116,8 +128,7 @@ public abstract class UserServiceManager {
         return userServiceRecords.get(key);
     }
 
-    private UserServiceRecord getOrCreateUserServiceRecordLocked(String key, int versionCode, String apkPath) {
-        UserServiceRecord record = getUserServiceRecordLocked(key);
+    private UserServiceRecord createUserServiceRecordIfNeededLocked(UserServiceRecord record, String key, int versionCode, String apkPath) {
         if (record != null) {
             if (record.versionCode != versionCode) {
                 LOGGER.v("Remove service record %s (%s) because version code not matched (old=%d, new=%d)", key, record.token, record.versionCode, versionCode);

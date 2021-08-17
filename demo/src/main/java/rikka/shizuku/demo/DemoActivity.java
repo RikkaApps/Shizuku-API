@@ -50,6 +50,7 @@ public class DemoActivity extends Activity {
     private static final int REQUEST_CODE_BUTTON4 = 4;
     private static final int REQUEST_CODE_BUTTON7 = 7;
     private static final int REQUEST_CODE_BUTTON8 = 8;
+    private static final int REQUEST_CODE_BUTTON9 = 9;
     private static final int REQUEST_CODE_PICK_APKS = 1000;
 
     private MainActivityBinding binding;
@@ -83,10 +84,13 @@ public class DemoActivity extends Activity {
             if (checkPermission(REQUEST_CODE_BUTTON4)) getSystemProperty();
         });
         binding.button7.setOnClickListener((v) -> {
-            if (checkPermission(REQUEST_CODE_BUTTON7)) bindUserServiceStandaloneProcess();
+            if (checkPermission(REQUEST_CODE_BUTTON7)) bindUserService();
         });
         binding.button8.setOnClickListener((v) -> {
-            if (checkPermission(REQUEST_CODE_BUTTON8)) unbindUserServiceStandaloneProcess();
+            if (checkPermission(REQUEST_CODE_BUTTON8)) unbindUserService();
+        });
+        binding.button9.setOnClickListener((v) -> {
+            if (checkPermission(REQUEST_CODE_BUTTON9)) peekUserService();
         });
 
         Shizuku.addBinderReceivedListenerSticky(BINDER_RECEIVED_LISTENER);
@@ -123,11 +127,15 @@ public class DemoActivity extends Activity {
                     break;
                 }
                 case REQUEST_CODE_BUTTON7: {
-                    bindUserServiceStandaloneProcess();
+                    bindUserService();
                     break;
                 }
                 case REQUEST_CODE_BUTTON8: {
-                    unbindUserServiceStandaloneProcess();
+                    unbindUserService();
+                    break;
+                }
+                case REQUEST_CODE_BUTTON9: {
+                    peekUserService();
                     break;
                 }
             }
@@ -392,19 +400,19 @@ public class DemoActivity extends Activity {
         }
     };
 
-    private final Shizuku.UserServiceArgs userServiceStandaloneProcessArgs =
+    private final Shizuku.UserServiceArgs userServiceArgs =
             new Shizuku.UserServiceArgs(new ComponentName(BuildConfig.APPLICATION_ID, UserService.class.getName()))
                     .processNameSuffix("service")
                     .debuggable(BuildConfig.DEBUG)
                     .version(BuildConfig.VERSION_CODE);
 
-    private void bindUserServiceStandaloneProcess() {
+    private void bindUserService() {
         StringBuilder res = new StringBuilder();
         try {
             if (Shizuku.getVersion() < 10) {
                 res.append("requires Shizuku API 10");
             } else {
-                Shizuku.bindUserService(userServiceStandaloneProcessArgs, userServiceConnection);
+                Shizuku.bindUserService(userServiceArgs, userServiceConnection);
             }
         } catch (Throwable tr) {
             tr.printStackTrace();
@@ -413,14 +421,32 @@ public class DemoActivity extends Activity {
         binding.text3.setText(res.toString().trim());
     }
 
-    private void unbindUserServiceStandaloneProcess() {
-
+    private void unbindUserService() {
         StringBuilder res = new StringBuilder();
         try {
             if (Shizuku.getVersion() < 10) {
                 res.append("requires Shizuku API 10");
             } else {
-                Shizuku.unbindUserService(userServiceStandaloneProcessArgs, userServiceConnection, true);
+                Shizuku.unbindUserService(userServiceArgs, userServiceConnection, true);
+            }
+        } catch (Throwable tr) {
+            tr.printStackTrace();
+            res.append(tr.toString());
+        }
+        binding.text3.setText(res.toString().trim());
+    }
+
+    private void peekUserService() {
+        StringBuilder res = new StringBuilder();
+        try {
+            if (Shizuku.getVersion() < 12) {
+                res.append("requires Shizuku API 12");
+            } else {
+                if (Shizuku.peekUserService(userServiceArgs, userServiceConnection)) {
+                    res.append("Service is running");
+                } else {
+                    res.append("Service is not running");
+                }
             }
         } catch (Throwable tr) {
             tr.printStackTrace();

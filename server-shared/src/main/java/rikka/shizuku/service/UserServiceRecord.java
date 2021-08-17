@@ -77,7 +77,9 @@ public abstract class UserServiceRecord {
     public abstract void removeSelf();
 
     public void destroy() {
-        service.unlinkToDeath(deathRecipient, 0);
+        if (service != null) {
+            service.unlinkToDeath(deathRecipient, 0);
+        }
 
         if (service != null && service.pingBinder()) {
             Parcel data = Parcel.obtain();

@@ -82,6 +82,17 @@
             android:textAllCaps="false"
             android:textColor="?android:colorAccent" />
 
+        <Button
+            android:id="@+id/button9"
+            style="?android:borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="-12dp"
+            android:layout_marginTop="4dp"
+            android:text="peekUserService"
+            android:textAllCaps="false"
+            android:textColor="?android:colorAccent" />
+
         <TextView
             android:id="@android:id/text1"
             android:layout_width="wrap_content"

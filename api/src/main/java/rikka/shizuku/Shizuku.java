@@ -449,6 +449,10 @@ public class Shizuku {
             this.componentName = componentName;
         }
 
+        public String tag() {
+            return tag;
+        }
+
         /**
          * Tag is used to distinguish different services.
          * <p>By default, user service is shared by the same packages installed in all users.
@@ -458,6 +462,10 @@ public class Shizuku {
         public UserServiceArgs tag(@NonNull String tag) {
             this.tag = tag;
             return this;
+        }
+
+        public int version() {
+            return versionCode;
         }
 
         /**
@@ -472,6 +480,10 @@ public class Shizuku {
             return this;
         }
 
+        public boolean debuggable() {
+            return debuggable;
+        }
+
         /**
          * Set if the service is debuggable. The process can be found when "Show all processes" is enabled.
          *
@@ -480,6 +492,10 @@ public class Shizuku {
         public UserServiceArgs debuggable(boolean debuggable) {
             this.debuggable = debuggable;
             return this;
+        }
+
+        public String processNameSuffix() {
+            return processName;
         }
 
         /**
@@ -529,6 +545,28 @@ public class Shizuku {
         } catch (RemoteException e) {
             throw rethrowAsRuntimeException(e);
         }
+    }
+
+    /**
+     * Similar to {@link Shizuku#bindUserService(UserServiceArgs, ServiceConnection)}, but does not
+     * start service if it is not running.
+     *
+     * @see Shizuku#bindUserService(UserServiceArgs, ServiceConnection)
+     * @since added from version 12
+     * @return if the service is running
+     */
+    public static boolean peekUserService(@NonNull UserServiceArgs args, @NonNull ServiceConnection conn) {
+        ShizukuServiceConnection connection = ShizukuServiceConnections.getOrCreate(args);
+        connection.addConnection(conn);
+        int result;
+        try {
+            Bundle bundle = args.forAdd();
+            bundle.putBoolean(ShizukuApiConstants.USER_SERVICE_ARG_NO_CREATE, true);
+            result = requireService().addUserService(connection, bundle);
+        } catch (RemoteException e) {
+            throw rethrowAsRuntimeException(e);
+        }
+        return result == 0;
     }
 
     /**

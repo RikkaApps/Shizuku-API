@@ -6,15 +6,15 @@ import moe.shizuku.server.IShizukuServiceConnection;
 
 interface IShizukuService {
 
-    int getVersion() = 2; // Shizuku only
+    int getVersion() = 2;
 
-    int getUid() = 3; // Shizuku only
+    int getUid() = 3;
 
     int checkPermission(String permission) = 4;
 
     IRemoteProcess newProcess(in String[] cmd, in String[] env, in String dir) = 7;
 
-    String getSELinuxContext() = 8; // Shizuku only
+    String getSELinuxContext() = 8;
 
     String getSystemProperty(in String name, in String defaultValue) = 9;
 
@@ -32,15 +32,13 @@ interface IShizukuService {
 
     boolean shouldShowRequestPermissionRationale() = 16;
 
-    // ----------------------------
-
-    void exit() = 100; // Shizuku only
+    void exit() = 100;
 
     void attachUserService(in IBinder binder, in Bundle options) = 101;
 
     oneway void dispatchPackageChanged(in Intent intent) = 102;
 
-    boolean isHidden(int uid) = 103; // Sui only
+    boolean isHidden(int uid) = 103;
 
     oneway void dispatchPermissionConfirmationResult(int requestUid, int requestPid, int requestCode, in Bundle data) = 104;
 
