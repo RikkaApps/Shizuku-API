@@ -10,6 +10,7 @@ import android.os.SystemProperties;
 import android.system.Os;
 
 import androidx.annotation.CallSuper;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.io.File;
@@ -25,6 +26,7 @@ import rikka.shizuku.server.api.RemoteProcessHolder;
 import rikka.shizuku.server.api.SystemService;
 import rikka.shizuku.server.util.Logger;
 import rikka.shizuku.server.util.OsUtils;
+import rikka.shizuku.server.util.UserHandleCompat;
 
 public abstract class Service<
         UserServiceMgr extends UserServiceManager,
@@ -233,6 +235,35 @@ public abstract class Service<
 
         return clientManager.requireClient(callingUid, callingPid).allowed;
     }
+
+    @Override
+    public final void requestPermission(int requestCode) {
+        int callingUid = Binder.getCallingUid();
+        int callingPid = Binder.getCallingPid();
+        int userId = UserHandleCompat.getUserId(callingUid);
+
+        if (callingUid == OsUtils.getUid() || callingPid == OsUtils.getPid()) {
+            return;
+        }
+
+        ClientRecord clientRecord = clientManager.requireClient(callingUid, callingPid);
+
+        if (clientRecord.allowed) {
+            clientRecord.dispatchRequestPermissionResult(requestCode, true);
+            return;
+        }
+
+        ConfigPackageEntry entry = configManager.find(callingUid);
+        if (entry != null && entry.isDenied()) {
+            clientRecord.dispatchRequestPermissionResult(requestCode, false);
+            return;
+        }
+
+        showPermissionConfirmation(requestCode, clientRecord, callingUid, callingPid, userId);
+    }
+
+    public abstract void showPermissionConfirmation(
+            int requestCode, @NonNull ClientRecord clientRecord, int callingUid, int callingPid, int userId);
 
     @Override
     public boolean shouldShowRequestPermissionRationale() {
