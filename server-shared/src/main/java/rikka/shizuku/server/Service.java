@@ -38,7 +38,7 @@ public abstract class Service<
     private final ClientMgr clientManager;
     private final RishService rishService;
 
-    private final Logger LOGGER;
+    protected static final Logger LOGGER = new Logger("Service");
 
     public Service() {
         userServiceManager = onCreateUserServiceManager();
@@ -51,8 +51,6 @@ public abstract class Service<
                 Service.this.enforceCallingPermission(func);
             }
         };
-
-        LOGGER = onCreateLogger();
     }
 
     public abstract UserServiceMgr onCreateUserServiceManager();
@@ -60,8 +58,6 @@ public abstract class Service<
     public abstract ClientMgr onCreateClientManager();
 
     public abstract ConfigMgr onCreateConfigManager();
-
-    public abstract Logger onCreateLogger();
 
     public final UserServiceMgr getUserServiceManager() {
         return userServiceManager;

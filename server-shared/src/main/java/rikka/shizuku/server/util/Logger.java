@@ -6,16 +6,6 @@ import java.util.Locale;
 
 public class Logger {
 
-    public static Logger LOGGER = new Logger("ShizukuServer");
-
-    public static Logger getInstance() {
-        return LOGGER;
-    }
-
-    public static void setInstance(String tag) {
-        LOGGER = new Logger(tag);
-    }
-
     private final String TAG;
 
     public Logger(String TAG) {

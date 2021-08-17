@@ -12,7 +12,7 @@ import rikka.shizuku.server.util.Logger;
 
 public class ClientManager<ConfigMgr extends ConfigManager> {
 
-    private static final Logger LOGGER = new Logger("UserServiceRecord");
+    protected static final Logger LOGGER = new Logger("UserServiceRecord");
 
     private final ConfigMgr configManager;
     private final List<ClientRecord> clientRecords = Collections.synchronizedList(new ArrayList<>());

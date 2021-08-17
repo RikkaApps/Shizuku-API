@@ -9,7 +9,7 @@ import rikka.shizuku.server.util.Logger;
 
 public class ClientRecord {
 
-    private static final Logger LOGGER = new Logger("ClientRecord");
+    protected static final Logger LOGGER = new Logger("ClientRecord");
 
     public final int uid;
     public final int pid;

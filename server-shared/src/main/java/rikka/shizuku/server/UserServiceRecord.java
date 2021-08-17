@@ -27,7 +27,7 @@ public abstract class UserServiceRecord {
         }
     }
 
-    private static final Logger LOGGER = new Logger("UserServiceRecord");
+    protected static final Logger LOGGER = new Logger("UserServiceRecord");
 
     private final IBinder.DeathRecipient deathRecipient;
     public final int versionCode;

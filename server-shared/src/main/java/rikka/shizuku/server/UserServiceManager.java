@@ -32,7 +32,7 @@ import rikka.shizuku.server.util.UserHandleCompat;
 
 public abstract class UserServiceManager {
 
-    private static final Logger LOGGER = new Logger("UserServiceManager");
+    protected static final Logger LOGGER = new Logger("UserServiceManager");
 
     private final Executor executor = Executors.newSingleThreadExecutor();
     private final Map<String, UserServiceRecord> userServiceRecords = Collections.synchronizedMap(new ArrayMap<>());
