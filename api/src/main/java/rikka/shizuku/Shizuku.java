@@ -523,7 +523,7 @@ public class Shizuku {
          *
          * @param use32BitAppProcess Use 32bit app_process
          */
-        public UserServiceArgs use32BitAppProcess(boolean use32BitAppProcess) {
+        private UserServiceArgs use32BitAppProcess(boolean use32BitAppProcess) {
             this.use32BitAppProcess = use32BitAppProcess;
             return this;
         }
