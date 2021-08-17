@@ -6,7 +6,6 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.os.Parcel;
 import android.os.RemoteCallbackList;
-import android.util.Log;
 
 import java.util.UUID;
 
