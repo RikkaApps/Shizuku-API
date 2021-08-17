@@ -3,6 +3,7 @@ package rikka.shizuku.server;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Parcel;
 import android.os.RemoteException;
 import android.os.SELinux;
 import android.os.SystemProperties;
@@ -12,6 +13,7 @@ import androidx.annotation.Nullable;
 
 import moe.shizuku.server.IShizukuService;
 import moe.shizuku.server.IShizukuServiceConnection;
+import rikka.rish.RishService;
 import rikka.shizuku.ShizukuApiConstants;
 import rikka.shizuku.server.api.SystemService;
 import rikka.shizuku.server.util.Logger;
@@ -27,6 +29,14 @@ public abstract class Service<
     private final ClientMgr clientManager = onCreateClientManager();
 
     private final ConfigMgr configManager = onCreateConfigManager();
+
+    private final RishService rishService = new RishService() {
+
+        @Override
+        public void enforceCallingPermission(String func) {
+            Service.this.enforceCallingPermission(func);
+        }
+    };
 
     private final Logger LOGGER = onCreateLogger();
 
@@ -115,6 +125,29 @@ public abstract class Service<
             throw new IllegalStateException("Not an attached client");
         }
         return clientRecord;
+    }
+
+    public final void transactRemote(Parcel data, Parcel reply, int flags) throws RemoteException {
+        enforceCallingPermission("transactRemote");
+
+        IBinder targetBinder = data.readStrongBinder();
+        int targetCode = data.readInt();
+
+        LOGGER.d("transact: uid=%d, descriptor=%s, code=%d", Binder.getCallingUid(), targetBinder.getInterfaceDescriptor(), targetCode);
+        Parcel newData = Parcel.obtain();
+        try {
+            newData.appendFrom(data, data.dataPosition(), data.dataAvail());
+        } catch (Throwable tr) {
+            LOGGER.w(tr, "appendFrom");
+            return;
+        }
+        try {
+            long id = Binder.clearCallingIdentity();
+            targetBinder.transact(targetCode, newData, reply, flags);
+            Binder.restoreCallingIdentity(id);
+        } finally {
+            newData.recycle();
+        }
     }
 
     @Override
@@ -214,5 +247,17 @@ public abstract class Service<
 
         ConfigPackageEntry entry = configManager.find(callingUid);
         return entry != null && entry.isDenied();
+    }
+
+    @Override
+    public boolean onTransact(int code, Parcel data, Parcel reply, int flags) throws RemoteException {
+        if (code == ShizukuApiConstants.BINDER_TRANSACTION_transact) {
+            data.enforceInterface(ShizukuApiConstants.BINDER_DESCRIPTOR);
+            transactRemote(data, reply, flags);
+            return true;
+        } else if (rishService.onTransact(code, data, reply, flags)) {
+            return true;
+        }
+        return super.onTransact(code, data, reply, flags);
     }
 }

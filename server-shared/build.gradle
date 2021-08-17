@@ -26,8 +26,9 @@ dependencies {
     implementation "androidx.annotation:annotation:1.2.0"
     implementation 'dev.rikka.rikkax.parcelablelist:parcelablelist:1.0.0'
 
-    implementation project(':aidl')
-    implementation project(':shared')
+    api project(':aidl')
+    api project(':shared')
+    api project(':rish')
 
     compileOnly project(':hidden-api-stub')
 }
