@@ -1,4 +1,4 @@
-package rikka.shizuku.service;
+package rikka.shizuku.server;
 
 import static rikka.shizuku.ShizukuApiConstants.USER_SERVICE_TRANSACTION_destroy;
 
@@ -10,7 +10,7 @@ import android.os.RemoteCallbackList;
 import java.util.UUID;
 
 import moe.shizuku.server.IShizukuServiceConnection;
-import rikka.shizuku.service.util.Logger;
+import rikka.shizuku.server.util.Logger;
 
 public abstract class UserServiceRecord {
 

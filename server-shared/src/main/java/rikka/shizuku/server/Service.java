@@ -1,4 +1,4 @@
-package rikka.shizuku.service;
+package rikka.shizuku.server;
 
 import android.os.Binder;
 import android.os.Bundle;
@@ -13,9 +13,9 @@ import androidx.annotation.Nullable;
 import moe.shizuku.server.IShizukuService;
 import moe.shizuku.server.IShizukuServiceConnection;
 import rikka.shizuku.ShizukuApiConstants;
-import rikka.shizuku.service.api.SystemService;
-import rikka.shizuku.service.util.Logger;
-import rikka.shizuku.service.util.OsUtils;
+import rikka.shizuku.server.api.SystemService;
+import rikka.shizuku.server.util.Logger;
+import rikka.shizuku.server.util.OsUtils;
 
 public abstract class Service<
         UserServiceMgr extends UserServiceManager,

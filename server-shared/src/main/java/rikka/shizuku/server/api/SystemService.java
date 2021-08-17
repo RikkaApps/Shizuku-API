@@ -1,4 +1,4 @@
-package rikka.shizuku.service.api;
+package rikka.shizuku.server.api;
 
 import android.annotation.SuppressLint;
 import android.app.ActivityManagerNative;
@@ -34,8 +34,8 @@ import java.util.List;
 import java.util.Objects;
 
 import kotlin.jvm.JvmStatic;
-import rikka.shizuku.service.util.OsUtils;
-import rikka.shizuku.service.util.Unsafe;
+import rikka.shizuku.server.util.OsUtils;
+import rikka.shizuku.server.util.Unsafe;
 
 public class SystemService {
 

@@ -1,4 +1,4 @@
-package rikka.shizuku.service;
+package rikka.shizuku.server;
 
 import static rikka.shizuku.ShizukuApiConstants.USER_SERVICE_ARG_COMPONENT;
 import static rikka.shizuku.ShizukuApiConstants.USER_SERVICE_ARG_DEBUGGABLE;
@@ -22,9 +22,9 @@ import java.util.concurrent.Executor;
 
 import moe.shizuku.server.IShizukuServiceConnection;
 import rikka.shizuku.ShizukuApiConstants;
-import rikka.shizuku.service.api.SystemService;
-import rikka.shizuku.service.util.Logger;
-import rikka.shizuku.service.util.UserHandleCompat;
+import rikka.shizuku.server.api.SystemService;
+import rikka.shizuku.server.util.Logger;
+import rikka.shizuku.server.util.UserHandleCompat;
 
 public abstract class UserServiceManager {
 

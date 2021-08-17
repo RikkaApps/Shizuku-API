@@ -1,4 +1,4 @@
-package rikka.shizuku.service.api;
+package rikka.shizuku.server.api;
 
 import android.os.DeadObjectException;
 import android.os.IBinder;

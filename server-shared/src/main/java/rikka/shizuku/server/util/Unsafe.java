@@ -1,4 +1,4 @@
-package rikka.shizuku.service.util;
+package rikka.shizuku.server.util;
 
 public class Unsafe {
     @SuppressWarnings("unchecked")

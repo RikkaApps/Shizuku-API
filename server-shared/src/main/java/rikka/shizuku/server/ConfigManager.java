@@ -1,4 +1,4 @@
-package rikka.shizuku.service;
+package rikka.shizuku.server;
 
 import androidx.annotation.Nullable;
 
