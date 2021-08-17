@@ -9,6 +9,7 @@ import android.os.SELinux;
 import android.os.SystemProperties;
 import android.system.Os;
 
+import androidx.annotation.CallSuper;
 import androidx.annotation.Nullable;
 
 import java.io.File;
@@ -124,15 +125,6 @@ public abstract class Service<
         }
     }
 
-    public final ClientRecord requireClient(int callingUid, int callingPid) {
-        ClientRecord clientRecord = clientManager.findClient(callingUid, callingPid);
-        if (clientRecord == null) {
-            LOGGER.w("Caller (uid %d, pid %d) is not an attached client", callingUid, callingPid);
-            throw new IllegalStateException("Not an attached client");
-        }
-        return clientRecord;
-    }
-
     public final void transactRemote(Parcel data, Parcel reply, int flags) throws RemoteException {
         enforceCallingPermission("transactRemote");
 
@@ -237,7 +229,7 @@ public abstract class Service<
             return true;
         }
 
-        return requireClient(callingUid, callingPid).allowed;
+        return clientManager.requireClient(callingUid, callingPid).allowed;
     }
 
     @Override
@@ -249,7 +241,7 @@ public abstract class Service<
             return true;
         }
 
-        requireClient(callingUid, callingPid);
+        clientManager.requireClient(callingUid, callingPid);
 
         ConfigPackageEntry entry = configManager.find(callingUid);
         return entry != null && entry.isDenied();
@@ -274,6 +266,7 @@ public abstract class Service<
         return new RemoteProcessHolder(process, token);
     }
 
+    @CallSuper
     @Override
     public boolean onTransact(int code, Parcel data, Parcel reply, int flags) throws RemoteException {
         if (code == ShizukuApiConstants.BINDER_TRANSACTION_transact) {

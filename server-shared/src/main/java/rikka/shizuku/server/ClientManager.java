@@ -46,6 +46,16 @@ public class ClientManager<ConfigMgr extends ConfigManager> {
         return null;
     }
 
+    public ClientRecord requireClient(int callingUid, int callingPid) {
+        ClientRecord clientRecord = findClient(callingUid, callingPid);
+        if (clientRecord == null) {
+            LOGGER.w("Caller (uid %d, pid %d) is not an attached client", callingUid, callingPid);
+            throw new IllegalStateException("Not an attached client");
+        }
+        return clientRecord;
+    }
+
+
     public ClientRecord addClient(int uid, int pid, IShizukuApplication client, String packageName) {
         ClientRecord clientRecord = new ClientRecord(uid, pid, client, packageName);
 
