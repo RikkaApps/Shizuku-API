@@ -1,6 +1,7 @@
 package rikka.shizuku.server;
 
 import static rikka.shizuku.ShizukuApiConstants.USER_SERVICE_ARG_COMPONENT;
+import static rikka.shizuku.ShizukuApiConstants.USER_SERVICE_ARG_DAEMON;
 import static rikka.shizuku.ShizukuApiConstants.USER_SERVICE_ARG_DEBUGGABLE;
 import static rikka.shizuku.ShizukuApiConstants.USER_SERVICE_ARG_NO_CREATE;
 import static rikka.shizuku.ShizukuApiConstants.USER_SERVICE_ARG_PROCESS_NAME;
@@ -19,6 +20,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import moe.shizuku.server.IShizukuServiceConnection;
 import rikka.shizuku.ShizukuApiConstants;
@@ -30,11 +32,10 @@ public abstract class UserServiceManager {
 
     private static final Logger LOGGER = new Logger("UserServiceManager");
 
-    private final Executor executor;
+    private final Executor executor = Executors.newSingleThreadExecutor();
     private final Map<String, UserServiceRecord> userServiceRecords = Collections.synchronizedMap(new ArrayMap<>());
 
-    public UserServiceManager(Executor executor) {
-        this.executor = executor;
+    public UserServiceManager() {
     }
 
     public PackageInfo ensureCallingPackageForUserService(String packageName, int appId, int userId) {
@@ -97,13 +98,20 @@ public abstract class UserServiceManager {
         String tag = options.getString(USER_SERVICE_ARG_TAG);
         String processNameSuffix = options.getString(USER_SERVICE_ARG_PROCESS_NAME);
         boolean debug = options.getBoolean(USER_SERVICE_ARG_DEBUGGABLE, false);
-        boolean create = !options.getBoolean(USER_SERVICE_ARG_NO_CREATE, false);
+        boolean noCreate = options.getBoolean(USER_SERVICE_ARG_NO_CREATE, false);
+        boolean daemon = options.getBoolean(USER_SERVICE_ARG_DAEMON, true);
         String key = packageName + ":" + (tag != null ? tag : className);
 
         synchronized (this) {
             UserServiceRecord record = getUserServiceRecordLocked(key);
-            if (create) {
-                UserServiceRecord newRecord = createUserServiceRecordIfNeededLocked(record, key, versionCode, sourceDir);
+            if (noCreate) {
+                if (record != null && record.service != null && record.service.pingBinder()) {
+                    record.broadcastBinderReceived();
+                    return 0;
+                }
+                return 1;
+            } else {
+                UserServiceRecord newRecord = createUserServiceRecordIfNeededLocked(record, key, versionCode, daemon, sourceDir);
                 newRecord.callbacks.register(conn);
 
                 if (newRecord.service != null && newRecord.service.pingBinder()) {
@@ -114,12 +122,6 @@ public abstract class UserServiceManager {
                     return 0;
                 }
                 return 0;
-            } else {
-                if (record != null && record.service != null && record.service.pingBinder()) {
-                    record.broadcastBinderReceived();
-                    return 0;
-                }
-                return 1;
             }
         }
     }
@@ -128,7 +130,7 @@ public abstract class UserServiceManager {
         return userServiceRecords.get(key);
     }
 
-    private UserServiceRecord createUserServiceRecordIfNeededLocked(UserServiceRecord record, String key, int versionCode, String apkPath) {
+    private UserServiceRecord createUserServiceRecordIfNeededLocked(UserServiceRecord record, String key, int versionCode, boolean daemon, String apkPath) {
         if (record != null) {
             if (record.versionCode != versionCode) {
                 LOGGER.v("Remove service record %s (%s) because version code not matched (old=%d, new=%d)", key, record.token, record.versionCode, versionCode);
@@ -136,13 +138,17 @@ public abstract class UserServiceManager {
                 LOGGER.v("Service in record %s (%s) is dead", key, record.token);
             } else {
                 LOGGER.i("Found existing service record %s (%s)", key, record.token);
+
+                if (record.daemon != daemon) {
+                    record.setDaemon(daemon);
+                }
                 return record;
             }
 
             removeUserServiceLocked(record);
         }
 
-        record = new UserServiceRecord(versionCode) {
+        record = new UserServiceRecord(versionCode, daemon) {
 
             @Override
             public void removeSelf() {
@@ -155,7 +161,7 @@ public abstract class UserServiceManager {
         onUserServiceRecordCreated(record, apkPath);
 
         userServiceRecords.put(key, record);
-        LOGGER.i("New service record %s (%s): version=%d, apk=%s", key, record.token, versionCode, apkPath);
+        LOGGER.i("New service record %s (%s): version=%d, daemon=%s, apk=%s", key, record.token, versionCode, Boolean.toString(daemon), apkPath);
         return record;
     }
 

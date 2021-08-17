@@ -67,7 +67,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="-12dp"
             android:layout_marginTop="4dp"
-            android:text="bindUserService"
+            android:text="bindUserService (daemon=false)"
             android:textAllCaps="false"
             android:textColor="?android:colorAccent" />
 

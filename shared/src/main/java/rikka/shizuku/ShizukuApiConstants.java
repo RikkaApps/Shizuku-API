@@ -21,7 +21,8 @@ public class ShizukuApiConstants {
     public static final String USER_SERVICE_ARG_DEBUGGABLE = "shizuku:user-service-arg-debuggable";
     public static final String USER_SERVICE_ARG_VERSION_CODE = "shizuku:user-service-arg-version-code";
     public static final String USER_SERVICE_ARG_PROCESS_NAME = "shizuku:user-service-arg-process-name";
-    public static final String USER_SERVICE_ARG_NO_CREATE = "shizuku:user-service-no-create";
+    public static final String USER_SERVICE_ARG_NO_CREATE = "shizuku:user-service-arg-no-create";
+    public static final String USER_SERVICE_ARG_DAEMON = "shizuku:user-service-arg-daemon";
 
     @RestrictTo(LIBRARY_GROUP_PREFIX)
     public static final String USER_SERVICE_ARG_TOKEN = "shizuku:user-service-arg-token";

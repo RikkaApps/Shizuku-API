@@ -444,9 +444,26 @@ public class Shizuku {
         String processName;
         String tag;
         boolean debuggable = false;
+        boolean daemon = true;
 
         public UserServiceArgs(@NonNull ComponentName componentName) {
             this.componentName = componentName;
+        }
+
+        public boolean daemon() {
+            return daemon;
+        }
+
+        /**
+         * Daemon controls if the service should be run as daemon mode.
+         * <br>Under non-daemon mode, the service will be stopped when the app process is dead.
+         * <br>Under daemon mode, the service will run forever until {@link Shizuku#unbindUserService(UserServiceArgs, ServiceConnection, boolean)} is called.
+         * <p>For upward compatibility reason, {@code daemon} is {@code true} by default.
+         * @param daemon Daemon
+         */
+        public UserServiceArgs daemon(boolean daemon) {
+            this.daemon = daemon;
+            return this;
         }
 
         public String tag() {
@@ -514,8 +531,9 @@ public class Shizuku {
             options.putParcelable(ShizukuApiConstants.USER_SERVICE_ARG_COMPONENT, componentName);
             options.putBoolean(ShizukuApiConstants.USER_SERVICE_ARG_DEBUGGABLE, debuggable);
             options.putInt(ShizukuApiConstants.USER_SERVICE_ARG_VERSION_CODE, versionCode);
+            options.putBoolean(ShizukuApiConstants.USER_SERVICE_ARG_DAEMON, daemon);
             options.putString(ShizukuApiConstants.USER_SERVICE_ARG_PROCESS_NAME,
-                    Objects.requireNonNull(processName, "process name suffix must not be null when using standalone process mode"));
+                    Objects.requireNonNull(processName, "process name suffix must not be null"));
             if (tag != null) {
                 options.putString(ShizukuApiConstants.USER_SERVICE_ARG_TAG, tag);
             }

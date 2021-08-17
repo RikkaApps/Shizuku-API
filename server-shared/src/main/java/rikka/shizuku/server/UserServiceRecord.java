@@ -14,21 +14,40 @@ import rikka.shizuku.server.util.Logger;
 
 public abstract class UserServiceRecord {
 
+    private class ConnectionList extends RemoteCallbackList<IShizukuServiceConnection> {
+
+        @Override
+        public void onCallbackDied(IShizukuServiceConnection callback) {
+            if (daemon || getRegisteredCallbackCount() != 0) {
+                return;
+            }
+
+            LOGGER.v("Remove service record %s since it does not run as a daemon and all connections are gone", token);
+            removeSelf();
+        }
+    }
+
     private static final Logger LOGGER = new Logger("UserServiceRecord");
 
     private final IBinder.DeathRecipient deathRecipient;
     public final int versionCode;
     public String token;
     public IBinder service;
-    public final RemoteCallbackList<IShizukuServiceConnection> callbacks = new RemoteCallbackList<>();
+    public final RemoteCallbackList<IShizukuServiceConnection> callbacks = new ConnectionList();
+    public boolean daemon;
 
-    public UserServiceRecord(int versionCode) {
+    public UserServiceRecord(int versionCode, boolean daemon) {
         this.versionCode = versionCode;
         this.token = UUID.randomUUID().toString() + "-" + System.currentTimeMillis();
         this.deathRecipient = () -> {
             LOGGER.v("Binder for service record %s is dead", token);
             removeSelf();
         };
+        this.daemon = daemon;
+    }
+
+    public void setDaemon(boolean daemon) {
+        this.daemon = daemon;
     }
 
     public void setBinder(IBinder binder) {
