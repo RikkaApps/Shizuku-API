@@ -31,24 +31,26 @@ public abstract class Service<
         ClientMgr extends ClientManager<ConfigMgr>,
         ConfigMgr extends ConfigManager> extends IShizukuService.Stub {
 
-    private final UserServiceMgr userServiceManager = onCreateUserServiceManager();
+    private final UserServiceMgr userServiceManager;
+    private final ConfigMgr configManager;
+    private final ClientMgr clientManager;
+    private final RishService rishService;
 
-    private final ClientMgr clientManager = onCreateClientManager();
-
-    private final ConfigMgr configManager = onCreateConfigManager();
-
-    private final RishService rishService = new RishService() {
-
-        @Override
-        public void enforceCallingPermission(String func) {
-            Service.this.enforceCallingPermission(func);
-        }
-    };
-
-    private final Logger LOGGER = onCreateLogger();
+    private final Logger LOGGER;
 
     public Service() {
+        userServiceManager = onCreateUserServiceManager();
+        configManager = onCreateConfigManager();
+        clientManager = onCreateClientManager();
+        rishService = new RishService() {
 
+            @Override
+            public void enforceCallingPermission(String func) {
+                Service.this.enforceCallingPermission(func);
+            }
+        };
+
+        LOGGER = onCreateLogger();
     }
 
     public abstract UserServiceMgr onCreateUserServiceManager();
