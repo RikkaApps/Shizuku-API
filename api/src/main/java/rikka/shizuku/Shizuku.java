@@ -56,7 +56,6 @@ public class Shizuku {
             permissionGranted = data.getBoolean(ATTACH_REPLY_PERMISSION_GRANTED, false);
             shouldShowRequestPermissionRationale = data.getBoolean(ATTACH_REPLY_SHOULD_SHOW_REQUEST_PERMISSION_RATIONALE, false);
 
-            binderReady = true;
             scheduleBinderReceivedListeners();
         }
 
@@ -206,6 +205,8 @@ public class Shizuku {
         for (OnBinderReceivedListener listener : RECEIVED_LISTENERS) {
             listener.onBinderReceived();
         }
+
+        binderReady = true;
     }
 
     /**
