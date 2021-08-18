@@ -71,7 +71,9 @@ public abstract class Service<
         return configManager;
     }
 
-    public abstract boolean checkCallerManagerPermission(String func, int callingUid, int callingPid);
+    public boolean checkCallerManagerPermission(String func, int callingUid, int callingPid) {
+        return false;
+    }
 
     public final void enforceManagerPermission(String func) {
         int callingUid = Binder.getCallingUid();
@@ -92,7 +94,9 @@ public abstract class Service<
         throw new SecurityException(msg);
     }
 
-    public abstract boolean checkCallerPermission(String func, int callingUid, int callingPid, @Nullable ClientRecord clientRecord);
+    public boolean checkCallerPermission(String func, int callingUid, int callingPid, @Nullable ClientRecord clientRecord) {
+        return false;
+    }
 
     public final void enforceCallingPermission(String func) {
         int callingUid = Binder.getCallingUid();
