@@ -218,9 +218,7 @@ public abstract class Service<
     }
 
     @Override
-    public final void attachUserService(IBinder binder, Bundle options) {
-        enforceManagerPermission("attachUserService");
-
+    public void attachUserService(IBinder binder, Bundle options) {
         userServiceManager.attachUserService(binder, options);
     }
 
