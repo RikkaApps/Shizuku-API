@@ -262,7 +262,7 @@ public abstract class Service<
             int requestCode, @NonNull ClientRecord clientRecord, int callingUid, int callingPid, int userId);
 
     @Override
-    public boolean shouldShowRequestPermissionRationale() {
+    public final boolean shouldShowRequestPermissionRationale() {
         int callingUid = Binder.getCallingUid();
         int callingPid = Binder.getCallingPid();
 
