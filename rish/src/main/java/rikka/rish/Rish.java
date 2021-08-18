@@ -35,7 +35,7 @@ public class Rish {
         }
     }
 
-    public void main(String[] args) {
+    public void start(String[] args) {
         Log.d(TAG, "args: " + Arrays.toString(args));
         startShell(args, false);
     }
