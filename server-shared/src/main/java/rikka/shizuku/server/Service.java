@@ -20,6 +20,7 @@ import java.util.Arrays;
 import moe.shizuku.server.IRemoteProcess;
 import moe.shizuku.server.IShizukuService;
 import moe.shizuku.server.IShizukuServiceConnection;
+import rikka.rish.RishConfig;
 import rikka.rish.RishService;
 import rikka.shizuku.ShizukuApiConstants;
 import rikka.shizuku.server.api.RemoteProcessHolder;
@@ -41,6 +42,8 @@ public abstract class Service<
     protected static final Logger LOGGER = new Logger("Service");
 
     public Service() {
+        RishConfig.init(ShizukuApiConstants.BINDER_DESCRIPTOR, 30000);
+
         userServiceManager = onCreateUserServiceManager();
         configManager = onCreateConfigManager();
         clientManager = onCreateClientManager();
