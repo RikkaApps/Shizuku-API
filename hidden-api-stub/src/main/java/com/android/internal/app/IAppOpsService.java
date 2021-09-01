@@ -8,13 +8,15 @@ import androidx.annotation.RequiresApi;
 
 import java.util.List;
 
+import android.app.AppOpsManagerHidden;
+
 public interface IAppOpsService extends IInterface {
 
-    List<$android.app.AppOpsManager.PackageOps> getOpsForPackage(int uid, String packageName, int[] ops)
+    List<AppOpsManagerHidden.PackageOps> getOpsForPackage(int uid, String packageName, int[] ops)
             throws RemoteException;
 
     @RequiresApi(26)
-    List<$android.app.AppOpsManager.PackageOps> getUidOps(int uid, int[] ops)
+    List<AppOpsManagerHidden.PackageOps> getUidOps(int uid, int[] ops)
             throws RemoteException;
 
     void setMode(int code, int uid, String packageName, int mode)

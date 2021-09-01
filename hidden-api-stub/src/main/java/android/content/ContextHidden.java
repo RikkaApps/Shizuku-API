@@ -1,13 +1,14 @@
-package $android.content;
+package android.content;
 
-import android.content.BroadcastReceiver;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.UserHandle;
 
-public class Context {
+import dev.rikka.tools.refine.RefineAs;
+
+@RefineAs(Context.class)
+public class ContextHidden {
+
     public Intent registerReceiverAsUser(
             BroadcastReceiver receiver,
             UserHandle user,

@@ -1,6 +1,9 @@
-package $android.app;
+package android.app;
 
-public class ActivityManager {
+import dev.rikka.tools.refine.RefineAs;
+
+@RefineAs(ActivityManager.class)
+public class ActivityManagerHidden {
 
     public static int UID_OBSERVER_ACTIVE;
 

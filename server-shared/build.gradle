@@ -30,5 +30,6 @@ dependencies {
     api project(':shared')
     api project(':rish')
 
+    implementation("dev.rikka.tools.refine:runtime:2.0.0")
     compileOnly project(':hidden-api-stub')
 }

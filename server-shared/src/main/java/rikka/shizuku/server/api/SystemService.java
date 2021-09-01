@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.ActivityManagerNative;
 import android.app.ContentProviderHolder;
 import android.app.IActivityManager;
+import android.app.IActivityManager23;
 import android.app.IApplicationThread;
 import android.app.IProcessObserver;
 import android.app.IUidObserver;
@@ -33,9 +34,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import dev.rikka.tools.refine.Refine;
 import kotlin.jvm.JvmStatic;
 import rikka.shizuku.server.util.OsUtils;
-import rikka.shizuku.server.util.Unsafe;
 
 public class SystemService {
 
@@ -119,7 +120,7 @@ public class SystemService {
             contentProviderHolder = am.getContentProviderExternal(name, userId, token);
             provider = contentProviderHolder != null ? contentProviderHolder.provider : null;
         } else {
-            provider = Unsafe.<$android.app.IActivityManager>unsafeCast(am).getContentProviderExternal(name, userId, token).provider;
+            provider = Refine.<IActivityManager23>unsafeCast(am).getContentProviderExternal(name, userId, token).provider;
         }
 
         return provider;
