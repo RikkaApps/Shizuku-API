@@ -7,12 +7,22 @@ buildscript {
         mavenCentral()
         google()
         maven { url 'https://jitpack.io' }
+
+        // In case newly published library not yet synced with maven central
+        maven {
+            url("https://s01.oss.sonatype.org/content/repositories/releases/")
+            content {
+                includeGroup("dev.rikka.tools.refine")
+            }
+        }
+        mavenLocal()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.0.1'
+        classpath 'com.android.tools.build:gradle:7.0.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
 
         classpath 'com.vanniktech:gradle-maven-publish-plugin:0.15.1'
+        classpath 'dev.rikka.tools.refine:gradle-plugin:3.0.2'
     }
 }
 
@@ -20,6 +30,15 @@ allprojects {
     repositories {
         mavenCentral()
         google()
+
+        // In case newly published library not yet synced with maven central
+        maven {
+            url("https://s01.oss.sonatype.org/content/repositories/releases/")
+            content {
+                includeGroupByRegex("dev\\.rikka\\.*")
+            }
+        }
+        mavenLocal()
     }
     tasks.withType(Javadoc) {
         options.addStringOption('Xdoclint:none', '-quiet')

@@ -24,7 +24,8 @@ android {
 }
 
 dependencies {
-    implementation("dev.rikka.tools.refine:annotation:2.0.0")
+    annotationProcessor 'dev.rikka.tools.refine:annotation-processor:3.0.0'
+    compileOnly "dev.rikka.tools.refine:annotation:3.0.1"
 
     implementation "androidx.annotation:annotation:1.2.0"
 }
