@@ -4,9 +4,9 @@ import dev.rikka.tools.refine.RefineAs;
 
 @RefineAs(UserHandle.class)
 public class UserHandleHidden {
-    public static UserHandleHidden ALL;
+    public static UserHandle ALL;
 
-    public static UserHandleHidden of(int userId) {
+    public static UserHandle of(int userId) {
         throw new RuntimeException();
     }
 }
