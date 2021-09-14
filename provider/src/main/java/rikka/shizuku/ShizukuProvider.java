@@ -139,22 +139,6 @@ public class ShizukuProvider extends ContentProvider {
         }
     }
 
-    /**
-     * Return if Shizuku app is installed.
-     *
-     * @param context Context
-     * @return true if Shizuku app is installed
-     * @deprecated When Shizuku is installed, binder is guaranteed to be received
-     */
-    @Deprecated
-    public static boolean isShizukuInstalled(@NonNull Context context) {
-        try {
-            return context.getPackageManager().getPermissionInfo(ShizukuProvider.PERMISSION, 0) != null;
-        } catch (PackageManager.NameNotFoundException e) {
-            return false;
-        }
-    }
-
     @Override
     public void attachInfo(Context context, ProviderInfo info) {
         super.attachInfo(context, info);
