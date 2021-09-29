@@ -128,7 +128,6 @@ See demo.
 ### Add support for Sui
 
 - Call `Sui#init()`
-- Do not use `ShizukuProvider#isShizukuInstalled` since Sui does not have a manager
 - It's better to use check Sui with `Sui#isSui` before using Shizuku only methods in `ShizukuProvider`
 
 </details>
