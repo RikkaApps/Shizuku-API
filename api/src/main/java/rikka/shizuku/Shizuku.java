@@ -353,7 +353,7 @@ public class Shizuku {
      * Returns uid of remote service.
      *
      * @return uid
-     * @throws SecurityException if service version below v11 and the app have't get the permission
+     * @throws SecurityException if service version below v11 and the app haven't get the permission
      */
     public static int getUid() {
         if (serverUid != -1) return serverUid;
@@ -369,7 +369,7 @@ public class Shizuku {
      * Returns remote service version.
      *
      * @return server version
-     * @throws SecurityException if service version below v11 and the app have't get the permission
+     * @throws SecurityException if service version below v11 and the app haven't get the permission
      */
     public static int getVersion() {
         if (serverApiVersion != -1) return serverApiVersion;
@@ -553,22 +553,35 @@ public class Shizuku {
 
     /**
      * User Service is similar to <a href="https://developer.android.com/guide/components/bound-services">Bound Services</a>.
-     * They are run in different processes and run as the identity of root or adb (if the user uses Shizuku with adb).
+     * The difference is that the service runs in different process and as
+     * the identity (Linux UID) of root (UID 0) or shell (UID 2000, if the
+     * backend is Shizuku and user starts Shizuku with adb).
      * <p>
-     * The user service is started from {@code app_process}, so there is no restrictions on non-SDK APIs.
-     * Note, the user service process is not an valid app process. Therefore, even you can acquire an
-     * {@code Context} instance from {@code android.app.ActivityThread.systemMain().getSystemContext()},
-     * many APIs, such as {@code Context#registerReceiver} and {@code Context#getContentResolver} will not work.
-     * <br>In most cases, it's more convenient and safe to use system APIs "directly". See demo for more.
-     * <p>
-     * The user service can run under "Daemon mode". Under "Daemon mode" (default behavior), the service will
-     * run forever until you call the "unbind" method. Under "Non-daemon mode", the service will be stopped
-     * when the process which called the "bind" method is dead.
+     * The user service can run under "Daemon mode".
+     * Under "Daemon mode" (default behavior), the service will run forever
+     * until you call the "unbind" method. Under "Non-daemon mode", the service
+     * will be stopped when the process which called the "bind" method is dead.
      * <p>
      * When the "unbind" method is called, the user service will NOT be killed.
-     * You need to implement a "destroy" method in your service. The transaction code for that method
-     * is {@code 16777115} (use {@code 16777114} in aidl).
-     * In this method, you can do some cleanup jobs and call {@link System#exit(int)} in the end.
+     * You need to implement a "destroy" method in your service. The transaction
+     * code for that method is {@code 16777115} (use {@code 16777114} in aidl).
+     * In this method, you can do some cleanup jobs and call
+     * {@link System#exit(int)} in the end.
+     * <p>
+     * If the backend is Shizuku, whether in daemon mode or not, user service
+     * will be killed when Shizuku service is stopped or restarted.
+     * Shizuku sends binder to all Shizuku apps. Therefore, you only need to
+     * start the user service again.
+     * <p>
+     * <b>Use Android APIs in user service:</b>
+     * <p>
+     * There is no restrictions on non-SDK APIs in user service process.
+     * However, it is not an valid Android application process. Therefore,
+     * even you can acquire an {@code Context} instance, many APIs, such as
+     * {@code Context#registerReceiver} and {@code Context#getContentResolver}
+     * will not work. You will need to dig into Android source code to find
+     * out how things works, so that you will be able to implement your service
+     * safely and elegantly.
      *
      * @see UserServiceArgs
      * @since added from version 10
