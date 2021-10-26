@@ -1,5 +1,7 @@
 package rikka.shizuku.demo;
 
+import static android.content.pm.PackageManager.PERMISSION_GRANTED;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ClipData;
@@ -18,8 +20,6 @@ import android.os.Process;
 import android.os.RemoteException;
 import android.util.Log;
 
-import androidx.annotation.NonNull;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -29,7 +29,6 @@ import java.util.concurrent.CountDownLatch;
 
 import rikka.shizuku.Shizuku;
 import rikka.shizuku.ShizukuBinderWrapper;
-import rikka.shizuku.ShizukuProvider;
 import rikka.shizuku.ShizukuSystemProperties;
 import rikka.shizuku.demo.databinding.MainActivityBinding;
 import rikka.shizuku.demo.service.UserService;
@@ -38,8 +37,6 @@ import rikka.shizuku.demo.util.IIntentSenderAdaptor;
 import rikka.shizuku.demo.util.IntentSenderUtils;
 import rikka.shizuku.demo.util.PackageInstallerUtils;
 import rikka.shizuku.demo.util.ShizukuSystemServerApi;
-
-import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 
 @SuppressLint("SetTextI18n")
 public class DemoActivity extends Activity {
@@ -55,7 +52,13 @@ public class DemoActivity extends Activity {
 
     private MainActivityBinding binding;
 
-    private final Shizuku.OnBinderReceivedListener BINDER_RECEIVED_LISTENER = () -> binding.text1.setText("Binder received");
+    private final Shizuku.OnBinderReceivedListener BINDER_RECEIVED_LISTENER = () -> {
+        if (Shizuku.isPreV11()) {
+            binding.text1.setText("Shizuku pre-v11 is not supported");
+        } else {
+            binding.text1.setText("Binder received");
+        }
+    };
     private final Shizuku.OnBinderDeadListener BINDER_DEAD_LISTENER = () -> binding.text1.setText("Binder dead");
     private final Shizuku.OnRequestPermissionResultListener REQUEST_PERMISSION_RESULT_LISTENER = this::onRequestPermissionsResult;
 
@@ -145,15 +148,6 @@ public class DemoActivity extends Activity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        for (String perm : permissions) {
-            if (ShizukuProvider.PERMISSION.equals(perm)) {
-                onRequestPermissionsResult(requestCode, grantResults[0]);
-            }
-        }
-    }
-
-    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_CODE_PICK_APKS && resultCode == RESULT_OK) {
             List<Uri> uris;
@@ -175,29 +169,18 @@ public class DemoActivity extends Activity {
     }
 
     private boolean checkPermission(int code) {
+        if (Shizuku.isPreV11()) {
+            return false;
+        }
         try {
-            if (!Shizuku.isPreV11() && Shizuku.getVersion() >= 11) {
-                // Sui and Shizuku >= 11 use self-implemented permission
-                if (Shizuku.checkSelfPermission() == PERMISSION_GRANTED) {
-                    return true;
-                } else if (Shizuku.shouldShowRequestPermissionRationale()) {
-                    binding.text3.setText("User denied permission (shouldShowRequestPermissionRationale=true)");
-                    return false;
-                } else {
-                    Shizuku.requestPermission(code);
-                    return false;
-                }
+            if (Shizuku.checkSelfPermission() == PERMISSION_GRANTED) {
+                return true;
+            } else if (Shizuku.shouldShowRequestPermissionRationale()) {
+                binding.text3.setText("User denied permission (shouldShowRequestPermissionRationale=true)");
+                return false;
             } else {
-                // Shizuku < 11 uses runtime permission
-                if (checkSelfPermission(ShizukuProvider.PERMISSION) == PERMISSION_GRANTED) {
-                    return true;
-                } else if (shouldShowRequestPermissionRationale(ShizukuProvider.PERMISSION)) {
-                    binding.text3.setText("User denied permission (shouldShowRequestPermissionRationale=true)");
-                    return false;
-                } else {
-                    requestPermissions(new String[]{ShizukuProvider.PERMISSION}, code);
-                    return false;
-                }
+                Shizuku.requestPermission(code);
+                return false;
             }
         } catch (Throwable e) {
             binding.text3.setText(Log.getStackTraceString(e));
