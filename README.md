@@ -1,26 +1,32 @@
 # Shizuku-API
 
-Shizuku API is the API provided by [Shizuku](https://github.com/RikkaApps/Shizuku) and [Sui](https://github.com/RikkaApps/Sui). With Shizuku API, you app will be able to use Android APIs (almost) directly with Java or Kotlin, and as the identity of root or shell (adb).
+Shizuku API is the API provided by [Shizuku](https://github.com/RikkaApps/Shizuku) and [Sui](https://github.com/RikkaApps/Sui). With Shizuku API, your app will be able to use Android APIs (almost) directly with Java or Kotlin, and as the identity of root or shell (adb).
 
-Shizuku and Sui shares the API design. As the application developer, you only need to write the code once to support both Shizuku and Sui.
+Shizuku and Sui share the API design. As the application developer, you only need to write the code once to support both Shizuku and Sui.
 
 ## Requirements
 
-To use Shizuku APIs, you need to guide the user to install Shizuku or Sui first. Both of them requires Android 6.0+.
+To use Shizuku APIs, you need to guide the user to install Shizuku or Sui first. Both of them require Android 6.0+.
 
 ### Shizuku
 
-Shizuku is an standard Android application. You can guide user to downlaod Shizuku from https://shizuku.rikka.app/download/. Shizuku works for both rooted and unrooted devices. 
+Shizuku is a standard Android application. You can guide the user to download Shizuku from https://shizuku.rikka.app/download/. Shizuku works for both rooted and unrooted devices. 
 
 On unrooted devices, Shizuku needs to manually restart with adb every time on boot. Before Android 11, a computer is required to run adb. Android 11 and above have built-in wireless debugging support, user can start Shizuku directly on the device.
 
 ### Sui
 
-Sui is a Magisk module. No additional setup steps are required except for installation. You can guide rooted users (searching `su` in `PATH` is enough) to download Sui from Magisk or https://github.com/RikkaApps/Sui.
+Sui is a [Magisk](https://github.com/topjohnwu/Magisk) module. Magisk requires an unlocked bootloader.
+
+No additional setup steps are required except for the installation. You can guide rooted users (searching `su` in `PATH` is enough) to download Sui from Magisk or https://github.com/RikkaApps/Sui.
+
+## Demo
+
+A demo project is provided. See [demo](https://github.com/RikkaApps/Shizuku-API/tree/master/demo) for more.
 
 ## Guide
 
-A demo project is provided. See [demo](https://github.com/RikkaApps/Shizuku-API/tree/master/demo) for more.
+I'll say the difficult words first, using Shizuku APIs is similar to framework or system app development, some experience in developing common applications may not be applicable. You have to get used to dig into Android source code to find out how things works, [cs.android.com](https://cs.android.com) and AndroidXref sites will be your best friend.
 
 ### Add dependency
 
@@ -38,7 +44,7 @@ implementation "dev.rikka.shizuku:provider:$shizuku_version"
 
 Before using Shizuku APIs, you need to acquire the Binder from Shizuku or Sui.
 
-`Shizuku` provides listeners, `Shizuku#addBinderReceivedListener()` and `Shizuku.addBinderDeadListener()`, that allows you to track the life of the binder.You should call methods in `Shizuku` class when the bidner is alive or you will get an `IllegalStateException`.
+`Shizuku` provides listeners, `Shizuku#addBinderReceivedListener()` and `Shizuku.addBinderDeadListener()`, that allows you to track the life of the binder.You should call methods in `Shizuku` class when the binder is alive or you will get an `IllegalStateException`.
 
 #### Shizuku
 
@@ -64,13 +70,13 @@ Starting from v12.1.0, Sui is initialized automatically in `ShizukuProvider`. Yo
 
 Call `Sui.init(packageName)` before using `Shizuku` class. This method only needs to be called once. If this method returns true, means Sui is installed and available.
 
-For multi-process applications, call this method in every process which needs to use Shizuku API.
+For multi-process applications, call this method in every process that needs to use Shizuku API.
 
 ### Request permission
 
 Request permission is the same process [requesting runtime permissions](https://developer.android.com/training/permissions/requesting).
 
-A simple example of requesting permssion:
+A simple example of requesting permission:
 
 ```java
 private void onRequestPermissionsResult(int requestCode, int grantResult) {
@@ -118,7 +124,7 @@ private boolean checkPermission(int code) {
 
 ### Using Shizuku APIs: Remote binder call
 
-Call any Android APIs which uses binder (such as `getInstalledPackages`) as the identity of root (or adb).
+Call any Android APIs which use binder (such as `getInstalledPackages`) as the identity of root (or adb).
 
 ### Using Shizuku APIs：UserService
 
@@ -138,8 +144,8 @@ Similar to [Bound services](https://developer.android.com/guide/components/bound
   You don't need to worry about this problem, just show a "not supported" message if the user really uses pre-v11.
   
   - Sui was born after API v11, Sui users are not affected at all.
-  - For Shizuku, according to Google Play statistics, more than 95% of users are on v11+. Shizuku drops Android 5 support from v5, many of the remaining 5% are such people who stucking at super old versions.
-  - A useful API, UserService, is added from v11 and stable on v12. I belive that many Shizuku apps already have a "version > 11" check.
+  - For Shizuku, according to Google Play statistics, more than 95% of users are on v11+. Shizuku drops Android 5 support from v5, many of the remaining 5% are such people who stuck at super old versions.
+  - A useful API, UserService, is added from v11 and stable on v12. I believe that many Shizuku apps already have a "version > 11" check.
   - I really want to drop pre-v11 support since [a possible system issue that may cause system soft reboot (system server crash) on uninstalling Shizuku](https://github.com/RikkaApps/Shizuku/issues/83).
 
 ### 12.0.0
@@ -154,7 +160,7 @@ Similar to [Bound services](https://developer.android.com/guide/components/bound
 ### Changes
 
 - Dependency changed (see Guide below)
-- Self-implemented permission is used from v11, the API is same to runtime permission (see demo, and existing runtime permission still works)
+- Self-implemented permission is used from v11, the API is the same to runtime permission (see the demo, and existing runtime permission still works)
 - Package name is rename to `rikka.shizuku` (replace all `moe.shizuku.api.` to `rikka.shizuku.`)
 - `ShizukuService` class is renamed to `Shizuku`
 - Methods in `Shizuku` class now throw `RuntimeException` rather than `RemoteException` like other Android APIs
