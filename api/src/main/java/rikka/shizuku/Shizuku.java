@@ -138,6 +138,14 @@ public class Shizuku {
     }
 
     public interface OnRequestPermissionResultListener {
+
+        /**
+         * Callback for the result from requesting permission.
+         *
+         * @param requestCode The code passed in {@link #requestPermission(int)}.
+         * @param grantResult The grant result for which is either {@link android.content.pm.PackageManager#PERMISSION_GRANTED}
+         *                    or {@link android.content.pm.PackageManager#PERMISSION_DENIED}.
+         */
         void onRequestPermissionResult(int requestCode, int grantResult);
     }
 
@@ -148,6 +156,10 @@ public class Shizuku {
 
     /**
      * Add a listener that will be called when binder is received.
+     * <p>
+     * Shizuku APIs can only be used when the binder is received, or a
+     * {@link IllegalStateException} will be thrown.
+     *
      * <p>Note:</p>
      * <ul>
      * <li>The listener will be called in main thread.</li>
@@ -248,7 +260,7 @@ public class Shizuku {
     }
 
     /**
-     * Add a listener that will be called when permission result is sent from server.
+     * Add a listener to receive the result of {@link #requestPermission(int)}.
      * <p>Note:</p>
      * <ul>
      * <li>The listener will be called in main thread.</li>
@@ -293,11 +305,25 @@ public class Shizuku {
         return service;
     }
 
+    /**
+     * Get the binder.
+     * <p>
+     * Normal apps should not use this method.
+     */
     @Nullable
     public static IBinder getBinder() {
         return binder;
     }
 
+    /**
+     * Check if the binder is alive.
+     * <p>
+     * Normal apps should use listeners rather calling this method everytime.
+     *
+     * @see #addBinderReceivedListener(OnBinderReceivedListener)
+     * @see #addBinderReceivedListener(OnBinderReceivedListener, boolean)
+     * @see #addBinderDeadListener(OnBinderDeadListener)
+     */
     public static boolean pingBinder() {
         return binder != null && binder.pingBinder();
     }
@@ -308,16 +334,9 @@ public class Shizuku {
 
     /**
      * Call {@link IBinder#transact(int, Parcel, Parcel, int)} at remote service.
-     *
-     * <p>How to construct the data parcel:
-     * <code><br>data.writeInterfaceToken(ShizukuApiConstants.BINDER_DESCRIPTOR);
-     * <br>data.writeStrongBinder(\/* binder you want to use at remote *\/);
-     * <br>data.writeInt(\/* transact code you want to use *\/);
-     * <br>data.writeInterfaceToken(\/* interface name of that binder *\/);
-     * <br>\/* write data of the binder call you want*\/</code>
-     *
-     * @see rikka.shizuku.SystemServiceHelper#obtainParcel(String, String, String)
-     * @see rikka.shizuku.SystemServiceHelper#obtainParcel(String, String, String, String)
+     * <p>
+     * Use {@link ShizukuBinderWrapper} to wrap the original binder.
+     * @see ShizukuBinderWrapper
      */
     public static void transactRemote(@NonNull Parcel data, @Nullable Parcel reply, int flags) {
         try {
@@ -353,7 +372,7 @@ public class Shizuku {
      * Returns uid of remote service.
      *
      * @return uid
-     * @throws SecurityException if service version below v11 and the app haven't get the permission
+     * @throws IllegalStateException if called before binder is received
      */
     public static int getUid() {
         if (serverUid != -1) return serverUid;
@@ -361,6 +380,9 @@ public class Shizuku {
             serverUid = requireService().getUid();
         } catch (RemoteException e) {
             throw rethrowAsRuntimeException(e);
+        } catch (SecurityException e) {
+            // Shizuku pre-v11 and permission is not granted
+            return -1;
         }
         return serverUid;
     }
@@ -369,7 +391,6 @@ public class Shizuku {
      * Returns remote service version.
      *
      * @return server version
-     * @throws SecurityException if service version below v11 and the app haven't get the permission
      */
     public static int getVersion() {
         if (serverApiVersion != -1) return serverApiVersion;
@@ -377,6 +398,9 @@ public class Shizuku {
             serverApiVersion = requireService().getVersion();
         } catch (RemoteException e) {
             throw rethrowAsRuntimeException(e);
+        } catch (SecurityException e) {
+            // Shizuku pre-v11 and permission is not granted
+            return -1;
         }
         return serverApiVersion;
     }
@@ -401,24 +425,7 @@ public class Shizuku {
     }
 
     /**
-     * Check if remote service has specific permission.
-     *
-     * @param permission permission name
-     * @return PackageManager.PERMISSION_DENIED or PackageManager.PERMISSION_GRANTED
-     */
-    public static int checkRemotePermission(String permission) {
-        if (serverUid == 0) return PackageManager.PERMISSION_GRANTED;
-        try {
-            return requireService().checkPermission(permission);
-        } catch (RemoteException e) {
-            throw rethrowAsRuntimeException(e);
-        }
-    }
-
-    /**
      * Returns SELinux context of Shizuku server process.
-     *
-     * <p>This API is only meaningful for root app using {@link Shizuku#newProcess(String[], String[], String)}.</p>
      *
      * <p>For adb, context should always be <code>u:r:shell:s0</code>.
      * <br>For root, context depends on su the user uses. E.g., context of Magisk is <code>u:r:magisk:s0</code>.
@@ -426,8 +433,7 @@ public class Shizuku {
      * </p>
      *
      * @return SELinux context
-     * @throws SecurityException if service version below v11 and the app have't get the permission
-     * @since added from version 6
+     * @since Added from version 6
      */
     public static String getSELinuxContext() {
         if (serverContext != null) return serverContext;
@@ -435,6 +441,9 @@ public class Shizuku {
             serverContext = requireService().getSELinuxContext();
         } catch (RemoteException e) {
             throw rethrowAsRuntimeException(e);
+        } catch (SecurityException e) {
+            // Shizuku pre-v11 and permission is not granted
+            return null;
         }
         return serverContext;
     }
@@ -553,7 +562,7 @@ public class Shizuku {
 
     /**
      * User Service is similar to <a href="https://developer.android.com/guide/components/bound-services">Bound Services</a>.
-     * The difference is that the service runs in different process and as
+     * The difference is that the service runs in a different process and as
      * the identity (Linux UID) of root (UID 0) or shell (UID 2000, if the
      * backend is Shizuku and user starts Shizuku with adb).
      * <p>
@@ -584,7 +593,7 @@ public class Shizuku {
      * safely and elegantly.
      *
      * @see UserServiceArgs
-     * @since added from version 10
+     * @since Added from version 10
      */
     public static void bindUserService(@NonNull UserServiceArgs args, @NonNull ServiceConnection conn) {
         ShizukuServiceConnection connection = ShizukuServiceConnections.getOrCreate(args);
@@ -597,12 +606,12 @@ public class Shizuku {
     }
 
     /**
-     * Similar to {@link Shizuku#bindUserService(UserServiceArgs, ServiceConnection)}, but does not
-     * start user service if it is not running.
+     * Similar to {@link Shizuku#bindUserService(UserServiceArgs, ServiceConnection)},
+     * but does not start user service if it is not running.
      *
      * @return if the service is running
      * @see Shizuku#bindUserService(UserServiceArgs, ServiceConnection)
-     * @since added from version 12
+     * @since Added from version 12
      */
     public static boolean peekUserService(@NonNull UserServiceArgs args, @NonNull ServiceConnection conn) {
         ShizukuServiceConnection connection = ShizukuServiceConnections.getOrCreate(args);
@@ -620,10 +629,12 @@ public class Shizuku {
 
     /**
      * Remove user service.
-     * <p>You need to implement a "destroy" method in your service, or the service will not be killed.
+     * <p>
+     * You need to implement a "destroy" method in your service,
+     * or the service will not be killed.
      *
-     * @see Shizuku#bindUserService(UserServiceArgs, ServiceConnection)
      * @param remove Remove (kill) the remote user service.
+     * @see Shizuku#bindUserService(UserServiceArgs, ServiceConnection)
      */
     public static void unbindUserService(@NonNull UserServiceArgs args, @Nullable ServiceConnection conn, boolean remove) {
         ShizukuServiceConnection connection = ShizukuServiceConnections.get(args);
@@ -640,9 +651,31 @@ public class Shizuku {
     }
 
     /**
-     * Request permission.
+     * Check if remote service has specific permission.
      *
-     * @since added from version 11, use runtime permission APIs for old versions
+     * @param permission permission name
+     * @return PackageManager.PERMISSION_DENIED or PackageManager.PERMISSION_GRANTED
+     */
+    public static int checkRemotePermission(String permission) {
+        if (serverUid == 0) return PackageManager.PERMISSION_GRANTED;
+        try {
+            return requireService().checkPermission(permission);
+        } catch (RemoteException e) {
+            throw rethrowAsRuntimeException(e);
+        }
+    }
+
+    /**
+     * Request permission.
+     * <p>
+     * Different from runtime permission, you need to add a listener to receive
+     * the result.
+     *
+     * @param requestCode Application specific request code to match with a result
+     *                    reported to {@link OnRequestPermissionResultListener#onRequestPermissionResult(int, int)}.
+     * @see #addRequestPermissionResultListener(OnRequestPermissionResultListener)
+     * @see #removeRequestPermissionResultListener(OnRequestPermissionResultListener)
+     * @since Added from version 11
      */
     public static void requestPermission(int requestCode) {
         try {
@@ -655,7 +688,9 @@ public class Shizuku {
     /**
      * Check if self has permission.
      *
-     * @since added from version 11, use runtime permission APIs for old versions
+     * @return Either {@link android.content.pm.PackageManager#PERMISSION_GRANTED}
+     * or {@link android.content.pm.PackageManager#PERMISSION_DENIED}.
+     * @since Added from version 11
      */
     public static int checkSelfPermission() {
         if (permissionGranted) return PackageManager.PERMISSION_GRANTED;
@@ -670,7 +705,7 @@ public class Shizuku {
     /**
      * Should show UI with rationale before requesting the permission.
      *
-     * @since added from version 11, use runtime permission APIs for old versions
+     * @since Added from version 11
      */
     public static boolean shouldShowRequestPermissionRationale() {
         if (permissionGranted) return false;
