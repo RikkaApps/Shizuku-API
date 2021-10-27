@@ -4,20 +4,6 @@ The API and the developer guide for [Shizuku](https://github.com/RikkaApps/Shizu
 
 The concept is "same API, different implementation", Shizuku and Sui shares the API design. As the application developer, you only need to write the code once to support both Shizuku and Sui.
 
-## Introduction
-
-First of all, please read the README of [Shizuku](https://github.com/RikkaApps/Shizuku) and [Sui](https://github.com/RikkaApps/Sui), so that you will have a basic understanding of how Shizuku and Sui works.
-
-The most important functions provided by Shizuku API is "remote binder call" and "user service". 
-
-### Remote binder call
-
-Call any Android APIs which uses binder (such as `getInstalledPackages`) as the identity of root (or adb).
-
-### User service
-
-Similar to [Bound services](https://developer.android.com/guide/components/bound-services), but the service runs as the identity of root (or adb). JNI is also supported.
-
 ## Requirements
 
 To use apps using Shizuku API, the user needs to install Shizuku or Sui first.
@@ -111,6 +97,43 @@ Requesting the permission of Shizuku/Sui is similar to [requesting runtime permi
 ### Use
 
 See demo.
+
+## Introduction
+
+First of all, please read the README of [Shizuku](https://github.com/RikkaApps/Shizuku) and [Sui](https://github.com/RikkaApps/Sui), so that you will have a basic understanding of how Shizuku and Sui works.
+
+The most important functions provided by Shizuku API is "remote binder call" and "user service". 
+
+### Remote binder call
+
+Call any Android APIs which uses binder (such as `getInstalledPackages`) as the identity of root (or adb).
+
+### User service
+
+Similar to [Bound services](https://developer.android.com/guide/components/bound-services), but the service runs as the identity of root (or adb). JNI is also supported.
+
+## Changelog
+
+### 12.1.0
+
+- Automatically initialize Sui if you are using Shizuku
+  
+  You can opt-out this behavior by calling `ShizukuProvider#disableAutomaticSuiInitialization()` before `ShizukuProvider#onCreate()` is called
+
+- Add a lot more detailed document for most APIs
+- Drop pre-v11 support
+  
+  You don't need to worry about this problem, just show a "not supported" message if the user really uses pre-v11.
+  
+  - Sui was born after API v11, Sui users are not affected at all.
+  - For Shizuku, according to Google Play statistics, more than 95% of users are on v11+. Shizuku drops Android 5 support from v5, many of the remaining 5% are such people who stucking at super old versions.
+  - A useful API, UserService, is added from v11 and stable on v12. I belive that many Shizuku apps already have a "version > 11" check.
+  - I really want to drop pre-v11 support since [a possible system issue that may cause system soft reboot (system server crash) on uninstalling Shizuku](https://github.com/RikkaApps/Shizuku/issues/83).
+
+### 12.0.0
+
+- Add `Shizuku#peekUserService` that allows you to check if a specific user service is running
+- Add `Shizuku.UserServiceArgs#daemon` that allows you to control if the user service should be run in the "Daemon mode"
 
 ## Migration guide for existing applications use Shizuku pre-v11
 <details>
