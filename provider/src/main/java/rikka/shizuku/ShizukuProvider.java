@@ -6,7 +6,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
 import android.database.Cursor;
 import android.net.Uri;
@@ -18,6 +17,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import moe.shizuku.api.BinderContainer;
+import rikka.sui.Sui;
 
 /**
  * <p>
@@ -81,6 +81,8 @@ public class ShizukuProvider extends ContentProvider {
 
     private static boolean isProviderProcess = false;
 
+    private static boolean enableSuiInitialization = true;
+
     public static void setIsProviderProcess(boolean isProviderProcess) {
         ShizukuProvider.isProviderProcess = isProviderProcess;
     }
@@ -91,10 +93,17 @@ public class ShizukuProvider extends ContentProvider {
      * This method MUST be called as early as possible (e.g., static block in Application).
      */
     public static void enableMultiProcessSupport(boolean isProviderProcess) {
-        Log.d(TAG, "enable built-in multi-process support (from " + (isProviderProcess ? "provider process" : "non-provider process") + ")");
+        Log.d(TAG, "Enable built-in multi-process support (from " + (isProviderProcess ? "provider process" : "non-provider process") + ")");
 
         ShizukuProvider.isProviderProcess = isProviderProcess;
         ShizukuProvider.enableMultiProcess = true;
+    }
+
+    /**
+     * Disable automatic Sui initialization.
+     */
+    public static void disableAutomaticSuiInitialization() {
+        ShizukuProvider.enableSuiInitialization = false;
     }
 
     /**
@@ -133,7 +142,7 @@ public class ShizukuProvider extends ContentProvider {
 
             BinderContainer container = reply.getParcelable(EXTRA_BINDER);
             if (container != null && container.binder != null) {
-                Log.i(TAG, "binder received from other process");
+                Log.i(TAG, "Binder received from other process");
                 Shizuku.onBinderReceived(container.binder, context.getPackageName());
             }
         }
@@ -154,14 +163,24 @@ public class ShizukuProvider extends ContentProvider {
 
     @Override
     public boolean onCreate() {
+        if (enableSuiInitialization && !Sui.isSui()) {
+            boolean result = Sui.init(getContext().getPackageName());
+            Log.d(TAG, "Initialize Sui: " + result);
+        }
         return true;
     }
 
     @Nullable
     @Override
     public Bundle call(@NonNull String method, @Nullable String arg, @Nullable Bundle extras) {
-        if (extras == null)
+        if (Sui.isSui()) {
+            Log.w(TAG, "Provider called when Sui is available. Are you using Shizuku and Sui at the same time?");
+            return new Bundle();
+        }
+
+        if (extras == null) {
             return null;
+        }
 
         extras.setClassLoader(BinderContainer.class.getClassLoader());
 
@@ -183,7 +202,7 @@ public class ShizukuProvider extends ContentProvider {
 
     private void handleSendBinder(@NonNull Bundle extras) {
         if (Shizuku.pingBinder()) {
-            Log.d(TAG, "sendBinder called when already a living binder");
+            Log.d(TAG, "sendBinder is called when already a living binder");
             return;
         }
 
