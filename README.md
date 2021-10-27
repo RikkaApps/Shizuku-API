@@ -10,7 +10,7 @@ To use Shizuku APIs, you need to guide the user to install Shizuku or Sui first.
 
 ### Shizuku
 
-Shizuku is a standard Android application. You can guide the user to download Shizuku from https://shizuku.rikka.app/download/. Shizuku works for both rooted and unrooted devices. 
+Shizuku is a standard Android application. You can guide the user to download Shizuku from https://shizuku.rikka.app/download/. Shizuku works for both rooted and unrooted devices.
 
 On unrooted devices, Shizuku needs to manually restart with adb every time on boot. Before Android 11, a computer is required to run adb. Android 11 and above have built-in wireless debugging support, user can start Shizuku directly on the device.
 
@@ -26,7 +26,7 @@ A demo project is provided. See [demo](https://github.com/RikkaApps/Shizuku-API/
 
 ## Guide
 
-I'll say the difficult words first, using Shizuku APIs is similar to framework or system app development, some experience in developing common applications may not be applicable. You have to get used to dig into Android source code to find out how things works, [cs.android.com](https://cs.android.com) and AndroidXref sites will be your best friend.
+I'll say the difficult words first, using Shizuku APIs is similar to framework or system app development, some experience in developing common applications may not be applicable. You have to get used to digging into Android source code to find out how things work, [cs.android.com](https://cs.android.com) and AndroidXref sites will be your best friend.
 
 ### Add dependency
 
@@ -122,13 +122,25 @@ private boolean checkPermission(int code) {
 }
 ```
 
+### Compile with hidden APIs
+
+[HiddenApiRefinePlugin](https://github.com/RikkaApps/HiddenApiRefinePlugin)
+
 ### Using Shizuku APIs: Remote binder call
 
 Call any Android APIs which use binder (such as `getInstalledPackages`) as the identity of root (or adb).
 
+See `getUsers` and `installApks` in the demo.
+
+This may need the app itself to access hidden APIs, use [AndroidHiddenApiBypass](https://github.com/LSPosed/AndroidHiddenApiBypass) or other libraries you like.
+
 ### Using Shizuku APIs：UserService
 
 Similar to [Bound services](https://developer.android.com/guide/components/bound-services), but the service runs as the identity of root (or adb). JNI is also supported.
+
+See javadoc of `bindUserService` method which is super detailed.
+
+See `bindUserService` in the demo.
 
 ## Changelog
 
@@ -144,7 +156,7 @@ Similar to [Bound services](https://developer.android.com/guide/components/bound
   You don't need to worry about this problem, just show a "not supported" message if the user really uses pre-v11.
   
   - Sui was born after API v11, Sui users are not affected at all.
-  - For Shizuku, according to Google Play statistics, more than 95% of users are on v11+. Shizuku drops Android 5 support from v5, many of the remaining 5% are such people who stuck at super old versions.
+  - For Shizuku, according to Google Play statistics, more than 95% of users are on v11+. Shizuku drops Android 5 support from v5, many of the remaining 5% are such people who are stuck at super old versions.
   - A useful API, UserService, is added from v11 and stable on v12. I believe that many Shizuku apps already have a "version > 11" check.
   - I really want to drop pre-v11 support since [a possible system issue that may cause system soft reboot (system server crash) on uninstalling Shizuku](https://github.com/RikkaApps/Shizuku/issues/83).
 
