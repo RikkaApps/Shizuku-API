@@ -1,6 +1,6 @@
 ext {
     api_min_sdk = 23
-    api_target_sdk = 30
+    api_target_sdk = 31
     api_version_code = 1
     api_version_major = 12
     api_version_minor = 1
