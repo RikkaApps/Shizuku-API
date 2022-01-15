@@ -44,7 +44,15 @@ implementation "dev.rikka.shizuku:provider:$shizuku_version"
 
 Before using Shizuku APIs, you need to acquire the Binder from Shizuku or Sui.
 
-`Shizuku` provides listeners, `Shizuku#addBinderReceivedListener()` and `Shizuku.addBinderDeadListener()`, that allows you to track the life of the binder.You should call methods in `Shizuku` class when the binder is alive or you will get an `IllegalStateException`.
+`Shizuku` provides listeners, `Shizuku#addBinderReceivedListener()` and `Shizuku.addBinderDeadListener()`, that allows you to track the life of the binder. You should call methods in `Shizuku` class when the binder is alive or you will get an `IllegalStateException`.
+
+#### Sui
+
+Call `Sui.init(packageName)` before using `Shizuku` class. This method only needs to be called once. If this method returns true, means Sui is installed and available.
+
+For multi-process applications, call this method in every process that needs to use Shizuku API.
+
+Note, request the bidner for Sui only requires two times of binder IPC, this is significantly cheaper than initialize Shizuku which uses content provider. `Sui.init(packageName)` can be used in main thread, you don't need to worry about performance.
 
 #### Shizuku
 
@@ -64,17 +72,11 @@ Add `ShizukuProvider` to `AndroidManifest.xml`.
 
 For multi-process applications, you need to call `ShizukuProvider.enableMultiProcessSupport()` in every process which needs to use Shizuku API.
 
-Starting from v12.1.0, Sui is initialized automatically in `ShizukuProvider`. You can opt-out this behavior by calling `ShizukuProvider#disableAutomaticSuiInitialization()` before `ShizukuProvider#onCreate()` is called.
-
-#### Sui
-
-Call `Sui.init(packageName)` before using `Shizuku` class. This method only needs to be called once. If this method returns true, means Sui is installed and available.
-
-For multi-process applications, call this method in every process that needs to use Shizuku API.
+Starting from v12.1.0, Sui is initialized automatically in `ShizukuProvider`. You can opt-out this behavior by calling `ShizukuProvider#disableAutomaticSuiInitialization()` before `ShizukuProvider#onCreate()` is called. Note, request the bidner for Sui only requires two times of binder IPC, this is significantly cheaper than initialize Shizuku which uses content provider. Unless there are special reasons, apps that support Shizuku should also support Sui, otherwise it will cause user confusion.
 
 ### Request permission
 
-Request permission is the same process [requesting runtime permissions](https://developer.android.com/training/permissions/requesting).
+Requesting permission is similar to [requesting runtime permissions](https://developer.android.com/training/permissions/requesting).
 
 A simple example of requesting permission:
 
