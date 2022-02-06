@@ -90,15 +90,16 @@ public class RishTerminal {
         ttyFd = start(tty, getFd(stdin, 1), getFd(stdout, 0), getFd(stdout, 0));
 
         if (ttyFd != -1) {
-            Log.d(TAG, "waitForWindowSizeChange");
-
             new Thread(() -> {
-                long size = waitForWindowSizeChange(ttyFd);
+                while (true) {
+                    Log.d(TAG, "waitForWindowSizeChange");
 
-                try {
-                    setWindowSize(size);
-                } catch (Throwable e) {
-                    Log.w(TAG, Log.getStackTraceString(e));
+                    try {
+                        long size = waitForWindowSizeChange(ttyFd);
+                        setWindowSize(size);
+                    } catch (Throwable e) {
+                        Log.w(TAG, Log.getStackTraceString(e));
+                    }
                 }
             }).start();
         }
