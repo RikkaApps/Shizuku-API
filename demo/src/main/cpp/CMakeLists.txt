@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.4.1)
 
+project("demo")
+
 add_library(hello-jni SHARED
             hello-jni.c)
 
