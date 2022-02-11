@@ -26,6 +26,7 @@ import android.permission.IPermissionManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.core.os.BuildCompat;
 
 import com.android.internal.app.IAppOpsService;
 
@@ -38,6 +39,7 @@ import dev.rikka.tools.refine.Refine;
 import kotlin.jvm.JvmStatic;
 import rikka.shizuku.server.util.OsUtils;
 
+@BuildCompat.PrereleaseSdkCheck
 public class SystemService {
 
     private SystemService() {
@@ -65,13 +67,21 @@ public class SystemService {
     }
 
     @Nullable
-    public static PackageInfo getPackageInfo(@Nullable String packageName, int flags, int userId) throws RemoteException {
-        return packageManager.getService().getPackageInfo(packageName, flags, userId);
+    public static PackageInfo getPackageInfo(@Nullable String packageName, long flags, int userId) throws RemoteException {
+        if (BuildCompat.isAtLeastT()) {
+            return packageManager.getService().getPackageInfo(packageName, flags, userId);
+        } else {
+            return packageManager.getService().getPackageInfo(packageName, (int) flags, userId);
+        }
     }
 
     @Nullable
-    public static ApplicationInfo getApplicationInfo(@Nullable String packageName, int flags, int userId) throws RemoteException {
-        return packageManager.getService().getApplicationInfo(packageName, flags, userId);
+    public static ApplicationInfo getApplicationInfo(@Nullable String packageName, long flags, int userId) throws RemoteException {
+        if (BuildCompat.isAtLeastT()) {
+            return packageManager.getService().getApplicationInfo(packageName, flags, userId);
+        } else {
+            return packageManager.getService().getApplicationInfo(packageName, (int) flags, userId);
+        }
     }
 
     public static int checkPermission(@Nullable String permName, int uid) throws RemoteException {
@@ -97,15 +107,25 @@ public class SystemService {
     }
 
     @Nullable
-    public static ParceledListSlice<ApplicationInfo> getInstalledApplications(int flags, int userId) throws RemoteException {
-        //noinspection unchecked
-        return packageManager.getService().getInstalledApplications(flags, userId);
+    public static ParceledListSlice<ApplicationInfo> getInstalledApplications(long flags, int userId) throws RemoteException {
+        if (BuildCompat.isAtLeastT()) {
+            //noinspection unchecked
+            return packageManager.getService().getInstalledApplications(flags, userId);
+        } else {
+            //noinspection unchecked
+            return packageManager.getService().getInstalledApplications((int) flags, userId);
+        }
     }
 
     @Nullable
-    public static ParceledListSlice<PackageInfo> getInstalledPackages(int flags, int userId) throws RemoteException {
-        //noinspection unchecked
-        return packageManager.getService().getInstalledPackages(flags, userId);
+    public static ParceledListSlice<PackageInfo> getInstalledPackages(long flags, int userId) throws RemoteException {
+        if (BuildCompat.isAtLeastT()) {
+            //noinspection unchecked
+            return packageManager.getService().getInstalledPackages(flags, userId);
+        } else {
+            //noinspection unchecked
+            return packageManager.getService().getInstalledPackages((int) flags, userId);
+        }
     }
 
     @Nullable
@@ -154,7 +174,7 @@ public class SystemService {
     }
 
     @NonNull
-    public static List<PackageInfo> getInstalledPackagesNoThrow(int flags, int userId) {
+    public static List<PackageInfo> getInstalledPackagesNoThrow(long flags, int userId) {
         try {
             ParceledListSlice<PackageInfo> parceledListSlice = getInstalledPackages(flags, userId);
             if (parceledListSlice != null && parceledListSlice.getList() != null) {
@@ -166,7 +186,7 @@ public class SystemService {
     }
 
     @NonNull
-    public static List<ApplicationInfo> getInstalledApplicationsNoThrow(int flags, int userId) {
+    public static List<ApplicationInfo> getInstalledApplicationsNoThrow(long flags, int userId) {
         try {
             ParceledListSlice<ApplicationInfo> parceledListSlice = getInstalledApplications(flags, userId);
             if (parceledListSlice != null && parceledListSlice.getList() != null) {
@@ -178,7 +198,7 @@ public class SystemService {
     }
 
     @Nullable
-    public static PackageInfo getPackageInfoNoThrow(@Nullable String packageName, int flags, int userId) {
+    public static PackageInfo getPackageInfoNoThrow(@Nullable String packageName, long flags, int userId) {
         try {
             return getPackageInfo(packageName, flags, userId);
         } catch (Throwable ignored) {
@@ -187,7 +207,7 @@ public class SystemService {
     }
 
     @Nullable
-    public static ApplicationInfo getApplicationInfoNoThrow(@Nullable String packageName, int flags, int userId) {
+    public static ApplicationInfo getApplicationInfoNoThrow(@Nullable String packageName, long flags, int userId) {
         try {
             return getApplicationInfo(packageName, flags, userId);
         } catch (Throwable ignored) {

@@ -12,7 +12,15 @@ public interface IPackageManager extends IInterface {
     ApplicationInfo getApplicationInfo(String packageName, int flags, int userId)
             throws RemoteException;
 
+    @RequiresApi(33)
+    ApplicationInfo getApplicationInfo(String packageName, long flags, int userId)
+            throws RemoteException;
+
     PackageInfo getPackageInfo(String packageName, int flags, int userId)
+            throws RemoteException;
+
+    @RequiresApi(33)
+    PackageInfo getPackageInfo(String packageName, long flags, int userId)
             throws RemoteException;
 
     int getPackageUid(String packageName, int userId)
@@ -22,13 +30,25 @@ public interface IPackageManager extends IInterface {
     int getPackageUid(String packageName, int flags, int userId)
             throws RemoteException;
 
+    @RequiresApi(33)
+    int getPackageUid(String packageName, long flags, int userId)
+            throws RemoteException;
+
     String[] getPackagesForUid(int uid)
             throws RemoteException;
 
     ParceledListSlice getInstalledPackages(int flags, int userId)
             throws RemoteException;
 
+    @RequiresApi(33)
+    ParceledListSlice getInstalledPackages(long flags, int userId)
+            throws RemoteException;
+
     ParceledListSlice getInstalledApplications(int flags, int userId)
+            throws RemoteException;
+
+    @RequiresApi(33)
+    ParceledListSlice getInstalledApplications(long flags, int userId)
             throws RemoteException;
 
     int getUidForSharedUser(String sharedUserName)
