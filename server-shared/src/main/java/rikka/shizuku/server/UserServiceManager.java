@@ -9,6 +9,7 @@ import static rikka.shizuku.ShizukuApiConstants.USER_SERVICE_ARG_TAG;
 import static rikka.shizuku.ShizukuApiConstants.USER_SERVICE_ARG_USE_32_BIT_APP_PROCESS;
 import static rikka.shizuku.ShizukuApiConstants.USER_SERVICE_ARG_VERSION_CODE;
 
+import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.content.pm.PackageInfo;
 import android.os.Binder;
@@ -24,7 +25,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 import moe.shizuku.server.IShizukuServiceConnection;
-import rikka.hidden.compat.SystemService;
+import rikka.hidden.compat.PackageManagerApis;
 import rikka.shizuku.ShizukuApiConstants;
 import rikka.shizuku.server.util.AbiUtil;
 import rikka.shizuku.server.util.Logger;
@@ -41,7 +42,8 @@ public abstract class UserServiceManager {
     }
 
     public PackageInfo ensureCallingPackageForUserService(String packageName, int appId, int userId) {
-        PackageInfo packageInfo = SystemService.getPackageInfoNoThrow(packageName, 0x00002000 /*PackageManager.MATCH_UNINSTALLED_PACKAGES*/, userId);
+        @SuppressLint("UnsafeOptInUsageError")
+        PackageInfo packageInfo = PackageManagerApis.getPackageInfoNoThrow(packageName, 0x00002000 /*PackageManager.MATCH_UNINSTALLED_PACKAGES*/, userId);
         if (packageInfo == null || packageInfo.applicationInfo == null) {
             throw new SecurityException("unable to find package " + packageName);
         }

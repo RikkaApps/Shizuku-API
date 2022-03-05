@@ -20,7 +20,7 @@ import java.util.Arrays;
 import moe.shizuku.server.IRemoteProcess;
 import moe.shizuku.server.IShizukuService;
 import moe.shizuku.server.IShizukuServiceConnection;
-import rikka.hidden.compat.SystemService;
+import rikka.hidden.compat.PermissionManagerApis;
 import rikka.rish.RishConfig;
 import rikka.rish.RishService;
 import rikka.shizuku.ShizukuApiConstants;
@@ -170,7 +170,7 @@ public abstract class Service<
     @Override
     public final int checkPermission(String permission) throws RemoteException {
         enforceCallingPermission("checkPermission");
-        return SystemService.checkPermission(permission, Os.getuid());
+        return PermissionManagerApis.checkPermission(permission, Os.getuid());
     }
 
     @Override
