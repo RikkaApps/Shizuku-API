@@ -28,13 +28,22 @@ public class ShizukuBinderWrapper implements IBinder {
 
     @Override
     public boolean transact(int code, @NonNull Parcel data, @Nullable Parcel reply, int flags) throws RemoteException {
+        boolean atLeast13 = !Shizuku.isPreV11() && Shizuku.getVersion() >= 13;
+
         Parcel newData = Parcel.obtain();
         try {
             newData.writeInterfaceToken(ShizukuApiConstants.BINDER_DESCRIPTOR);
             newData.writeStrongBinder(original);
             newData.writeInt(code);
+            if (atLeast13) {
+                newData.writeInt(flags);
+            }
             newData.appendFrom(data, 0, data.dataSize());
-            Shizuku.transactRemote(newData, reply, flags);
+            if (atLeast13) {
+                Shizuku.transactRemote(newData, reply, 0);
+            } else {
+                Shizuku.transactRemote(newData, reply, flags);
+            }
         } finally {
             newData.recycle();
         }

@@ -57,7 +57,9 @@ public class SystemServiceHelper {
      * @param className  class name such as "android.content.pm.IPackageManager$Stub"
      * @param methodName method name such as "getInstalledPackages"
      * @return transaction code, or <code>null</code> if the class or the method doesn't exist
+     * @deprecated Use {@link ShizukuBinderWrapper} instead
      */
+    @Deprecated
     public static Integer getTransactionCode(@NonNull String className, @NonNull String methodName) {
         final String fieldName = "TRANSACTION_" + methodName;
         final String key = className + "." + fieldName;
@@ -106,7 +108,9 @@ public class SystemServiceHelper {
      * @param methodName    method name for reflection
      * @return data parcel
      * @throws NullPointerException can't get system service or transaction code
+     * @deprecated Use {@link ShizukuBinderWrapper} instead
      */
+    @Deprecated
     public static Parcel obtainParcel(@NonNull String serviceName, @NonNull String interfaceName, @NonNull String methodName) {
         return obtainParcel(serviceName, interfaceName, interfaceName + "$Stub", methodName);
     }
@@ -120,19 +124,10 @@ public class SystemServiceHelper {
      * @param methodName    method name for reflection
      * @return data parcel
      * @throws NullPointerException can't get system service or transaction code
+     * @deprecated Use {@link ShizukuBinderWrapper} instead
      */
+    @Deprecated
     public static Parcel obtainParcel(@NonNull String serviceName, @NonNull String interfaceName, @NonNull String className, @NonNull String methodName) {
-        IBinder binder = getSystemService(serviceName);
-        Integer code = getTransactionCode(className, methodName);
-
-        Objects.requireNonNull(binder, "can't find system service " + serviceName);
-        Objects.requireNonNull(code, "can't find transaction code of " + methodName + " in " + className);
-
-        Parcel data = Parcel.obtain();
-        data.writeInterfaceToken(ShizukuApiConstants.BINDER_DESCRIPTOR);
-        data.writeStrongBinder(binder);
-        data.writeInt(code);
-        data.writeInterfaceToken(interfaceName);
-        return data;
+        throw new UnsupportedOperationException("Direct use of Shizuku#transactRemote is no longer supported, please use ShizukuBinderWrapper");
     }
 }
