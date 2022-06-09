@@ -23,14 +23,14 @@ android {
 
 dependencies {
     implementation 'androidx.annotation:annotation:1.3.0'
-    implementation 'androidx.core:core:1.7.0'
-    implementation 'dev.rikka.rikkax.parcelablelist:parcelablelist:1.0.0'
+    implementation 'androidx.core:core:1.8.0'
+    implementation 'dev.rikka.rikkax.parcelablelist:parcelablelist:2.0.0'
 
     api project(':aidl')
     api project(':shared')
     api project(':rish')
 
-    implementation 'dev.rikka.tools.refine:runtime:3.0.3'
-    implementation 'dev.rikka.hidden:compat:2.1.0'
-    compileOnly 'dev.rikka.hidden:stub:2.1.0'
+    implementation 'dev.rikka.tools.refine:runtime:3.1.1'
+    implementation 'dev.rikka.hidden:compat:2.3.1'
+    compileOnly 'dev.rikka.hidden:stub:2.3.1'
 }
