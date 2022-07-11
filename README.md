@@ -4,14 +4,11 @@ Shizuku API is the API provided by [Shizuku](https://github.com/RikkaApps/Shizuk
 
 Shizuku and Sui share the API design. As the application developer, you only need to write the code once to support both Shizuku and Sui.
 
-**NOTE:** There is no such a simple way to "use Shizuku as `su`" (Yep, you can still achieve this by your
-self if you want). It is recommended to implement your application with Shizuku in the correct way.
+**NOTE:** There is no such a simple way to "use Shizuku as `su`" (Yep, you can still achieve this by yourself if you want). It is recommended to implement your application with Shizuku in the correct way.
 
-As you can already use Shizuku to execute any codes with ADB permission (or ROOT permission when using Su
-), we won't waste our time providing a method to "use Shizuku as `su`".
+As you can already use Shizuku to execute any codes with ADB permission (or ROOT permission when using Sui), we won't waste our time providing a method to "use Shizuku as `su`".
 
-> shizuku is a tool for professional developers that provides comprehensive access to the Android framewo
-rk. If you only use command line, we don't recommend you to use shizuku, you can choose libsu.
+> shizuku is a tool for professional developers that provides comprehensive access to the Android framework. If you only use command line, we don't recommend you to use shizuku, you can choose libsu.
 > — @vvb2060 [Shizuku#229](https://github.com/RikkaApps/Shizuku/issues/229#issuecomment-1179687217)
 
 ## Requirements
