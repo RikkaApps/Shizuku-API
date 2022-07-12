@@ -11,6 +11,16 @@ As you can already use Shizuku to execute any codes with ADB permission (or ROOT
 > shizuku is a tool for professional developers that provides comprehensive access to the Android framework. If you only use command line, we don't recommend you to use shizuku, you can choose libsu.
 > — @vvb2060 [Shizuku#229](https://github.com/RikkaApps/Shizuku/issues/229#issuecomment-1179687217)
 
+## What Shizuku/Sui can do
+
+Shizuku can be started with ADB or ROOT, Sui is a Magisk module (started by Magisk), so the privilege could be ADB or ROOT. If the user starts Shizuku with ADB, what you can do is only what ADB can do. You can use `Shizuku#getUid()` to check this, for ROOT it returns `0`, for ADB is `2000`.
+
+What ADB can do is significantly different from ROOT. 
+
+In the Android world, the privilege is determined by Android permissions. See [AndroidManifest of Shell](https://cs.android.com/android/platform/superproject/+/master:frameworks/base/packages/Shell/AndroidManifest.xml), all the permission granted to Shell (ADB) are listed here. Be aware, the permission changes under different Android versions.
+
+In Linux world, the privilege is determined by Shell's uid, capabilities, SELinux context, etc. For example, Shell cannot access other apps' data files `/data/user/0/<package>`, one of the reasons is Shell has no permission to enter (search) `/data/user/0` folder (0771, UID 1000 GID 1000).
+
 ## Requirements
 
 To use Shizuku APIs, you need to guide the user to install Shizuku or Sui first. Both of them require Android 6.0+.
