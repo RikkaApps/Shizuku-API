@@ -59,7 +59,7 @@ Call `Sui.init(packageName)` before using `Shizuku` class. This method only need
 
 For multi-process applications, call this method in every process that needs to use Shizuku API.
 
-Note, request the bidner for Sui only requires two times of binder IPC, this is significantly cheaper than initialize Shizuku which uses content provider. `Sui.init(packageName)` can be used in main thread, you don't need to worry about performance.
+Note, request the binder for Sui only requires two times of binder IPC, this is significantly cheaper than initialize Shizuku which uses content provider. `Sui.init(packageName)` can be used in main thread, you don't need to worry about performance.
 
 #### Shizuku
 
@@ -79,7 +79,7 @@ Add `ShizukuProvider` to `AndroidManifest.xml`.
 
 For multi-process applications, you need to call `ShizukuProvider.enableMultiProcessSupport()` in every process which needs to use Shizuku API.
 
-Starting from v12.1.0, Sui is initialized automatically in `ShizukuProvider`. You can opt-out this behavior by calling `ShizukuProvider#disableAutomaticSuiInitialization()` before `ShizukuProvider#onCreate()` is called. Note, request the bidner for Sui only requires two times of binder IPC, this is significantly cheaper than initialize Shizuku which uses content provider. Unless there are special reasons, apps that support Shizuku should also support Sui, otherwise it will cause user confusion.
+Starting from v12.1.0, Sui is initialized automatically in `ShizukuProvider`. You can opt-out this behavior by calling `ShizukuProvider#disableAutomaticSuiInitialization()` before `ShizukuProvider#onCreate()` is called. Note, request the binder for Sui only requires two times of binder IPC, this is significantly cheaper than initialize Shizuku which uses content provider. Unless there are special reasons, apps that support Shizuku should also support Sui, otherwise it will cause user confusion.
 
 ### Request permission
 
