@@ -110,9 +110,13 @@ public abstract class UserServiceManager {
         synchronized (this) {
             UserServiceRecord record = getUserServiceRecordLocked(key);
             if (noCreate) {
-                if (record != null && record.service != null && record.service.pingBinder()) {
-                    record.broadcastBinderReceived();
-                    return 0;
+                if (record != null) {
+                    record.callbacks.register(conn);
+
+                    if (record.service != null && record.service.pingBinder()) {
+                        record.broadcastBinderReceived();
+                        return 0;
+                    }
                 }
                 return 1;
             } else {
