@@ -21,7 +21,6 @@ buildscript {
         classpath 'com.android.tools.build:gradle:7.2.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
 
-        classpath 'com.vanniktech:gradle-maven-publish-plugin:0.20.0'
         classpath 'dev.rikka.tools.refine:gradle-plugin:3.1.1'
     }
 }
@@ -43,19 +42,86 @@ allprojects {
     tasks.withType(Javadoc) {
         options.addStringOption('Xdoclint:none', '-quiet')
     }
-    plugins.withId("com.vanniktech.maven.publish") {
-        mavenPublish {
-            sonatypeHost = "S01"
-        }
-    }
 }
 
 subprojects {
-    afterEvaluate {
-        if (it.findProperty('publishLibrary') ?: false) {
-            plugins.apply('com.vanniktech.maven.publish')
-            version = api_version_name
-            println("${it.displayName}: ${group}:${it.name}:${version}")
+    afterEvaluate { project ->
+        if (!(it.findProperty('publishLibrary') ?: false)) {
+            return
+        }
+
+        plugins.apply('maven-publish')
+        plugins.apply('signing')
+
+        if (project.parent == rootProject) {
+            group = "${groupIdBase}"
+        } else {
+            group = "${groupIdBase}.${project.parent.name}"
+        }
+        version = api_version_name
+        println("${project.displayName}: ${group}:${project.name}:${version}")
+
+        publishing {
+            publications {
+                mavenJava(MavenPublication) {
+                    group project.group
+                    artifactId project.name
+                    version api_version_name
+                    afterEvaluate {
+                        from components.release
+                    }
+                    pom {
+                        name = POM_NAME
+                        description = POM_DESCRIPTION
+                        url = POM_URL
+                        licenses {
+                            license {
+                                name = POM_LICENCE_NAME
+                                url = POM_LICENCE_URL
+                            }
+                        }
+                        developers {
+                            developer {
+                                name = POM_DEVELOPER_NAME
+                                url = POM_DEVELOPER_URL
+                            }
+                        }
+                        scm {
+                            connection = POM_SCM_CONNECTION
+                            url = POM_SCM_URL
+                        }
+                    }
+                }
+            }
+            repositories {
+                maven {
+                    name 'ossrh'
+                    url 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
+                    credentials(PasswordCredentials)
+                }
+            }
+        }
+
+        android {
+            publishing {
+                singleVariant("release") {
+                    withSourcesJar()
+                    withJavadocJar()
+                }
+            }
+        }
+
+        signing {
+            def signingKey = findProperty("signingKey")
+            def signingPassword = findProperty("signingPassword")
+            def secretKeyRingFile = findProperty("signing.secretKeyRingFile")
+
+            if (secretKeyRingFile != null && file(secretKeyRingFile).exists()) {
+                sign publishing.publications
+            } else if (signingKey != null) {
+                useInMemoryPgpKeys(signingKey, signingPassword)
+                sign publishing.publications
+            }
         }
     }
 }
@@ -65,7 +131,7 @@ task clean(type: Delete) {
 }
 
 ext {
-    GROUP = "dev.rikka.shizuku"
+    groupIdBase = "dev.rikka.shizuku"
 
     POM_INCEPTION_YEAR = "2021"
     POM_PACKAGING = "aar"
