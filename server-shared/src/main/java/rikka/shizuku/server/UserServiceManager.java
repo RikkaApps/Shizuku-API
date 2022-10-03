@@ -120,7 +120,7 @@ public abstract class UserServiceManager {
                 }
                 return 1;
             } else {
-                UserServiceRecord newRecord = createUserServiceRecordIfNeededLocked(record, key, versionCode, daemon, sourceDir);
+                UserServiceRecord newRecord = createUserServiceRecordIfNeededLocked(record, key, versionCode, daemon, packageInfo);
                 newRecord.callbacks.register(conn);
 
                 if (newRecord.service != null && newRecord.service.pingBinder()) {
@@ -140,7 +140,7 @@ public abstract class UserServiceManager {
     }
 
     private UserServiceRecord createUserServiceRecordIfNeededLocked(
-            UserServiceRecord record, String key, int versionCode, boolean daemon, String apkPath) {
+            UserServiceRecord record, String key, int versionCode, boolean daemon, PackageInfo packageInfo) {
 
         if (record != null) {
             if (record.versionCode != versionCode) {
@@ -169,10 +169,10 @@ public abstract class UserServiceManager {
             }
         };
 
-        onUserServiceRecordCreated(record, apkPath);
+        onUserServiceRecordCreated(record, packageInfo);
 
         userServiceRecords.put(key, record);
-        LOGGER.i("New service record %s (%s): version=%d, daemon=%s, apk=%s", key, record.token, versionCode, Boolean.toString(daemon), apkPath);
+        LOGGER.i("New service record %s (%s): version=%d, daemon=%s, apk=%s", key, record.token, versionCode, Boolean.toString(daemon), packageInfo.applicationInfo.sourceDir);
         return record;
     }
 
@@ -232,12 +232,19 @@ public abstract class UserServiceManager {
         }
     }
 
-    public void onUserServiceRecordCreated(UserServiceRecord record, String apkPath) {
+    public void onUserServiceRecordCreated(UserServiceRecord record, PackageInfo packageInfo) {
 
     }
 
     public void onUserServiceRecordRemoved(UserServiceRecord record) {
 
     }
+
+    /*private List<UserServiceRecord> getUserServicesForUid(int uid) {
+        for (UserServiceRecord record : userServiceRecords.values()) {
+
+        }
+        return userServiceRecords.get(key);
+    }*/
 
 }
