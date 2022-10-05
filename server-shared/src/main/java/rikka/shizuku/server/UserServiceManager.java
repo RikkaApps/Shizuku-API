@@ -18,7 +18,9 @@ import android.os.IBinder;
 import android.util.ArrayMap;
 
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Executor;
@@ -37,6 +39,7 @@ public abstract class UserServiceManager {
 
     private final Executor executor = Executors.newSingleThreadExecutor();
     private final Map<String, UserServiceRecord> userServiceRecords = Collections.synchronizedMap(new ArrayMap<>());
+    private final Map<String, List<UserServiceRecord>> packageUserServiceRecords = Collections.synchronizedMap(new ArrayMap<>());
 
     public UserServiceManager() {
     }
@@ -169,6 +172,14 @@ public abstract class UserServiceManager {
             }
         };
 
+        String packageName = packageInfo.packageName;
+        List<UserServiceRecord> list = packageUserServiceRecords.get(packageName);
+        if (list == null) {
+            list = Collections.synchronizedList(new ArrayList<>());
+            packageUserServiceRecords.put(packageName, list);
+        }
+        list.add(record);
+
         onUserServiceRecordCreated(record, packageInfo);
 
         userServiceRecords.put(key, record);
@@ -240,11 +251,15 @@ public abstract class UserServiceManager {
 
     }
 
-    /*private List<UserServiceRecord> getUserServicesForUid(int uid) {
-        for (UserServiceRecord record : userServiceRecords.values()) {
-
+    public void removeUserServicesForPackage(String packageName) {
+        List<UserServiceRecord> list = packageUserServiceRecords.get(packageName);
+        if (list != null) {
+            for (UserServiceRecord record : list) {
+                record.removeSelf();
+                LOGGER.i("Remove user service %s for package %s", record.token, packageName);
+            }
+            packageUserServiceRecords.remove(packageName);
         }
-        return userServiceRecords.get(key);
-    }*/
+    }
 
 }
