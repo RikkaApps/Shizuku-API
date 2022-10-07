@@ -163,6 +163,10 @@ See `bindUserService` in the demo.
 
 ## Changelog
 
+### 12.2.0
+
+- Fix `onServiceDisconnected` is not called if the UserService is stopped by `Shizuku#unbindUserService`
+
 ### 12.1.0
 
 - Automatically initialize Sui if you are using Shizuku
