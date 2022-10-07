@@ -20,6 +20,7 @@ class ShizukuServiceConnection extends IShizukuServiceConnection.Stub {
 
     private final Set<ServiceConnection> connections = new HashSet<>();
     private final ComponentName componentName;
+    private IBinder binder;
 
     public ShizukuServiceConnection(Shizuku.UserServiceArgs args) {
         this.componentName = args.componentName;
@@ -48,14 +49,20 @@ class ShizukuServiceConnection extends IShizukuServiceConnection.Stub {
                 }
         );
 
+        // Hold the binder, or linkToDeath will not work after reference to
+        // the binder is dropped
+        this.binder = binder;
+
         try {
-            binder.linkToDeath(this::died, 0);
+            this.binder.linkToDeath(this::died, 0);
         } catch (RemoteException ignored) {
         }
     }
 
     @Override
     public void died() {
+        binder = null;
+
         if (dead) return;
         dead = true;
 
@@ -63,6 +70,9 @@ class ShizukuServiceConnection extends IShizukuServiceConnection.Stub {
                     for (ServiceConnection conn : connections) {
                         conn.onServiceDisconnected(componentName);
                     }
+
+                    connections.clear();
+                    ShizukuServiceConnections.remove(this);
                 }
         );
     }

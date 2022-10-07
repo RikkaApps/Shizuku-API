@@ -596,7 +596,7 @@ public class Shizuku {
      * @since Added from version 10
      */
     public static void bindUserService(@NonNull UserServiceArgs args, @NonNull ServiceConnection conn) {
-        ShizukuServiceConnection connection = ShizukuServiceConnections.getOrCreate(args);
+        ShizukuServiceConnection connection = ShizukuServiceConnections.get(args);
         connection.addConnection(conn);
         try {
             requireService().addUserService(connection, args.forAdd());
@@ -614,7 +614,7 @@ public class Shizuku {
      * @since Added from version 12
      */
     public static boolean peekUserService(@NonNull UserServiceArgs args, @NonNull ServiceConnection conn) {
-        ShizukuServiceConnection connection = ShizukuServiceConnections.getOrCreate(args);
+        ShizukuServiceConnection connection = ShizukuServiceConnections.get(args);
         connection.addConnection(conn);
         int result;
         try {
@@ -637,10 +637,6 @@ public class Shizuku {
      * @see Shizuku#bindUserService(UserServiceArgs, ServiceConnection)
      */
     public static void unbindUserService(@NonNull UserServiceArgs args, @Nullable ServiceConnection conn, boolean remove) {
-        ShizukuServiceConnection connection = ShizukuServiceConnections.get(args);
-        if (connection != null) {
-            connection.removeConnection(conn);
-        }
         if (remove) {
             try {
                 requireService().removeUserService(null /* (unused) */, args.forRemove());
