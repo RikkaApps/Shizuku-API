@@ -28,16 +28,19 @@ public class ShizukuApiConstants {
     @RestrictTo(LIBRARY_GROUP_PREFIX)
     public static final String USER_SERVICE_ARG_TOKEN = "shizuku:user-service-arg-token";
 
-    // attach client
-    public static final String ATTACH_REPLY_SERVER_VERSION = "shizuku:attach-reply-version";
-    public static final String ATTACH_REPLY_SERVER_PATCH_VERSION = "shizuku:attach-reply-patch-version";
-    public static final String ATTACH_REPLY_SERVER_UID = "shizuku:attach-reply-uid";
-    public static final String ATTACH_REPLY_SERVER_SECONTEXT = "shizuku:attach-reply-secontext";
-    public static final String ATTACH_REPLY_PERMISSION_GRANTED = "shizuku:attach-reply-permission-granted";
-    public static final String ATTACH_REPLY_SHOULD_SHOW_REQUEST_PERMISSION_RATIONALE = "shizuku:attach-reply-should-show-request-permission-rationale";
+    // bind application
+    public static final String BIND_APPLICATION_SERVER_VERSION = "shizuku:attach-reply-version";
+    public static final String BIND_APPLICATION_SERVER_PATCH_VERSION = "shizuku:attach-reply-patch-version";
+    public static final String BIND_APPLICATION_SERVER_UID = "shizuku:attach-reply-uid";
+    public static final String BIND_APPLICATION_SERVER_SECONTEXT = "shizuku:attach-reply-secontext";
+    public static final String BIND_APPLICATION_PERMISSION_GRANTED = "shizuku:attach-reply-permission-granted";
+    public static final String BIND_APPLICATION_SHOULD_SHOW_REQUEST_PERMISSION_RATIONALE = "shizuku:attach-reply-should-show-request-permission-rationale";
 
     // request permission
     public static final String REQUEST_PERMISSION_REPLY_ALLOWED = "shizuku:request-permission-reply-allowed";
     public static final String REQUEST_PERMISSION_REPLY_IS_ONETIME = "shizuku:request-permission-reply-is-onetime";
 
+    // attach application
+    public static final String ATTACH_APPLICATION_PACKAGE_NAME = "shizuku:attach-package-name";
+    public static final String ATTACH_APPLICATION_API_VERSION = "shizuku:attach-api-version";
 }

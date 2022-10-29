@@ -24,13 +24,13 @@ interface IShizukuService {
 
     int removeUserService(in IShizukuServiceConnection conn, in Bundle args) = 12;
 
-    void attachApplication(in IShizukuApplication application, String requestPackageName) = 13;
-
     void requestPermission(int requestCode) = 14;
 
     boolean checkSelfPermission() = 15;
 
     boolean shouldShowRequestPermissionRationale() = 16;
+
+    void attachApplication(in IShizukuApplication application,in Bundle args) = 17;
 
     void exit() = 100;
 

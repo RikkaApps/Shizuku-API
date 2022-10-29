@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import moe.shizuku.server.IRemoteProcess;
+import moe.shizuku.server.IShizukuApplication;
 import moe.shizuku.server.IShizukuService;
 import moe.shizuku.server.IShizukuServiceConnection;
 import rikka.hidden.compat.PermissionManagerApis;
@@ -137,7 +138,17 @@ public abstract class Service<
 
         IBinder targetBinder = data.readStrongBinder();
         int targetCode = data.readInt();
-        int targetFlags = data.readInt();
+        int targetFlags;
+
+        int callingUid = Binder.getCallingUid();
+        int callingPid = Binder.getCallingPid();
+        ClientRecord clientRecord = clientManager.findClient(callingUid, callingPid);
+
+        if (clientRecord == null || clientRecord.apiVersion >= 13) {
+            targetFlags = data.readInt();
+        } else {
+            targetFlags = flags;
+        }
 
         LOGGER.d("transact: uid=%d, descriptor=%s, code=%d", Binder.getCallingUid(), targetBinder.getInterfaceDescriptor(), targetCode);
         Parcel newData = Parcel.obtain();
@@ -307,6 +318,16 @@ public abstract class Service<
         if (code == ShizukuApiConstants.BINDER_TRANSACTION_transact) {
             data.enforceInterface(ShizukuApiConstants.BINDER_DESCRIPTOR);
             transactRemote(data, reply, flags);
+            return true;
+        } else if (code == 14 /* attachApplication <= v12 */) {
+            data.enforceInterface(ShizukuApiConstants.BINDER_DESCRIPTOR);
+            IBinder binder = data.readStrongBinder();
+            String packageName = data.readString();
+            Bundle args = new Bundle();
+            args.putString(ShizukuApiConstants.ATTACH_APPLICATION_PACKAGE_NAME, packageName);
+            args.putInt(ShizukuApiConstants.ATTACH_APPLICATION_API_VERSION, -1);
+            attachApplication(IShizukuApplication.Stub.asInterface(binder), args);
+            reply.writeNoException();
             return true;
         } else if (rishService.onTransact(code, data, reply, flags)) {
             return true;

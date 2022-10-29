@@ -15,14 +15,16 @@ public class ClientRecord {
     public final int pid;
     public final IShizukuApplication client;
     public final String packageName;
+    public final int apiVersion;
     public boolean allowed;
 
-    public ClientRecord(int uid, int pid, IShizukuApplication client, String packageName) {
+    public ClientRecord(int uid, int pid, IShizukuApplication client, String packageName, int apiVersion) {
         this.uid = uid;
         this.pid = pid;
         this.client = client;
         this.packageName = packageName;
         this.allowed = false;
+        this.apiVersion = apiVersion;
     }
 
     public void dispatchRequestPermissionResult(int requestCode, boolean allowed) {

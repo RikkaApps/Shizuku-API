@@ -62,8 +62,8 @@ public class ClientManager<ConfigMgr extends ConfigManager> {
         return clientRecord;
     }
 
-    public ClientRecord addClient(int uid, int pid, IShizukuApplication client, String packageName) {
-        ClientRecord clientRecord = new ClientRecord(uid, pid, client, packageName);
+    public ClientRecord addClient(int uid, int pid, IShizukuApplication client, String packageName, int apiVersion) {
+        ClientRecord clientRecord = new ClientRecord(uid, pid, client, packageName, apiVersion);
 
         ConfigPackageEntry entry = configManager.find(uid);
         if (entry != null && entry.isAllowed()) {
@@ -71,7 +71,7 @@ public class ClientManager<ConfigMgr extends ConfigManager> {
         }
 
         IBinder binder = client.asBinder();
-        IBinder.DeathRecipient deathRecipient = (IBinder.DeathRecipient) () -> clientRecords.remove(clientRecord);
+        IBinder.DeathRecipient deathRecipient = () -> clientRecords.remove(clientRecord);
         try {
             binder.linkToDeath(deathRecipient, 0);
         } catch (RemoteException e) {

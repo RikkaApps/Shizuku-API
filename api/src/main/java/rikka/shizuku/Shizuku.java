@@ -1,12 +1,14 @@
 package rikka.shizuku;
 
 import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP_PREFIX;
-import static rikka.shizuku.ShizukuApiConstants.ATTACH_REPLY_PERMISSION_GRANTED;
-import static rikka.shizuku.ShizukuApiConstants.ATTACH_REPLY_SERVER_PATCH_VERSION;
-import static rikka.shizuku.ShizukuApiConstants.ATTACH_REPLY_SERVER_SECONTEXT;
-import static rikka.shizuku.ShizukuApiConstants.ATTACH_REPLY_SERVER_UID;
-import static rikka.shizuku.ShizukuApiConstants.ATTACH_REPLY_SERVER_VERSION;
-import static rikka.shizuku.ShizukuApiConstants.ATTACH_REPLY_SHOULD_SHOW_REQUEST_PERMISSION_RATIONALE;
+import static rikka.shizuku.ShizukuApiConstants.ATTACH_APPLICATION_API_VERSION;
+import static rikka.shizuku.ShizukuApiConstants.ATTACH_APPLICATION_PACKAGE_NAME;
+import static rikka.shizuku.ShizukuApiConstants.BIND_APPLICATION_PERMISSION_GRANTED;
+import static rikka.shizuku.ShizukuApiConstants.BIND_APPLICATION_SERVER_PATCH_VERSION;
+import static rikka.shizuku.ShizukuApiConstants.BIND_APPLICATION_SERVER_SECONTEXT;
+import static rikka.shizuku.ShizukuApiConstants.BIND_APPLICATION_SERVER_UID;
+import static rikka.shizuku.ShizukuApiConstants.BIND_APPLICATION_SERVER_VERSION;
+import static rikka.shizuku.ShizukuApiConstants.BIND_APPLICATION_SHOULD_SHOW_REQUEST_PERMISSION_RATIONALE;
 import static rikka.shizuku.ShizukuApiConstants.REQUEST_PERMISSION_REPLY_ALLOWED;
 
 import android.content.ComponentName;
@@ -49,12 +51,12 @@ public class Shizuku {
 
         @Override
         public void bindApplication(Bundle data) {
-            serverUid = data.getInt(ATTACH_REPLY_SERVER_UID, -1);
-            serverApiVersion = data.getInt(ATTACH_REPLY_SERVER_VERSION, -1);
-            serverPatchVersion = data.getInt(ATTACH_REPLY_SERVER_PATCH_VERSION, -1);
-            serverContext = data.getString(ATTACH_REPLY_SERVER_SECONTEXT);
-            permissionGranted = data.getBoolean(ATTACH_REPLY_PERMISSION_GRANTED, false);
-            shouldShowRequestPermissionRationale = data.getBoolean(ATTACH_REPLY_SHOULD_SHOW_REQUEST_PERMISSION_RATIONALE, false);
+            serverUid = data.getInt(BIND_APPLICATION_SERVER_UID, -1);
+            serverApiVersion = data.getInt(BIND_APPLICATION_SERVER_VERSION, -1);
+            serverPatchVersion = data.getInt(BIND_APPLICATION_SERVER_PATCH_VERSION, -1);
+            serverContext = data.getString(BIND_APPLICATION_SERVER_SECONTEXT);
+            permissionGranted = data.getBoolean(BIND_APPLICATION_PERMISSION_GRANTED, false);
+            shouldShowRequestPermissionRationale = data.getBoolean(BIND_APPLICATION_SHOULD_SHOW_REQUEST_PERMISSION_RATIONALE, false);
 
             scheduleBinderReceivedListeners();
         }
@@ -75,6 +77,49 @@ public class Shizuku {
         binderReady = false;
         onBinderReceived(null, null);
     };
+
+    private static boolean attachApplicationV13(IBinder binder, String packageName) throws RemoteException {
+        boolean result;
+
+        Bundle args = new Bundle();
+        args.putInt(ATTACH_APPLICATION_API_VERSION, ShizukuApiConstants.SERVER_VERSION);
+        args.putString(ATTACH_APPLICATION_PACKAGE_NAME, packageName);
+
+        Parcel data = Parcel.obtain();
+        Parcel reply = Parcel.obtain();
+        try {
+            data.writeInterfaceToken("moe.shizuku.server.IShizukuService");
+            data.writeStrongBinder(SHIZUKU_APPLICATION.asBinder());
+            data.writeInt(1);
+            args.writeToParcel(data, 0);
+            result = binder.transact(18 /*IShizukuService.Stub.TRANSACTION_attachApplication*/, data, reply, 0);
+            reply.readException();
+        } finally {
+            reply.recycle();
+            data.recycle();
+        }
+
+        return result;
+    }
+
+    private static boolean attachApplicationV11(IBinder binder, String packageName) throws RemoteException {
+        boolean result;
+
+        Parcel data = Parcel.obtain();
+        Parcel reply = Parcel.obtain();
+        try {
+            data.writeInterfaceToken("moe.shizuku.server.IShizukuService");
+            data.writeStrongBinder(SHIZUKU_APPLICATION.asBinder());
+            data.writeString(packageName);
+            result = binder.transact(14 /*IShizukuService.Stub.TRANSACTION_attachApplication*/, data, reply, 0);
+            reply.readException();
+        } finally {
+            reply.recycle();
+            data.recycle();
+        }
+
+        return result;
+    }
 
     @RestrictTo(LIBRARY_GROUP_PREFIX)
     public static void onBinderReceived(@Nullable IBinder newBinder, String packageName) {
@@ -102,21 +147,9 @@ public class Shizuku {
             }
 
             try {
-                //service.attachApplication(SHIZUKU_APPLICATION, packageName);
-
-                Parcel data = Parcel.obtain();
-                Parcel reply = Parcel.obtain();
-                try {
-                    data.writeInterfaceToken("moe.shizuku.server.IShizukuService");
-                    data.writeStrongBinder(SHIZUKU_APPLICATION.asBinder());
-                    data.writeString(packageName);
-                    preV11 = !binder.transact(14 /*IShizukuService.Stub.TRANSACTION_attachApplication*/, data, reply, 0);
-                    reply.readException();
-                } finally {
-                    reply.recycle();
-                    data.recycle();
+                if (!attachApplicationV13(binder, packageName) && !attachApplicationV11(binder, packageName)) {
+                    preV11 = true;
                 }
-
                 Log.i("ShizukuApplication", "attachApplication");
             } catch (Throwable e) {
                 Log.w("ShizukuApplication", Log.getStackTraceString(e));
@@ -336,6 +369,7 @@ public class Shizuku {
      * Call {@link IBinder#transact(int, Parcel, Parcel, int)} at remote service.
      * <p>
      * Use {@link ShizukuBinderWrapper} to wrap the original binder.
+     *
      * @see ShizukuBinderWrapper
      */
     public static void transactRemote(@NonNull Parcel data, @Nullable Parcel reply, int flags) {
