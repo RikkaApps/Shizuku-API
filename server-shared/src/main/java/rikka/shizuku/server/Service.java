@@ -137,6 +137,7 @@ public abstract class Service<
 
         IBinder targetBinder = data.readStrongBinder();
         int targetCode = data.readInt();
+        int targetFlags = data.readInt();
 
         LOGGER.d("transact: uid=%d, descriptor=%s, code=%d", Binder.getCallingUid(), targetBinder.getInterfaceDescriptor(), targetCode);
         Parcel newData = Parcel.obtain();
@@ -148,7 +149,7 @@ public abstract class Service<
         }
         try {
             long id = Binder.clearCallingIdentity();
-            targetBinder.transact(targetCode, newData, reply, flags);
+            targetBinder.transact(targetCode, newData, reply, targetFlags);
             Binder.restoreCallingIdentity(id);
         } finally {
             newData.recycle();
