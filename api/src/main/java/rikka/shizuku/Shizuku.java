@@ -677,6 +677,9 @@ public class Shizuku {
             } catch (RemoteException e) {
                 throw rethrowAsRuntimeException(e);
             }
+        } else {
+            ShizukuServiceConnection connection = ShizukuServiceConnections.get(args);
+            ShizukuServiceConnections.remove(connection);
         }
     }
 
