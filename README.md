@@ -140,12 +140,27 @@ Shizuku API provides `rikka.shizuku.ShizukuBinderWrapper` class which forward Bi
 
 ### UserService
 
-UserService allows you to run your Java and native code (through JNI) 
-Similar to [Bound services](https://developer.android.com/guide/components/bound-services), but the service runs as the identity of root (or adb). JNI is also supported.
+User Service is like [Bound services](https://developer.android.com/guide/components/bound-services) which allows you to run Java or native codes (through JNI). The difference is that the service runs in a different process and as the identity (Linux UID) of root (UID 0) or shell (UID 2000, if the backend is Shizuku and user starts Shizuku with adb).
 
-See javadoc of `bindUserService` method which is super detailed.
+There are no restrictions on non-SDK APIs in the user service process. However, the User Service process is not a valid Android application process. Therefore, even if you can acquire a `Context` instance, many APIs, such as `Context#registerReceiver` and `Context#getContentResolver` will not work. You will need to dig into Android source code to find out how things work.
 
-See `bindUserService` in the demo.
+* Start the User Service
+
+  Use `bindUserService` method. This method has two parameters, `UserServiceArgs` and `ServiceConnection`.
+
+  `UserServiceArgs` is like `Intent` in Bound services, which decides which service will be started and some options.
+
+  `ServiceConnection` is same as Bound services, but only `onServiceConnected` and `onServiceDisconnected` are used.
+  
+  Unlike Bound service, the service class must implement `IBinder` interface. The usual usage is `public class YourService extends IYouAidlInterface.Stub`.
+
+  The service class can have two constructors, one is default constructor, another is with `Context` parameter available from Shizuku v13. Shizuku v13 will try the constructor with `Context` parameter first. Older Shizuku will always use the default constructor. Beaware that the `Context` does not work as same as `Context` in normal Android application. See "Use Android APIs in user service" below.
+
+  Shizuku uses `tag` from `UserServiceArgs` to determine if the User Service is same. If `tag` is not set, class name will be uses, but class name is unstable after ProGuard/R8. If `version` from `UserServiceArgs` mismatches, a new User Service will be start and "destroy" method (see below) will be called for the old.
+
+* Stop the User Service
+
+  Use `unbindUserService` method. However, the user service process will **NOT** be killed automatically. You need to implement a "destroy" method in your service. The transaction code for that method is `16777115` (use `16777114` in aidl). In this method, you can do some cleanup jobs and call `System.exit()` in the end.
 
 ### The use of non-SDK interfaces
 
