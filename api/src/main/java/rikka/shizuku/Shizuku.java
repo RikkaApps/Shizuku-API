@@ -643,11 +643,12 @@ public class Shizuku {
      * Similar to {@link Shizuku#bindUserService(UserServiceArgs, ServiceConnection)},
      * but does not start user service if it is not running.
      *
-     * @return if the service is running
+     * @return service version if the service is running, -1 if the service is not running.
+     * For Shizuku pre-v13, version is always 0 if service is running.
      * @see Shizuku#bindUserService(UserServiceArgs, ServiceConnection)
      * @since Added from version 12
      */
-    public static boolean peekUserService(@NonNull UserServiceArgs args, @NonNull ServiceConnection conn) {
+    public static int peekUserService(@NonNull UserServiceArgs args, @NonNull ServiceConnection conn) {
         ShizukuServiceConnection connection = ShizukuServiceConnections.get(args);
         connection.addConnection(conn);
         int result;
@@ -658,7 +659,18 @@ public class Shizuku {
         } catch (RemoteException e) {
             throw rethrowAsRuntimeException(e);
         }
-        return result == 0;
+
+        boolean atLeast13 = !Shizuku.isPreV11() && Shizuku.getVersion() >= 13;
+        if (atLeast13) {
+            return result;
+        }
+
+        // On pre-13, 0 is running
+        if (result == 0) {
+            return 0;
+        }
+        // Others are not running
+        return -1;
     }
 
     /**

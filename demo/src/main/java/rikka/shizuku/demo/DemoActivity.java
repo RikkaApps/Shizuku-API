@@ -426,8 +426,9 @@ public class DemoActivity extends Activity {
             if (Shizuku.getVersion() < 12) {
                 res.append("requires Shizuku API 12");
             } else {
-                if (Shizuku.peekUserService(userServiceArgs, userServiceConnection)) {
-                    res.append("Service is running");
+                int serviceVersion = Shizuku.peekUserService(userServiceArgs, userServiceConnection);
+                if (serviceVersion != -1) {
+                    res.append("Service is running, version ").append(serviceVersion);
                 } else {
                     res.append("Service is not running");
                 }

@@ -229,7 +229,17 @@ public abstract class Service<
     public final int addUserService(IShizukuServiceConnection conn, Bundle options) {
         enforceCallingPermission("addUserService");
 
-        return userServiceManager.addUserService(conn, options);
+        int callingUid = Binder.getCallingUid();
+        int callingPid = Binder.getCallingPid();
+        int callingApiVersion;
+
+        ClientRecord clientRecord = clientManager.findClient(callingUid, callingPid);
+        if (clientRecord == null) {
+            callingApiVersion = ShizukuApiConstants.SERVER_VERSION;
+        } else {
+            callingApiVersion = clientRecord.apiVersion;
+        }
+        return userServiceManager.addUserService(conn, options, callingApiVersion);
     }
 
     @Override

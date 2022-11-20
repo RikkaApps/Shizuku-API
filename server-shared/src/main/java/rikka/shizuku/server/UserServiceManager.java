@@ -86,7 +86,7 @@ public abstract class UserServiceManager {
         }
     }
 
-    public int addUserService(IShizukuServiceConnection conn, Bundle options) {
+    public int addUserService(IShizukuServiceConnection conn, Bundle options, int callingApiVersion) {
         Objects.requireNonNull(conn, "connection is null");
         Objects.requireNonNull(options, "options is null");
 
@@ -118,10 +118,20 @@ public abstract class UserServiceManager {
 
                     if (record.service != null && record.service.pingBinder()) {
                         record.broadcastBinderReceived();
-                        return 0;
+
+                        if (callingApiVersion >= 13) {
+                            return record.versionCode;
+                        } else {
+                            return 0;
+                        }
                     }
                 }
-                return 1;
+
+                if (callingApiVersion >= 13) {
+                    return -1;
+                } else {
+                    return 1;
+                }
             } else {
                 UserServiceRecord newRecord = createUserServiceRecordIfNeededLocked(record, key, versionCode, daemon, packageInfo);
                 newRecord.callbacks.register(conn);
