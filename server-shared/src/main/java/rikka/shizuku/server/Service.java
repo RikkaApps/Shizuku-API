@@ -144,7 +144,7 @@ public abstract class Service<
         int callingPid = Binder.getCallingPid();
         ClientRecord clientRecord = clientManager.findClient(callingUid, callingPid);
 
-        if (clientRecord == null || clientRecord.apiVersion >= 13) {
+        if (clientRecord != null && clientRecord.apiVersion >= 13) {
             targetFlags = data.readInt();
         } else {
             targetFlags = flags;
