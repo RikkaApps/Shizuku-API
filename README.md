@@ -170,6 +170,11 @@ We also provides [HiddenApiRefinePlugin](https://github.com/RikkaApps/HiddenApiR
 
 ## Changelog
 
+### 13.1.0
+
+- Breaking change: [desugaring](https://developer.android.com/studio/write/java8-support#library-desugaring) is required if min API of your app is 23
+- Listeners now has an optional `Handler` parameter that determines which thread will the listener be called from
+
 ### 13.0.0
 
 - The constructor of `UserService` can have a `Context` parameter which value is the `Context` used to create the instance of `UserService`
