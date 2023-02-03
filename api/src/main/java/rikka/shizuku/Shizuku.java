@@ -182,9 +182,33 @@ public class Shizuku {
         void onRequestPermissionResult(int requestCode, int grantResult);
     }
 
-    private static final List<OnBinderReceivedListener> RECEIVED_LISTENERS = new CopyOnWriteArrayList<>();
-    private static final List<OnBinderDeadListener> DEAD_LISTENERS = new CopyOnWriteArrayList<>();
-    private static final List<OnRequestPermissionResultListener> PERMISSION_LISTENERS = new CopyOnWriteArrayList<>();
+    private static class ListenerHolder<T> {
+
+        private final T listener;
+        private final Handler handler;
+
+        private ListenerHolder(@NonNull T listener, @Nullable Handler handler) {
+            this.listener = listener;
+            this.handler = handler;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            ListenerHolder<?> that = (ListenerHolder<?>) o;
+            return Objects.equals(listener, that.listener) && Objects.equals(handler, that.handler);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(listener, handler);
+        }
+    }
+
+    private static final List<ListenerHolder<OnBinderReceivedListener>> RECEIVED_LISTENERS = new CopyOnWriteArrayList<>();
+    private static final List<ListenerHolder<OnBinderDeadListener>> DEAD_LISTENERS = new CopyOnWriteArrayList<>();
+    private static final List<ListenerHolder<OnRequestPermissionResultListener>> PERMISSION_LISTENERS = new CopyOnWriteArrayList<>();
     private static final Handler MAIN_HANDLER = new Handler(Looper.getMainLooper());
 
     /**
@@ -203,7 +227,26 @@ public class Shizuku {
      * @param listener OnBinderReceivedListener
      */
     public static void addBinderReceivedListener(@NonNull OnBinderReceivedListener listener) {
-        addBinderReceivedListener(Objects.requireNonNull(listener), false);
+        addBinderReceivedListener(listener, null);
+    }
+
+    /**
+     * Add a listener that will be called when binder is received.
+     * <p>
+     * Shizuku APIs can only be used when the binder is received, or a
+     * {@link IllegalStateException} will be thrown.
+     *
+     * <p>Note:</p>
+     * <ul>
+     * <li>The listener could be called multiply times. For example, user restarts Shizuku when app is running.</li>
+     * </ul>
+     * <p>
+     *
+     * @param listener OnBinderReceivedListener
+     * @param handler  Where the listener would be called. If null, the listener will be called in main thread.
+     */
+    public static void addBinderReceivedListener(@NonNull OnBinderReceivedListener listener, @Nullable Handler handler) {
+        addBinderReceivedListener(Objects.requireNonNull(listener), false, handler);
     }
 
     /**
@@ -213,18 +256,31 @@ public class Shizuku {
      * @param listener OnBinderReceivedListener
      */
     public static void addBinderReceivedListenerSticky(@NonNull OnBinderReceivedListener listener) {
-        addBinderReceivedListener(Objects.requireNonNull(listener), true);
+        addBinderReceivedListenerSticky(Objects.requireNonNull(listener), null);
     }
 
-    private static void addBinderReceivedListener(@NonNull OnBinderReceivedListener listener, boolean sticky) {
+    /**
+     * Same to {@link #addBinderReceivedListener(OnBinderReceivedListener)} but only call the listener
+     * immediately if the binder is already received.
+     *
+     * @param listener OnBinderReceivedListener
+     * @param handler  Where the listener would be called. If null, the listener will be called in main thread.
+     */
+    public static void addBinderReceivedListenerSticky(@NonNull OnBinderReceivedListener listener, @Nullable Handler handler) {
+        addBinderReceivedListener(Objects.requireNonNull(listener), true, handler);
+    }
+
+    private static void addBinderReceivedListener(@NonNull OnBinderReceivedListener listener, boolean sticky, @Nullable Handler handler) {
         if (sticky && binderReady) {
-            if (Looper.myLooper() == Looper.getMainLooper()) {
+            if (handler != null) {
+                handler.post(listener::onBinderReceived);
+            } else if (Looper.myLooper() == Looper.getMainLooper()) {
                 listener.onBinderReceived();
             } else {
                 MAIN_HANDLER.post(listener::onBinderReceived);
             }
         }
-        RECEIVED_LISTENERS.add(listener);
+        RECEIVED_LISTENERS.add(new ListenerHolder<>(listener, handler));
     }
 
     /**
@@ -235,22 +291,21 @@ public class Shizuku {
      * @return If the listener is removed.
      */
     public static boolean removeBinderReceivedListener(@NonNull OnBinderReceivedListener listener) {
-        return RECEIVED_LISTENERS.remove(listener);
+        return RECEIVED_LISTENERS.removeIf(holder -> holder.listener == listener);
     }
 
     private static void scheduleBinderReceivedListeners() {
-        if (Looper.myLooper() == Looper.getMainLooper()) {
-            dispatchBinderReceivedListeners();
-        } else {
-            MAIN_HANDLER.post(Shizuku::dispatchBinderReceivedListeners);
+        for (ListenerHolder<OnBinderReceivedListener> holder : RECEIVED_LISTENERS) {
+            if (holder.handler != null) {
+                holder.handler.post(holder.listener::onBinderReceived);
+            } else {
+                if (Looper.myLooper() == Looper.getMainLooper()) {
+                    holder.listener.onBinderReceived();
+                } else {
+                    MAIN_HANDLER.post(holder.listener::onBinderReceived);
+                }
+            }
         }
-    }
-
-    private static void dispatchBinderReceivedListeners() {
-        for (OnBinderReceivedListener listener : RECEIVED_LISTENERS) {
-            listener.onBinderReceived();
-        }
-
         binderReady = true;
     }
 
@@ -265,7 +320,17 @@ public class Shizuku {
      * @param listener OnBinderReceivedListener
      */
     public static void addBinderDeadListener(@NonNull OnBinderDeadListener listener) {
-        DEAD_LISTENERS.add(listener);
+        addBinderDeadListener(listener, null);
+    }
+
+    /**
+     * Add a listener that will be called when binder is dead.
+     *
+     * @param listener OnBinderReceivedListener
+     * @param handler  Where the listener would be called. If null, the listener will be called in main thread.
+     */
+    public static void addBinderDeadListener(@NonNull OnBinderDeadListener listener, @Nullable Handler handler) {
+        DEAD_LISTENERS.add(new ListenerHolder<>(listener, handler));
     }
 
     /**
@@ -275,20 +340,20 @@ public class Shizuku {
      * @return If the listener is removed.
      */
     public static boolean removeBinderDeadListener(@NonNull OnBinderDeadListener listener) {
-        return DEAD_LISTENERS.remove(listener);
+        return DEAD_LISTENERS.removeIf(holder -> holder.listener == listener);
     }
 
     private static void scheduleBinderDeadListeners() {
-        if (Looper.myLooper() == Looper.getMainLooper()) {
-            dispatchBinderDeadListeners();
-        } else {
-            MAIN_HANDLER.post(Shizuku::dispatchBinderDeadListeners);
-        }
-    }
-
-    private static void dispatchBinderDeadListeners() {
-        for (OnBinderDeadListener listener : DEAD_LISTENERS) {
-            listener.onBinderDead();
+        for (ListenerHolder<OnBinderDeadListener> holder : DEAD_LISTENERS) {
+            if (holder.handler != null) {
+                holder.handler.post(holder.listener::onBinderDead);
+            } else {
+                if (Looper.myLooper() == Looper.getMainLooper()) {
+                    holder.listener.onBinderDead();
+                } else {
+                    MAIN_HANDLER.post(holder.listener::onBinderDead);
+                }
+            }
         }
     }
 
@@ -303,7 +368,17 @@ public class Shizuku {
      * @param listener OnBinderReceivedListener
      */
     public static void addRequestPermissionResultListener(@NonNull OnRequestPermissionResultListener listener) {
-        PERMISSION_LISTENERS.add(listener);
+        addRequestPermissionResultListener(listener, null);
+    }
+
+    /**
+     * Add a listener to receive the result of {@link #requestPermission(int)}.
+     *
+     * @param listener OnBinderReceivedListener
+     * @param handler  Where the listener would be called. If null, the listener will be called in main thread.
+     */
+    public static void addRequestPermissionResultListener(@NonNull OnRequestPermissionResultListener listener, @Nullable Handler handler) {
+        PERMISSION_LISTENERS.add(new ListenerHolder<>(listener, handler));
     }
 
     /**
@@ -313,20 +388,20 @@ public class Shizuku {
      * @return If the listener is removed.
      */
     public static boolean removeRequestPermissionResultListener(@NonNull OnRequestPermissionResultListener listener) {
-        return PERMISSION_LISTENERS.remove(listener);
+        return PERMISSION_LISTENERS.removeIf(holder -> holder.listener == listener);
     }
 
-    static void scheduleRequestPermissionResultListener(int requestCode, int result) {
-        if (Looper.myLooper() == Looper.getMainLooper()) {
-            dispatchRequestPermissionResultListener(requestCode, result);
-        } else {
-            MAIN_HANDLER.post(() -> dispatchRequestPermissionResultListener(requestCode, result));
-        }
-    }
-
-    static void dispatchRequestPermissionResultListener(int requestCode, int result) {
-        for (OnRequestPermissionResultListener listener : PERMISSION_LISTENERS) {
-            listener.onRequestPermissionResult(requestCode, result);
+    private static void scheduleRequestPermissionResultListener(int requestCode, int result) {
+        for (ListenerHolder<OnRequestPermissionResultListener> holder : PERMISSION_LISTENERS) {
+            if (holder.handler != null) {
+                holder.handler.post(() -> holder.listener.onRequestPermissionResult(requestCode, result));
+            } else {
+                if (Looper.myLooper() == Looper.getMainLooper()) {
+                    holder.listener.onRequestPermissionResult(requestCode, result);
+                } else {
+                    MAIN_HANDLER.post(() -> holder.listener.onRequestPermissionResult(requestCode, result));
+                }
+            }
         }
     }
 
@@ -354,7 +429,7 @@ public class Shizuku {
      * Normal apps should use listeners rather calling this method everytime.
      *
      * @see #addBinderReceivedListener(OnBinderReceivedListener)
-     * @see #addBinderReceivedListener(OnBinderReceivedListener, boolean)
+     * @see #addBinderReceivedListenerSticky(OnBinderReceivedListener)
      * @see #addBinderDeadListener(OnBinderDeadListener)
      */
     public static boolean pingBinder() {
