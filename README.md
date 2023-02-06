@@ -44,7 +44,7 @@ The first step is to acquire the Binder from Shizuku or Sui.
 
 `Shizuku` class provides listeners, `Shizuku#addBinderReceivedListener()` and `Shizuku.addBinderDeadListener()`, that allows you to track the life of the binder. You should call methods in `Shizuku` class when the binder is alive or you will get an `IllegalStateException`.
 
-The steps to get a Binder from Shizuku and Shizuku are different.
+The steps to get a Binder from Sui and Shizuku are different.
 
 #### Sui
 
