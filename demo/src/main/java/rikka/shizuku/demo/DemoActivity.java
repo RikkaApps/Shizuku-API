@@ -14,6 +14,7 @@ import android.content.pm.IPackageInstaller;
 import android.content.pm.IPackageInstallerSession;
 import android.content.pm.PackageInstaller;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Process;
@@ -215,6 +216,7 @@ public class DemoActivity extends Activity {
         ContentResolver cr = getContentResolver();
         StringBuilder res = new StringBuilder();
         String installerPackageName;
+        String installerAttributionTag = null;
         int userId;
         boolean isRoot;
 
@@ -224,9 +226,11 @@ public class DemoActivity extends Activity {
 
             // the reason for use "com.android.shell" as installer package under adb is that getMySessions will check installer package's owner
             installerPackageName = isRoot ? getPackageName() : "com.android.shell";
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                installerAttributionTag = getAttributionTag();
+            }
             userId = isRoot ? Process.myUserHandle().hashCode() : 0;
-            packageInstaller = PackageInstallerUtils.createPackageInstaller(_packageInstaller, installerPackageName, userId);
-
+            packageInstaller = PackageInstallerUtils.createPackageInstaller(_packageInstaller, installerPackageName, installerAttributionTag, userId);
             int sessionId;
             res.append("createSession: ");
 

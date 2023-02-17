@@ -12,8 +12,11 @@ import java.lang.reflect.InvocationTargetException;
 @SuppressWarnings({"JavaReflectionMemberAccess"})
 public class PackageInstallerUtils {
 
-    public static PackageInstaller createPackageInstaller(IPackageInstaller installer, String installerPackageName, int userId) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
-        if (Build.VERSION.SDK_INT >= 26) {
+    public static PackageInstaller createPackageInstaller(IPackageInstaller installer, String installerPackageName, String installerAttributionTag, int userId) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            return PackageInstaller.class.getConstructor(IPackageInstaller.class, String.class, String.class, int.class)
+                    .newInstance(installer, installerPackageName, installerAttributionTag, userId);
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             return PackageInstaller.class.getConstructor(IPackageInstaller.class, String.class, int.class)
                     .newInstance(installer, installerPackageName, userId);
         } else {
