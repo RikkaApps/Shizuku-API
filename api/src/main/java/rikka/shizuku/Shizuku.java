@@ -700,6 +700,9 @@ public class Shizuku {
      * will not work. You will need to dig into Android source code to find
      * out how things works, so that you will be able to implement your service
      * safely and elegantly.
+     * <p>
+     * Be aware that, to let the UserService to use the latest code, "Run/Debug congfigurations" -
+     * "Always install with package manager" in Android Studio should be checked.
      *
      * @see UserServiceArgs
      * @since Added from version 10
