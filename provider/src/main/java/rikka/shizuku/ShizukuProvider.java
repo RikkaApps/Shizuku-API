@@ -55,7 +55,7 @@ import rikka.sui.Sui;
  * since Shizuku server only gets uid when app starts.</li>
  * </ol>
  * <p>
- * If your app run in multiply processes, this provider also provides the functionality of sharing
+ * If your app runs in multiple processes, this provider also provides the functionality of sharing
  * the binder across processes. See {@link #enableMultiProcessSupport(boolean)}.
  * </p>
  */
