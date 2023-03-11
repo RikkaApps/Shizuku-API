@@ -144,7 +144,7 @@ User Service is like [Bound services](https://developer.android.com/guide/compon
 
 There are no restrictions on non-SDK APIs in the user service process. However, the User Service process is not a valid Android application process. Therefore, even if you can acquire a `Context` instance, many APIs, such as `Context#registerReceiver` and `Context#getContentResolver` will not work. You will need to dig into Android source code to find out how things work.
 
-Be aware that, to let the service to use the latest code, "Run/Debug congfigurations" - "Always install with package manager" in Android Studio should be checked.
+Be aware that, to let the service to use the latest code, "Run/Debug configurations" - "Always install with package manager" in Android Studio should be checked.
 
 * Start the User Service
 
