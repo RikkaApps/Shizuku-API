@@ -172,6 +172,10 @@ We also provides [HiddenApiRefinePlugin](https://github.com/RikkaApps/HiddenApiR
 
 ## Changelog
 
+### 13.1.1
+
+- Fix `Shizuku#removeXXXListener` will crash on Android 7.1 and earlier versions
+
 ### 13.1.0
 
 - Breaking change: [desugaring](https://developer.android.com/studio/write/java8-support#library-desugaring) is required if min API of your app is 23
