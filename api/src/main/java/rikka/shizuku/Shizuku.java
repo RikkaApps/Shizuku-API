@@ -14,6 +14,7 @@ import static rikka.shizuku.ShizukuApiConstants.REQUEST_PERMISSION_REPLY_ALLOWED
 import android.content.ComponentName;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -26,9 +27,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Predicate;
 
 import moe.shizuku.server.IShizukuApplication;
 import moe.shizuku.server.IShizukuService;
@@ -206,9 +210,9 @@ public class Shizuku {
         }
     }
 
-    private static final List<ListenerHolder<OnBinderReceivedListener>> RECEIVED_LISTENERS = new CopyOnWriteArrayList<>();
-    private static final List<ListenerHolder<OnBinderDeadListener>> DEAD_LISTENERS = new CopyOnWriteArrayList<>();
-    private static final List<ListenerHolder<OnRequestPermissionResultListener>> PERMISSION_LISTENERS = new CopyOnWriteArrayList<>();
+    private static final List<ListenerHolder<OnBinderReceivedListener>> RECEIVED_LISTENERS = new CopyOnWriteArrayListCompat<>();
+    private static final List<ListenerHolder<OnBinderDeadListener>> DEAD_LISTENERS = new CopyOnWriteArrayListCompat<>();
+    private static final List<ListenerHolder<OnRequestPermissionResultListener>> PERMISSION_LISTENERS = new CopyOnWriteArrayListCompat<>();
     private static final Handler MAIN_HANDLER = new Handler(Looper.getMainLooper());
 
     /**
@@ -893,4 +897,28 @@ public class Shizuku {
         return serverPatchVersion;
     }
 
+    private static class CopyOnWriteArrayListCompat<E> extends CopyOnWriteArrayList<E> {
+
+        @Override
+        public boolean removeIf(@NonNull Predicate<? super E> filter) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                return super.removeIf(filter);
+            } else {
+                // Before Android 8, CopyOnWriteArrayList doesn't support removeIf
+                Objects.requireNonNull(filter);
+                List<E> elementsToRemove = new ArrayList<>();
+                boolean removed = false;
+                for (E element : this) {
+                    if (filter.test(element)) {
+                        elementsToRemove.add(element);
+                        removed = true;
+                    }
+                }
+                for (E element : elementsToRemove) {
+                    remove(element);
+                }
+                return removed;
+            }
+        }
+    }
 }
