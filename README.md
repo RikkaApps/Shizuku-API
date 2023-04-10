@@ -176,6 +176,8 @@ We also provides [HiddenApiRefinePlugin](https://github.com/RikkaApps/HiddenApiR
 
 - Fix `Shizuku#removeXXXListener` will crash on Android 7.1 and earlier versions
 
+  This is caused by `CopyOnWriteArrayList#removeIf` is not supported (throw an `UnsupportedOperationException`) before Android 8.0. Please note, using `coreLibraryDesugaring` will NOT fix this issue at least in version `2.0.3`.
+
 ### 13.1.0
 
 - Breaking change: [desugaring](https://developer.android.com/studio/write/java8-support#library-desugaring) is required if min API of your app is 23
