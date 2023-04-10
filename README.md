@@ -178,6 +178,16 @@ We also provides [HiddenApiRefinePlugin](https://github.com/RikkaApps/HiddenApiR
 
   This is caused by `CopyOnWriteArrayList#removeIf` is not supported (throw an `UnsupportedOperationException`) before Android 8.0. Please note, using `coreLibraryDesugaring` will NOT fix this issue at least in version `2.0.3`.
 
+- Prepare to remove `Shizuku#newProcess`, developers should have to use `UserService` instead
+
+  First, this is already announced two years ago.
+
+  For those who don't understand, `UserService` gives the developer the ability to run their own codes in a different process with root or shell privilege. This is much more powerful than just executing a command. `UserService` can replace `newProcess` in all cases.
+
+  Also, `newProcess` uses texts to communicate , which is not efficient and unreliable. If there are apps that only uses `newProcess` to implement its functions, it loses most of the advantage of using Shizuku.
+
+  Finally, `newProcess` lacks tty support, it is not possible to implement an interactive shell with it. And we already has `rish` that allows users to run an interactive shell with privilege in any terminal app they like.
+
 ### 13.1.0
 
 - Breaking change: [desugaring](https://developer.android.com/studio/write/java8-support#library-desugaring) is required if min API of your app is 23
