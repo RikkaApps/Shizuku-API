@@ -4,6 +4,7 @@ plugins {
 }
 
 android {
+    namespace 'rikka.shizuku.demo'
     compileSdkVersion api_target_sdk
     defaultConfig {
         applicationId "rikka.shizuku.demo"
