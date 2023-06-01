@@ -14,7 +14,6 @@ import static rikka.shizuku.ShizukuApiConstants.REQUEST_PERMISSION_REPLY_ALLOWED
 import android.content.ComponentName;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -28,11 +27,8 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.function.Predicate;
 
 import moe.shizuku.server.IShizukuApplication;
 import moe.shizuku.server.IShizukuService;
@@ -210,9 +206,9 @@ public class Shizuku {
         }
     }
 
-    private static final List<ListenerHolder<OnBinderReceivedListener>> RECEIVED_LISTENERS = new CopyOnWriteArrayListCompat<>();
-    private static final List<ListenerHolder<OnBinderDeadListener>> DEAD_LISTENERS = new CopyOnWriteArrayListCompat<>();
-    private static final List<ListenerHolder<OnRequestPermissionResultListener>> PERMISSION_LISTENERS = new CopyOnWriteArrayListCompat<>();
+    private static final List<ListenerHolder<OnBinderReceivedListener>> RECEIVED_LISTENERS = new ArrayList<>();
+    private static final List<ListenerHolder<OnBinderDeadListener>> DEAD_LISTENERS = new ArrayList<>();
+    private static final List<ListenerHolder<OnRequestPermissionResultListener>> PERMISSION_LISTENERS = new ArrayList<>();
     private static final Handler MAIN_HANDLER = new Handler(Looper.getMainLooper());
 
     /**
@@ -284,7 +280,9 @@ public class Shizuku {
                 MAIN_HANDLER.post(listener::onBinderReceived);
             }
         }
-        RECEIVED_LISTENERS.add(new ListenerHolder<>(listener, handler));
+        synchronized (RECEIVED_LISTENERS) {
+            RECEIVED_LISTENERS.add(new ListenerHolder<>(listener, handler));
+        }
     }
 
     /**
@@ -295,18 +293,22 @@ public class Shizuku {
      * @return If the listener is removed.
      */
     public static boolean removeBinderReceivedListener(@NonNull OnBinderReceivedListener listener) {
-        return RECEIVED_LISTENERS.removeIf(holder -> holder.listener == listener);
+        synchronized (RECEIVED_LISTENERS) {
+            return RECEIVED_LISTENERS.removeIf(holder -> holder.listener == listener);
+        }
     }
 
     private static void scheduleBinderReceivedListeners() {
-        for (ListenerHolder<OnBinderReceivedListener> holder : RECEIVED_LISTENERS) {
-            if (holder.handler != null) {
-                holder.handler.post(holder.listener::onBinderReceived);
-            } else {
-                if (Looper.myLooper() == Looper.getMainLooper()) {
-                    holder.listener.onBinderReceived();
+        synchronized (RECEIVED_LISTENERS) {
+            for (ListenerHolder<OnBinderReceivedListener> holder : RECEIVED_LISTENERS) {
+                if (holder.handler != null) {
+                    holder.handler.post(holder.listener::onBinderReceived);
                 } else {
-                    MAIN_HANDLER.post(holder.listener::onBinderReceived);
+                    if (Looper.myLooper() == Looper.getMainLooper()) {
+                        holder.listener.onBinderReceived();
+                    } else {
+                        MAIN_HANDLER.post(holder.listener::onBinderReceived);
+                    }
                 }
             }
         }
@@ -334,7 +336,9 @@ public class Shizuku {
      * @param handler  Where the listener would be called. If null, the listener will be called in main thread.
      */
     public static void addBinderDeadListener(@NonNull OnBinderDeadListener listener, @Nullable Handler handler) {
-        DEAD_LISTENERS.add(new ListenerHolder<>(listener, handler));
+        synchronized (RECEIVED_LISTENERS) {
+            DEAD_LISTENERS.add(new ListenerHolder<>(listener, handler));
+        }
     }
 
     /**
@@ -344,19 +348,24 @@ public class Shizuku {
      * @return If the listener is removed.
      */
     public static boolean removeBinderDeadListener(@NonNull OnBinderDeadListener listener) {
-        return DEAD_LISTENERS.removeIf(holder -> holder.listener == listener);
+        synchronized (RECEIVED_LISTENERS) {
+            return DEAD_LISTENERS.removeIf(holder -> holder.listener == listener);
+        }
     }
 
     private static void scheduleBinderDeadListeners() {
-        for (ListenerHolder<OnBinderDeadListener> holder : DEAD_LISTENERS) {
-            if (holder.handler != null) {
-                holder.handler.post(holder.listener::onBinderDead);
-            } else {
-                if (Looper.myLooper() == Looper.getMainLooper()) {
-                    holder.listener.onBinderDead();
+        synchronized (RECEIVED_LISTENERS) {
+            for (ListenerHolder<OnBinderDeadListener> holder : DEAD_LISTENERS) {
+                if (holder.handler != null) {
+                    holder.handler.post(holder.listener::onBinderDead);
                 } else {
-                    MAIN_HANDLER.post(holder.listener::onBinderDead);
+                    if (Looper.myLooper() == Looper.getMainLooper()) {
+                        holder.listener.onBinderDead();
+                    } else {
+                        MAIN_HANDLER.post(holder.listener::onBinderDead);
+                    }
                 }
+
             }
         }
     }
@@ -382,7 +391,9 @@ public class Shizuku {
      * @param handler  Where the listener would be called. If null, the listener will be called in main thread.
      */
     public static void addRequestPermissionResultListener(@NonNull OnRequestPermissionResultListener listener, @Nullable Handler handler) {
-        PERMISSION_LISTENERS.add(new ListenerHolder<>(listener, handler));
+        synchronized (RECEIVED_LISTENERS) {
+            PERMISSION_LISTENERS.add(new ListenerHolder<>(listener, handler));
+        }
     }
 
     /**
@@ -392,18 +403,22 @@ public class Shizuku {
      * @return If the listener is removed.
      */
     public static boolean removeRequestPermissionResultListener(@NonNull OnRequestPermissionResultListener listener) {
-        return PERMISSION_LISTENERS.removeIf(holder -> holder.listener == listener);
+        synchronized (RECEIVED_LISTENERS) {
+            return PERMISSION_LISTENERS.removeIf(holder -> holder.listener == listener);
+        }
     }
 
     private static void scheduleRequestPermissionResultListener(int requestCode, int result) {
-        for (ListenerHolder<OnRequestPermissionResultListener> holder : PERMISSION_LISTENERS) {
-            if (holder.handler != null) {
-                holder.handler.post(() -> holder.listener.onRequestPermissionResult(requestCode, result));
-            } else {
-                if (Looper.myLooper() == Looper.getMainLooper()) {
-                    holder.listener.onRequestPermissionResult(requestCode, result);
+        synchronized (RECEIVED_LISTENERS) {
+            for (ListenerHolder<OnRequestPermissionResultListener> holder : PERMISSION_LISTENERS) {
+                if (holder.handler != null) {
+                    holder.handler.post(() -> holder.listener.onRequestPermissionResult(requestCode, result));
                 } else {
-                    MAIN_HANDLER.post(() -> holder.listener.onRequestPermissionResult(requestCode, result));
+                    if (Looper.myLooper() == Looper.getMainLooper()) {
+                        holder.listener.onRequestPermissionResult(requestCode, result);
+                    } else {
+                        MAIN_HANDLER.post(() -> holder.listener.onRequestPermissionResult(requestCode, result));
+                    }
                 }
             }
         }
@@ -895,30 +910,5 @@ public class Shizuku {
     @RestrictTo(LIBRARY_GROUP_PREFIX)
     public static int getServerPatchVersion() {
         return serverPatchVersion;
-    }
-
-    private static class CopyOnWriteArrayListCompat<E> extends CopyOnWriteArrayList<E> {
-
-        @Override
-        public boolean removeIf(@NonNull Predicate<? super E> filter) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                return super.removeIf(filter);
-            } else {
-                // Before Android 8, CopyOnWriteArrayList doesn't support removeIf
-                Objects.requireNonNull(filter);
-                List<E> elementsToRemove = new ArrayList<>();
-                boolean removed = false;
-                for (E element : this) {
-                    if (filter.test(element)) {
-                        elementsToRemove.add(element);
-                        removed = true;
-                    }
-                }
-                for (E element : elementsToRemove) {
-                    remove(element);
-                }
-                return removed;
-            }
-        }
     }
 }
