@@ -172,6 +172,10 @@ We also provides [HiddenApiRefinePlugin](https://github.com/RikkaApps/HiddenApiR
 
 ## Changelog
 
+### 13.1.2
+
+- Avoid the use of `CopyOnWriteArrayList#removeIf`, as using it with `coreLibraryDesugaring` enabled will crash on Android 8+
+
 ### 13.1.1
 
 - Fix `Shizuku#removeXXXListener` will crash on Android 7.1 and earlier versions
