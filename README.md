@@ -172,6 +172,10 @@ We also provides [HiddenApiRefinePlugin](https://github.com/RikkaApps/HiddenApiR
 
 ## Changelog
 
+### 13.1.3
+
+- Fix the problem that `Shizuku#unbindUserService(remove=false)` does not actually remove the callback
+
 ### 13.1.2
 
 - Avoid the use of `CopyOnWriteArrayList#removeIf`, as using it with `coreLibraryDesugaring` enabled will crash on Android 8+
