@@ -4,7 +4,7 @@ plugins {
 
 android {
     namespace 'rikka.shizuku.provider'
-    compileSdkVersion api_target_sdk
+    compileSdk api_target_sdk
     defaultConfig {
         minSdkVersion api_min_sdk
         targetSdkVersion api_target_sdk

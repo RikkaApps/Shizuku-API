@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace 'rikka.shizuku.demo'
-    compileSdkVersion api_target_sdk
+    compileSdk api_target_sdk
     defaultConfig {
         applicationId "rikka.shizuku.demo"
         minSdkVersion api_min_sdk
@@ -28,6 +28,7 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        aidl true
     }
     signingConfigs {
         sign
