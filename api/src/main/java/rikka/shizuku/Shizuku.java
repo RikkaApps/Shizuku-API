@@ -787,7 +787,19 @@ public class Shizuku {
                 throw rethrowAsRuntimeException(e);
             }
         } else {
+            /*
+             * When unbindUserService remove=false is called, although the ShizukuServiceConnection
+             * instance is removed from ShizukuServiceConnections, it still exists (since its a Binder),
+             * and it will still receive "connected" "died" from the service, and then call the callback
+             * of its ServiceConnection connections[].
+             * This finally leads to the ServiceConnection#onServiceConnected/onServiceDisconnected being
+             * called multiple times after bindUserService is called later, which is not expected.
+             *
+             * As a solution for older versions of the server, we can clear the connections[] here.
+             */
+
             ShizukuServiceConnection connection = ShizukuServiceConnections.get(args);
+            connection.clearConnections();
             ShizukuServiceConnections.remove(connection);
         }
     }

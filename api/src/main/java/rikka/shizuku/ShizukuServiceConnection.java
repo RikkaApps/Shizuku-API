@@ -40,6 +40,10 @@ class ShizukuServiceConnection extends IShizukuServiceConnection.Stub {
         }
     }
 
+    public void clearConnections() {
+        connections.clear();
+    }
+
     @Override
     public void connected(IBinder binder) {
         MAIN_HANDLER.post(() -> {
