@@ -7,6 +7,7 @@ import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP_PREFIX;
 public class ShizukuApiConstants {
 
     public static final int SERVER_VERSION = 13;
+    public static final int SERVER_PATCH_VERSION = 4;
 
     // binder
     public static final String BINDER_DESCRIPTOR = "moe.shizuku.server.IShizukuService";
