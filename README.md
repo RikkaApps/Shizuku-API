@@ -172,6 +172,10 @@ We also provides [HiddenApiRefinePlugin](https://github.com/RikkaApps/HiddenApiR
 
 ## Changelog
 
+### 13.1.4
+
+- Ask the server to remove `ShizukuServiceConnection` if the server is new enough
+
 ### 13.1.3
 
 - Fix the problem that `Shizuku#unbindUserService(remove=false)` does not actually remove the callback
