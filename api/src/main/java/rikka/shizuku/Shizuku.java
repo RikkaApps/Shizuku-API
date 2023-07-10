@@ -678,12 +678,13 @@ public class Shizuku {
             return options;
         }
 
-        private Bundle forRemove() {
+        private Bundle forRemove(boolean remove) {
             Bundle options = new Bundle();
             options.putParcelable(ShizukuApiConstants.USER_SERVICE_ARG_COMPONENT, componentName);
             if (tag != null) {
                 options.putString(ShizukuApiConstants.USER_SERVICE_ARG_TAG, tag);
             }
+            options.putBoolean(ShizukuApiConstants.USER_SERVICE_ARG_REMOVE, remove);
             return options;
         }
     }
@@ -782,7 +783,7 @@ public class Shizuku {
     public static void unbindUserService(@NonNull UserServiceArgs args, @Nullable ServiceConnection conn, boolean remove) {
         if (remove) {
             try {
-                requireService().removeUserService(null /* (unused) */, args.forRemove());
+                requireService().removeUserService(null /* (unused) */, args.forRemove(true));
             } catch (RemoteException e) {
                 throw rethrowAsRuntimeException(e);
             }
@@ -794,11 +795,26 @@ public class Shizuku {
              * of its ServiceConnection connections[].
              * This finally leads to the ServiceConnection#onServiceConnected/onServiceDisconnected being
              * called multiple times after bindUserService is called later, which is not expected.
-             *
-             * As a solution for older versions of the server, we can clear the connections[] here.
              */
 
             ShizukuServiceConnection connection = ShizukuServiceConnections.get(args);
+
+            /*
+             * For newer versions of the server, we can just call removeUserService with remove=false.
+             * This will not kill the service, but will remove the ShizukuServiceConnection instance
+             * from the server.
+             */
+            if (Shizuku.getVersion() >= 14 || Shizuku.getVersion() == 13 && Shizuku.getServerPatchVersion() >= 4) {
+                try {
+                    requireService().removeUserService(connection, args.forRemove(false));
+                } catch (RemoteException e) {
+                    throw rethrowAsRuntimeException(e);
+                }
+            }
+
+            /*
+             * As a solution for older versions of the server, we can clear the connections[] here.
+             */
             connection.clearConnections();
             ShizukuServiceConnections.remove(connection);
         }

@@ -5,6 +5,7 @@ import static rikka.shizuku.ShizukuApiConstants.USER_SERVICE_ARG_DAEMON;
 import static rikka.shizuku.ShizukuApiConstants.USER_SERVICE_ARG_DEBUGGABLE;
 import static rikka.shizuku.ShizukuApiConstants.USER_SERVICE_ARG_NO_CREATE;
 import static rikka.shizuku.ShizukuApiConstants.USER_SERVICE_ARG_PROCESS_NAME;
+import static rikka.shizuku.ShizukuApiConstants.USER_SERVICE_ARG_REMOVE;
 import static rikka.shizuku.ShizukuApiConstants.USER_SERVICE_ARG_TAG;
 import static rikka.shizuku.ShizukuApiConstants.USER_SERVICE_ARG_USE_32_BIT_APP_PROCESS;
 import static rikka.shizuku.ShizukuApiConstants.USER_SERVICE_ARG_VERSION_CODE;
@@ -71,10 +72,20 @@ public abstract class UserServiceManager {
         String tag = options.getString(USER_SERVICE_ARG_TAG);
         String key = packageName + ":" + (tag != null ? tag : className);
 
+        // API < 13.1.4 will not send USER_SERVICE_ARG_REMOVE, true by default
+        boolean remove = true;
+        if (options.containsKey(USER_SERVICE_ARG_REMOVE)) {
+            remove = options.getBoolean(USER_SERVICE_ARG_REMOVE);
+        }
+
         synchronized (this) {
             UserServiceRecord record = getUserServiceRecordLocked(key);
             if (record == null) return 1;
-            removeUserServiceLocked(record);
+            if (remove) {
+                removeUserServiceLocked(record);
+            } else {
+                record.callbacks.unregister(conn);
+            }
         }
         return 0;
     }
