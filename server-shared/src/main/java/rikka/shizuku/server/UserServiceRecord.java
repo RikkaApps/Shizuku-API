@@ -10,6 +10,7 @@ import android.os.RemoteCallbackList;
 import java.util.UUID;
 
 import moe.shizuku.server.IShizukuServiceConnection;
+import rikka.shizuku.server.util.HandlerUtil;
 import rikka.shizuku.server.util.Logger;
 
 public abstract class UserServiceRecord {
@@ -35,6 +36,7 @@ public abstract class UserServiceRecord {
     public IBinder service;
     public final RemoteCallbackList<IShizukuServiceConnection> callbacks = new ConnectionList();
     public boolean daemon;
+    public boolean starting;
 
     public UserServiceRecord(int versionCode, boolean daemon) {
         this.versionCode = versionCode;
@@ -44,6 +46,17 @@ public abstract class UserServiceRecord {
             removeSelf();
         };
         this.daemon = daemon;
+    }
+
+    public void setStartingTimeout(long timeoutMillis) {
+        LOGGER.v("Set starting timeout for service record %s: %d", token, timeoutMillis);
+        starting = true;
+        HandlerUtil.getMainHandler().postDelayed(() -> {
+            if (starting) {
+                LOGGER.w("Service record %s is not started in %d ms", token, timeoutMillis);
+                removeSelf();
+            }
+        }, timeoutMillis);
     }
 
     public void setDaemon(boolean daemon) {
