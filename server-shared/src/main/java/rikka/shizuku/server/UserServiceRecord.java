@@ -15,6 +15,8 @@ import rikka.shizuku.server.util.Logger;
 
 public abstract class UserServiceRecord {
 
+    private Runnable startTimeoutCallback;
+
     private class ConnectionList extends RemoteCallbackList<IShizukuServiceConnection> {
 
         @Override
@@ -49,14 +51,21 @@ public abstract class UserServiceRecord {
     }
 
     public void setStartingTimeout(long timeoutMillis) {
+        if (starting) {
+            LOGGER.w("Service record %s is already starting", token);
+            return;
+        }
+
         LOGGER.v("Set starting timeout for service record %s: %d", token, timeoutMillis);
+
         starting = true;
-        HandlerUtil.getMainHandler().postDelayed(() -> {
+        startTimeoutCallback = () -> {
             if (starting) {
                 LOGGER.w("Service record %s is not started in %d ms", token, timeoutMillis);
                 removeSelf();
             }
-        }, timeoutMillis);
+        };
+        HandlerUtil.getMainHandler().postDelayed(startTimeoutCallback, timeoutMillis);
     }
 
     public void setDaemon(boolean daemon) {
@@ -65,6 +74,8 @@ public abstract class UserServiceRecord {
 
     public void setBinder(IBinder binder) {
         LOGGER.v("Binder received for service record %s", token);
+
+        HandlerUtil.getMainHandler().removeCallbacks(startTimeoutCallback);
 
         service = binder;
 
