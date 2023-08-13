@@ -1,6 +1,6 @@
 # Shizuku-API
 
-Shizuku API is the API provided by [Shizuku](https://github.com/RikkaApps/Shizuku) and [Sui](https://github.com/RikkaApps/Sui). With Shizuku API, you can your Java codes (JNI is also supported) as the identity of root or shell (adb).
+Shizuku API is the API provided by [Shizuku](https://github.com/RikkaApps/Shizuku) and [Sui](https://github.com/RikkaApps/Sui). With Shizuku API, you can call your Java/JNI code with root/shell (ADB) identity.
 
 ## Requirements
 
@@ -8,15 +8,15 @@ To use Shizuku APIs, you need to guide the user to install Shizuku or Sui first.
 
 ### Shizuku
 
-Shizuku is a standard Android application. You can guide the user to download Shizuku from https://shizuku.rikka.app/download/. Shizuku works for both rooted and unrooted devices.
+Shizuku is a standard Android application. You can guide the users to download Shizuku from https://shizuku.rikka.app/download/. Shizuku works for both rooted and non-rooted devices.
 
-On unrooted devices, Shizuku needs to manually restart with adb every time on boot. Before Android 11, a computer is required to run adb. Android 11 and above have built-in wireless debugging support, user can start Shizuku directly on the device.
+On non-rooted devices, Shizuku needs to be manually restarted with adb every time on boot. Before Android 11, a computer is required to run adb. Android 11 and above have built-in wireless debugging support, and users can start Shizuku directly on the device.
 
 ### Sui
 
 Sui is a [Magisk](https://github.com/topjohnwu/Magisk) module. Magisk requires an unlocked bootloader.
 
-No additional setup steps are required except for the installation. You can guide rooted users (searching `su` in `PATH` is enough) to download Sui from Magisk or https://github.com/RikkaApps/Sui.
+No additional setup is required except for the installation. You can guide the rooted users (searching `su` in `PATH` is enough) to download Sui from Magisk or https://github.com/RikkaApps/Sui.
 
 ## Demo
 
@@ -24,14 +24,14 @@ A demo project is provided. See [demo](https://github.com/RikkaApps/Shizuku-API/
 
 ## Guide
 
-I'll say the difficult words first, using Shizuku APIs is similar to framework or system app development, some experience in developing common applications may not be applicable. You have to get used to digging into Android source code to find out how things work, [cs.android.com](https://cs.android.com) and AndroidXref sites will be your best friend.
+I'll say the difficult words first, using Shizuku APIs is similar to framework or system app development, some experience in developing common applications may not be enough. You have to get used to digging into Android source code to find out how things work, [cs.android.com](https://cs.android.com) and AndroidXref sites will be your best friend.
 
 ### Add dependency
 
 ![Maven Central](https://img.shields.io/maven-central/v/dev.rikka.shizuku/api)
 
 ```groovy
-def shizuku_version = (the versoin above)
+def shizuku_version = (the version above)
 implementation "dev.rikka.shizuku:api:$shizuku_version"
 
 // Add this line if you want to support Shizuku
