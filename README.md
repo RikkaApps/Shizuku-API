@@ -172,6 +172,10 @@ We also provides [HiddenApiRefinePlugin](https://github.com/RikkaApps/HiddenApiR
 
 ## Changelog
 
+### 13.1.5
+
+- Fix `ShizukuProvider#requestBinderForNonProviderProcess` crash on Android 14 (for apps targeting Android 14)
+
 ### 13.1.4
 
 - Ask the server to remove `ShizukuServiceConnection` if the server is new enough
