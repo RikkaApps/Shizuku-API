@@ -9,6 +9,7 @@ import android.content.IntentFilter;
 import android.content.pm.ProviderInfo;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
@@ -118,7 +119,7 @@ public class ShizukuProvider extends ContentProvider {
 
         Log.d(TAG, "request binder in non-provider process");
 
-        context.registerReceiver(new BroadcastReceiver() {
+        BroadcastReceiver receiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 BinderContainer container = intent.getParcelableExtra(EXTRA_BINDER);
@@ -127,7 +128,13 @@ public class ShizukuProvider extends ContentProvider {
                     Shizuku.onBinderReceived(container.binder, context.getPackageName());
                 }
             }
-        }, new IntentFilter(ACTION_BINDER_RECEIVED));
+        };
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.registerReceiver(receiver, new IntentFilter(ACTION_BINDER_RECEIVED), Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            context.registerReceiver(receiver, new IntentFilter(ACTION_BINDER_RECEIVED));
+        }
 
         Bundle reply;
         try {

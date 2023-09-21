@@ -1,9 +1,9 @@
 ext {
     api_min_sdk = 23
-    api_target_sdk = 31
+    api_target_sdk = 33
     api_version_code = 1
     api_version_major = 13
     api_version_minor = 1
-    api_version_patch = 4
+    api_version_patch = 5
     api_version_name = "${api_version_major}.${api_version_minor}.${api_version_patch}"
 }
