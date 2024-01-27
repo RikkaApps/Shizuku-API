@@ -98,7 +98,7 @@ protected void onCreate(Bundle savedInstanceState) {
 @Override
 protected void onDestroy() {
     // ...
-    Shizuku.removeRequestPermissionResultListener(REQUEST_PERMISSION_RESULT_LISTENER);
+    Shizuku.removeRequestPermissionResultListener(REQUEST_PERMISSION_RESULT_LISTENE;
     // ...
 }
 
@@ -223,7 +223,7 @@ We also provides [HiddenApiRefinePlugin](https://github.com/RikkaApps/HiddenApiR
   
   You can opt-out this behavior by calling `ShizukuProvider#disableAutomaticSuiInitialization()` before `ShizukuProvider#onCreate()` is called
 
-- Added a lot more detailed document for most APIs
+- Add a lot more detailed document for most APIs
 - Drop pre-v11 support
   
   You don't need to worry about this problem, just show a "not supported" message if the user really uses pre-v11.
@@ -246,9 +246,9 @@ We also provides [HiddenApiRefinePlugin](https://github.com/RikkaApps/HiddenApiR
 
 - Dependency changed (see Guide below)
 - Self-implemented permission is used from v11, the API is the same to runtime permission (see the demo, and existing runtime permission still works)
-- Package name was renamed to `rikka.shizuku` (replace all `moe.shizuku.api.` to `rikka.shizuku.`)
+- Package name is rename to `rikka.shizuku` (replace all `moe.shizuku.api.` to `rikka.shizuku.`)
 - `ShizukuService` class is renamed to `Shizuku`
-- Methods in `Shizuku` class now throw `RuntimeException` on failure rather than `RemoteException` like other Android APIs
+- Methods in `Shizuku` class now throw `RuntimeException` rather than `RemoteException` like other Android APIs
 - Listeners are moved from `ShizukuProvider` class to `Shizuku` class
 
 ### Add support for Sui
