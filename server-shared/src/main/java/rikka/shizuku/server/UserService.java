@@ -65,6 +65,7 @@ public class UserService {
                             : new UserHandleHidden(userId));
             Context context = Refine.<ContextHidden>unsafeCast(systemContext).createPackageContextAsUser(pkg, Context.CONTEXT_INCLUDE_CODE | Context.CONTEXT_IGNORE_SECURITY, userHandle);
             ClassLoader classLoader = context.getClassLoader();
+            Thread.currentThread().setContextClassLoader(classLoader);
             Class<?> serviceClass = classLoader.loadClass(cls);
             Constructor<?> constructorWithContext = null;
             try {
