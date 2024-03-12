@@ -1,6 +1,8 @@
 package rikka.shizuku.server;
 
 import android.app.ActivityThread;
+import android.app.Application;
+import android.app.Instrumentation;
 import android.content.Context;
 import android.content.ContextHidden;
 import android.ddm.DdmHandleAppName;
@@ -14,16 +16,21 @@ import android.util.Pair;
 import androidx.annotation.Nullable;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 import dev.rikka.tools.refine.Refine;
 
 public class UserService {
+
+    private static Application CurrentAppContext;
 
     private static String TAG;
 
     public static void setTag(String tag) {
         UserService.TAG = tag;
     }
+    public static Application getAppContext() { return CurrentAppContext; }
 
     @Nullable
     public static Pair<IBinder, String> create(String[] args) {
@@ -69,12 +76,13 @@ public class UserService {
             mPackageInfo.setAccessible(true);
             Object loadedApk = mPackageInfo.get(context);
             Method makeApplication = loadedApk.getClass().getDeclaredMethod("makeApplication", boolean.class, Instrumentation.class);
-            Application application = (Application) makeApplication.invoke(loadedApk, true, null);
+            CurrentAppContext = (Application) makeApplication.invoke(loadedApk, true, null);
             Field mInitialApplication = activityThread.getClass().getDeclaredField("mInitialApplication");
             mInitialApplication.setAccessible(true);
-            mInitialApplication.set(activityThread, application);
+            mInitialApplication.set(activityThread, CurrentAppContext);
+            CurrentAppContext.onCreate();
 
-            ClassLoader classLoader = application.getClassLoader();
+            ClassLoader classLoader = CurrentAppContext.getClassLoader();
             Class<?> serviceClass = classLoader.loadClass(cls);
             Constructor<?> constructorWithContext = null;
             try {
@@ -82,7 +90,7 @@ public class UserService {
             } catch (NoSuchMethodException | SecurityException ignored) {
             }
             if (constructorWithContext != null) {
-                service = (IBinder) constructorWithContext.newInstance(application);
+                service = (IBinder) constructorWithContext.newInstance(CurrentAppContext);
             } else {
                 service = (IBinder) serviceClass.newInstance();
             }
