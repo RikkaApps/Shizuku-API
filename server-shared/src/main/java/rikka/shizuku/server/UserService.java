@@ -1,6 +1,8 @@
 package rikka.shizuku.server;
 
 import android.app.ActivityThread;
+import android.app.Application;
+import android.app.Instrumentation;
 import android.content.Context;
 import android.content.ContextHidden;
 import android.ddm.DdmHandleAppName;
@@ -14,6 +16,8 @@ import android.util.Pair;
 import androidx.annotation.Nullable;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 import dev.rikka.tools.refine.Refine;
 
@@ -54,9 +58,10 @@ public class UserService {
         IBinder service;
 
         try {
-            Context systemContext = ActivityThread.systemMain().getSystemContext();
+            ActivityThread activityThread = ActivityThread.systemMain();
+            Context systemContext = activityThread.getSystemContext();
 
-            DdmHandleAppName.setAppName(name != null ? name : pkg + ":user_service", 0);
+            DdmHandleAppName.setAppName(name != null ? name : pkg + ":user_service", userId);
 
             //noinspection InstantiationOfUtilityClass
             UserHandle userHandle = Refine.unsafeCast(
@@ -64,7 +69,16 @@ public class UserService {
                             ? UserHandleHidden.of(userId)
                             : new UserHandleHidden(userId));
             Context context = Refine.<ContextHidden>unsafeCast(systemContext).createPackageContextAsUser(pkg, Context.CONTEXT_INCLUDE_CODE | Context.CONTEXT_IGNORE_SECURITY, userHandle);
-            ClassLoader classLoader = context.getClassLoader();
+            Field mPackageInfo = context.getClass().getDeclaredField("mPackageInfo");
+            mPackageInfo.setAccessible(true);
+            Object loadedApk = mPackageInfo.get(context);
+            Method makeApplication = loadedApk.getClass().getDeclaredMethod("makeApplication", boolean.class, Instrumentation.class);
+            Application application = (Application) makeApplication.invoke(loadedApk, true, null);
+            Field mInitialApplication = activityThread.getClass().getDeclaredField("mInitialApplication");
+            mInitialApplication.setAccessible(true);
+            mInitialApplication.set(activityThread, application);
+
+            ClassLoader classLoader = application.getClassLoader();
             Class<?> serviceClass = classLoader.loadClass(cls);
             Constructor<?> constructorWithContext = null;
             try {
@@ -72,7 +86,7 @@ public class UserService {
             } catch (NoSuchMethodException | SecurityException ignored) {
             }
             if (constructorWithContext != null) {
-                service = (IBinder) constructorWithContext.newInstance(context);
+                service = (IBinder) constructorWithContext.newInstance(application);
             } else {
                 service = (IBinder) serviceClass.newInstance();
             }
