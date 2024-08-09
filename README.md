@@ -1,3 +1,4 @@
+
 # Shizuku-API
 
 Shizuku API is the API provided by [Shizuku](https://github.com/RikkaApps/Shizuku) and [Sui](https://github.com/RikkaApps/Sui). With Shizuku API, you can call your Java/JNI code with root/shell (ADB) identity.
