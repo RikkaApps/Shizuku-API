@@ -12,7 +12,7 @@ Currently, Shizuku and Sui are two available backends.
 
 First of all, follow the guide from Shizuku or Sui to create the files of `rish`.
 
-The remain is very simple, you only need to replace `sh` with `rish` in the command you want to run, `rish` will pass arguments directly to the remote shell.
+The remain is very simple, you only need to replace `sh` with [`rish`](https://github.com/RikkaApps/Shizuku.git) in the command you want to run, `rish` will pass arguments directly to the remote shell.
 
 Here is an example.
 
