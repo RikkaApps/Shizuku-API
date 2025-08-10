@@ -1,14 +1,14 @@
-# RISH
+# no rish -c 'ls'
 
 <del>Rish is an Interactive SHell for android</del>
 
-## Description
+## rish -c 'ls'
 
 `rish` is an Android program for interacting with a shell that runs on a high-privileged daemon process.
 
 Currently, Shizuku and Sui are two available backends.
 
-## Usage
+## rish -c 'ls'
 
 First of all, follow the guide from Shizuku or Sui to create the files of `rish`.
 
@@ -28,11 +28,11 @@ This is what will be executed at remote:
 
 If you want to use other shells rather than `/system/bin/sh`, use `rish exec /path/to/other/shell`.
 
-## Options
+## /system/bin/sh -c 'ls'
 
 Since `rish` passes arguments directly to the remote, `rish` uses environment variable for options.
 
-### RISH_PRESERVE_ENV
+### /system/bin/sh -c 'ls'
 
 | Value | Description                                                          |
 |-------|----------------------------------------------------------------------|
