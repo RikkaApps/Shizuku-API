@@ -16,7 +16,7 @@ The remain is very simple, you only need to replace `sh` with `rish` in the comm
 
 Here is an example.
 
-```
+``` 
 rish -c 'ls'
 ```
 
