@@ -8,6 +8,7 @@ To use Shizuku APIs, you need to guide the user to install Shizuku or Sui first.
 
 ### Shizuku
 
+
 Shizuku is a standard Android application. You can guide the users to download Shizuku from https://shizuku.rikka.app/download/. Shizuku works for both rooted and non-rooted devices.
 
 On non-rooted devices, Shizuku needs to be manually restarted with adb every time on boot. Before Android 11, a computer is required to run adb. Android 11 and above have built-in wireless debugging support, and users can start Shizuku directly on the device.
