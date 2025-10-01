@@ -153,6 +153,7 @@ Be aware that, to let the service to use the latest code, "Run/Debug configurati
 
   `UserServiceArgs` is like `Intent` in Bound services, which decides which service will be started and some options.
 
+
   `ServiceConnection` is same as Bound services, but only `onServiceConnected` and `onServiceDisconnected` are used.
   
   Unlike Bound service, the service class must implement `IBinder` interface. The usual usage is `public class YourService extends IYouAidlInterface.Stub`.
