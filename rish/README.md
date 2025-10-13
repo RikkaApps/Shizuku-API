@@ -1,4 +1,5 @@
-# RISH
+![1000113001](https://github.com/user-attachments/assets/63d38c42-a338-4f9f-bca8-d6ae17b6caed)
+# com.termux
 
 <del>Rish is an Interactive SHell for android</del>
 
@@ -44,4 +45,5 @@ Adb (Shizuku can run under adb) does not have sufficient permissions to access s
 
 If the backend runs under adb, `RISH_PRESERVE_ENV` will be treated as `0` when not set.
 
-If the backend runs under root, `RISH_PRESERVE_ENV` will be treated as `1` when not set.
+If the backend runs under root![1000113001](https://github.com/user-attachments/assets/493c5d33-0999-4f5a-a7bf-36588bcba031)
+, `RISH_PRESERVE_ENV` will be treated as `1` when not set.
