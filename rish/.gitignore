@@ -1,1 +1,45 @@
-/build
+<?xml version="1.0" encoding="utf-8"?>
+<sensitivity>
+    <general>
+        <thirdpersonnoscope>125</thirdpersonnoscope>
+        <firstpersonnoscope>125</firstpersonnoscope>
+    </general>
+
+    <camera>
+        <redotholo>50</redotholo>
+        <twoX>45</twoX>
+        <threeX>35</threeX>
+        <fourX>25</fourX>
+        <sixX>12</sixX>
+        <eightX>8</eightX>
+    </camera>
+
+    <ads>
+        <redotholo>35</redotholo>
+        <twoX>30</twoX>
+        <threeX>27</threeX>
+        <fourX>18</fourX>
+        <sixX>9</sixX>
+        <eightX>8</eightX>
+    </ads>
+
+    <gyro>
+        <noscope>300</noscope>
+        <redotholo>300</redotholo>
+        <twoX>250</twoX>
+        <threeX>200</threeX>
+        <fourX>140</fourX>
+        <sixX>70</sixX>
+        <eightX>60</eightX>
+    </gyro>
+
+    <gyro_ads>
+        <noscope>300</noscope>
+        <redotholo>300</redotholo>
+        <twoX>250</twoX>
+        <threeX>200</threeX>
+        <fourX>160</fourX>
+        <sixX>80</sixX>
+        <eightX>60</eightX>
+    </gyro_ads>
+</sensitivity>
