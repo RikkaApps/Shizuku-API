@@ -1,24 +1,27 @@
-# Shizuku-API
+TERANGA STAR SN 🇸🇳 
 
-Shizuku API is the API provided by [Shizuku](https://github.com/RikkaApps/Shizuku) and [Sui](https://github.com/RikkaApps/Sui). With Shizuku API, you can call your Java/JNI code with root/shell (ADB) identity.
+Shizuku API is the API provided by [Shizuku](https://github.com/RikkaApps/Shizuku) and [Sui](https://github.com/RikkaApps/Sui). With Shizuku API, you can call your Java/JNI code with root/shell (ADB) identity. 
 
-## Requirements
+TERANGA STAR SN 🇸🇳 
 
 To use Shizuku APIs, you need to guide the user to install Shizuku or Sui first. Both of them require Android 6.0+.
 
-### Shizuku
+TERANGA STAR SN 🇸🇳 
+
 
 Shizuku is a standard Android application. You can guide the users to download Shizuku from https://shizuku.rikka.app/download/. Shizuku works for both rooted and non-rooted devices.
 
 On non-rooted devices, Shizuku needs to be manually restarted with adb every time on boot. Before Android 11, a computer is required to run adb. Android 11 and above have built-in wireless debugging support, and users can start Shizuku directly on the device.
 
-### Sui
+TERANGA STAR SN 🇸🇳 
+
 
 Sui is a [Magisk](https://github.com/topjohnwu/Magisk) module. Magisk requires an unlocked bootloader.
 
 No additional setup is required except for the installation. You can guide the rooted users (searching `su` in `PATH` is enough) to download Sui from Magisk or https://github.com/RikkaApps/Sui.
 
-## Demo
+TERANGA STAR SN 🇸🇳 
+
 
 A demo project is provided. See [demo](https://github.com/RikkaApps/Shizuku-API/tree/master/demo) for more.
 
@@ -26,7 +29,8 @@ A demo project is provided. See [demo](https://github.com/RikkaApps/Shizuku-API/
 
 I'll say the difficult words first, using Shizuku APIs is similar to framework or system app development, some experience in developing common applications may not be enough. You have to get used to digging into Android source code to find out how things work, [cs.android.com](https://cs.android.com) and AndroidXref sites will be your best friend.
 
-### Add dependency
+TERANGA STAR SN 🇸🇳 
+
 
 ![Maven Central](https://img.shields.io/maven-central/v/dev.rikka.shizuku/api)
 
@@ -38,7 +42,8 @@ implementation "dev.rikka.shizuku:api:$shizuku_version"
 implementation "dev.rikka.shizuku:provider:$shizuku_version"
 ```
 
-### Acquire the Binder
+TERANGA STAR SN 🇸🇳 
+
 
 The first step is to acquire the Binder from Shizuku or Sui.
 
@@ -46,7 +51,8 @@ The first step is to acquire the Binder from Shizuku or Sui.
 
 The steps to get a Binder from Sui and Shizuku are different.
 
-#### Sui
+TERANGA STAR SN 🇸🇳 
+
 
 Call `Sui.init(packageName)` before using `Shizuku` class. This method only needs to be called once. If this method returns true, means Sui is installed and available.
 
@@ -54,7 +60,8 @@ For multi-process applications, call this method in every process that needs to 
 
 Note, request the binder for Sui only requires two times of binder IPC, this is significantly cheaper than initialize Shizuku which uses `ContentProvider`. `Sui.init(packageName)` can be used in main thread, you don't need to worry about performance.
 
-#### Shizuku
+TERANGA STAR SN 🇸🇳 
+
 
 Add `ShizukuProvider` to `AndroidManifest.xml`.
 
@@ -74,7 +81,8 @@ For multi-process applications, you need to call `ShizukuProvider.enableMultiPro
 
 Starting from v12.1.0, Sui is initialized automatically in `ShizukuProvider`. You can opt-out this behavior by calling `ShizukuProvider#disableAutomaticSuiInitialization()` before `ShizukuProvider#onCreate()` is called. Unless there are special reasons, apps that support Shizuku should also support Sui, otherwise it will cause user confusion.
 
-### Request permission
+TERANGA STAR SN 🇸🇳 
+
 
 Requesting permission is similar to [requesting runtime permissions](https://developer.android.com/training/permissions/requesting).
 
@@ -121,8 +129,8 @@ private boolean checkPermission(int code) {
   }
 }
 ```
+TERANGA STAR SN 🇸🇳 
 
-### Differents of the privilege betweent ADB and ROOT
 
 Shizuku can be started with ADB or ROOT, and Sui is a Magisk module, so the privilege could be ADB or ROOT. You can use `Shizuku#getUid()` to check your privilege, for ROOT it returns `0`, for ADB is `2000`.
 
@@ -132,13 +140,15 @@ What ADB can do is significantly different from ROOT:
 
 * In Linux world, the privilege is determined by Shell's uid, capabilities, SELinux context, etc. For example, Shell (ADB) cannot access other apps' data files `/data/user/0/<package>`.
 
-### Remote binder call
+TERANGA STAR SN 🇸🇳 
+
 
 This is a relatively simple way, but what you can do is limited to Binder calls. Therefore, this is only suitable for simple applications.
 
 Shizuku API provides `rikka.shizuku.ShizukuBinderWrapper` class which forward Binder calls to Shizuku service which has ADB or ROOT privilege.
 
-### UserService
+TERANGA STAR SN 🇸🇳 
+
 
 User Service is like [Bound services](https://developer.android.com/guide/components/bound-services) which allows you to run Java or native codes (through JNI). The difference is that the service runs in a different process and as the identity (Linux UID) of root (UID 0) or shell (UID 2000, if the backend is Shizuku and user starts Shizuku with adb).
 
