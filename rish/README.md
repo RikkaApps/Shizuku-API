@@ -36,9 +36,7 @@ Since `rish` passes arguments directly to the remote, `rish` uses environment va
 
 | Value | Description                                                          |
 |-------|----------------------------------------------------------------------|
-| `0`   | Do not change environment variables of the remote process            |
-| `1`   | Replace the environment variables of the remote process with local's |
-
+| `1`   | view devices list connected 
 Termux app set `PATH` and `LD_PRELOAD` to Termux's internal path.
 Adb (Shizuku can run under adb) does not have sufficient permissions to access such places, making users can even not using commands like `cd`.
 
