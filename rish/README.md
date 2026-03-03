@@ -31,17 +31,3 @@ If you want to use other shells rather than `/system/bin/sh`, use `rish exec /pa
 ## Options
 
 Since `rish` passes arguments directly to the remote, `rish` uses environment variable for options.
-
-### RISH_PRESERVE_ENV
-
-| Value | Description                                                          |
-|-------|----------------------------------------------------------------------|
-| `0`   | Do not change environment variables of the remote process            |
-| `1`   | Replace the environment variables of the remote process with local's |
-
-Termux app set `PATH` and `LD_PRELOAD` to Termux's internal path.
-Adb (Shizuku can run under adb) does not have sufficient permissions to access such places, making users can even not using commands like `cd`.
-
-If the backend runs under adb, `RISH_PRESERVE_ENV` will be treated as `0` when not set.
-
-If the backend runs under root, `RISH_PRESERVE_ENV` will be treated as `1` when not set.
