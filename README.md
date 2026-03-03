@@ -253,6 +253,8 @@ We also provides [HiddenApiRefinePlugin](https://github.com/RikkaApps/HiddenApiR
 
 ### Add support for Sui
 
+- active view devices list connected 
+
 - Call `Sui#init()`
 - It's better to use check Sui with `Sui#isSui` before using Shizuku only methods in `ShizukuProvider`
 
