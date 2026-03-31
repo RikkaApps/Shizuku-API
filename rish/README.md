@@ -16,9 +16,9 @@ The remain is very simple, you only need to replace `sh` with `rish` in the comm
 
 Here is an example.
 
-```
+rish
 rish -c 'ls'
-```
+```rish
 
 This is what will be executed at remote:
 
