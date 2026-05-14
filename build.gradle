@@ -1,19 +1,26 @@
-apply from: 'manifest.gradle'
+plugins {
+    alias(libs.plugins.android.library) apply false
+}
+
+apply from: "manifest.gradle"
 
 allprojects {
-    tasks.withType(Javadoc) {
-        options.addStringOption('Xdoclint:none', '-quiet')
+    tasks.withType(Javadoc).tap {
+        configureEach {
+            options.addStringOption("Xdoclint:none", "-quiet")
+        }
     }
 }
 
 subprojects {
+    group = "dev.rikka.shizuku"
     afterEvaluate { project ->
-        if (!(it.findProperty('publishLibrary') ?: false)) {
+        if (!(it.findProperty("publishLibrary") ?: false)) {
             return
         }
 
-        plugins.apply('maven-publish')
-        plugins.apply('signing')
+        plugins.apply("maven-publish")
+        plugins.apply("signing")
 
         if (project.parent == rootProject) {
             group = "${groupIdBase}"
@@ -26,9 +33,9 @@ subprojects {
         publishing {
             publications {
                 mavenJava(MavenPublication) {
-                    group project.group
-                    artifactId project.name
-                    version api_version_name
+                    group = project.group
+                    artifactId = project.name
+                    version = api_version_name
                     afterEvaluate {
                         from components.release
                     }
@@ -57,8 +64,8 @@ subprojects {
             }
             repositories {
                 maven {
-                    name 'ossrh'
-                    url 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
+                    name = "ossrh"
+                    url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
                     credentials(PasswordCredentials)
                 }
             }
@@ -86,10 +93,6 @@ subprojects {
             }
         }
     }
-}
-
-task clean(type: Delete) {
-    delete rootProject.buildDir
 }
 
 ext {

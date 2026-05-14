@@ -1,0 +1,17 @@
+[versions]
+agp = "9.2.1"
+androidx-annotation = "1.10.0"
+androidx-core = "1.18.0"
+hidden-api = "4.4.0"
+refine = "4.4.0"
+
+[libraries]
+androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "androidx-annotation" }
+androidx-core = { group = "androidx.core", name = "core", version.ref = "androidx-core" }
+hidden-compat = { group = "dev.rikka.hidden", name = "compat", version.ref = "hidden-api" }
+hidden-stub = { group = "dev.rikka.hidden", name = "stub", version.ref = "hidden-api" }
+refine-runtime = { group = "dev.rikka.tools.refine", name = "runtime", version.ref = "refine" }
+
+[plugins]
+android-library = { id = "com.android.library", version.ref = "agp" }
+rikka-refine = { id = "dev.rikka.tools.refine", version.ref = "refine" }

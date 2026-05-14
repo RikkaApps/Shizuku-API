@@ -1,0 +1,27 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+plugins {
+    id "com.android.settings" version "9.2.1"
+}
+
+android {
+    compileSdk = 36
+    minSdk = 24
+    targetSdk = 36
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+include ":app", ":hidden-api"
+includeBuild ".."

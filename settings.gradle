@@ -2,28 +2,18 @@ pluginManagement {
     repositories {
         google()
         mavenCentral()
-        mavenLocal()
-    }
-    plugins {
-        id("com.android.application") version "8.10.0"
-        id("com.android.library") version "8.10.0"
-        id("org.jetbrains.kotlin.android") version "2.1.21"
-        id("dev.rikka.tools.autoresconfig") version "1.2.2"
-        id("dev.rikka.tools.materialthemebuilder") version "1.5.1"
-        id("dev.rikka.tools.refine") version "4.4.0"
     }
 }
 
 plugins {
-    id("com.android.settings") version "8.10.0"
+    id "com.android.settings" version "9.2.1"
 }
 
 android {
     compileSdk = 36
     minSdk = 24
     targetSdk = 36
-    ndkVersion = "29.0.13113456"
-    buildToolsVersion = "36.0.0"
+    ndkVersion = "29.0.14206865"
 }
 
 dependencyResolutionManagement {
@@ -31,22 +21,8 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        mavenLocal()
-    }
-    versionCatalogs {
-        libs {
-            version('hidden-api', '4.3.3')
-            library('hidden-compat', 'dev.rikka.hidden', 'compat').versionRef('hidden-api')
-            library('hidden-stub', 'dev.rikka.hidden', 'stub').versionRef('hidden-api')
-
-            version('refine', '4.4.0')
-            library('refine-runtime', 'dev.rikka.tools.refine', 'runtime').versionRef('refine')
-            library('refine-annotation', 'dev.rikka.tools.refine', 'annotation').versionRef('refine')
-            library('refine-annotation-processor', 'dev.rikka.tools.refine', 'annotation-processor').versionRef('refine')
-        }
     }
 }
 
-include ':aidl', ':shared', ':api', ':provider', ':rish'
-include ':demo', ':demo-hidden-api-stub'
-include ':server-shared'
+include ":aidl", ":api", ":provider", ":rish", ":server-shared", ":shared"
+includeBuild "example"

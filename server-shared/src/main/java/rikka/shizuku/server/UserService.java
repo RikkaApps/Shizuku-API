@@ -69,16 +69,25 @@ public class UserService {
                             ? UserHandleHidden.of(userId)
                             : new UserHandleHidden(userId));
             Context context = Refine.<ContextHidden>unsafeCast(systemContext).createPackageContextAsUser(pkg, Context.CONTEXT_INCLUDE_CODE | Context.CONTEXT_IGNORE_SECURITY, userHandle);
-            Field mPackageInfo = context.getClass().getDeclaredField("mPackageInfo");
-            mPackageInfo.setAccessible(true);
-            Object loadedApk = mPackageInfo.get(context);
-            Method makeApplication = loadedApk.getClass().getDeclaredMethod("makeApplication", boolean.class, Instrumentation.class);
-            Application application = (Application) makeApplication.invoke(loadedApk, true, null);
-            Field mInitialApplication = activityThread.getClass().getDeclaredField("mInitialApplication");
-            mInitialApplication.setAccessible(true);
-            mInitialApplication.set(activityThread, application);
 
-            ClassLoader classLoader = application.getClassLoader();
+            Application application = null;
+            try {
+                Field mPackageInfo = context.getClass().getDeclaredField("mPackageInfo");
+                mPackageInfo.setAccessible(true);
+                Object loadedApk = mPackageInfo.get(context);
+                Method makeApplication = loadedApk.getClass().getDeclaredMethod("makeApplication", boolean.class, Instrumentation.class);
+                application = (Application) makeApplication.invoke(loadedApk, true, null);
+                Field mInitialApplication = activityThread.getClass().getDeclaredField("mInitialApplication");
+                mInitialApplication.setAccessible(true);
+                mInitialApplication.set(activityThread, application);
+            } catch (Throwable e) {
+                // Catch any errors initializing the application, and use the old Context method as a fallback instead
+                // Especially relevant for MediaTek devices, see GitHub issue 1171
+                Log.w(TAG, "Failed to initialize Application, using Context as fallback", e);
+                application = null;
+            }
+
+            ClassLoader classLoader = (application != null ? application.getClassLoader() : context.getClassLoader());
             Class<?> serviceClass = classLoader.loadClass(cls);
             Constructor<?> constructorWithContext = null;
             try {
@@ -86,7 +95,7 @@ public class UserService {
             } catch (NoSuchMethodException | SecurityException ignored) {
             }
             if (constructorWithContext != null) {
-                service = (IBinder) constructorWithContext.newInstance(application);
+                service = (IBinder) constructorWithContext.newInstance(application != null ? application : context);
             } else {
                 service = (IBinder) serviceClass.newInstance();
             }

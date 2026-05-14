@@ -1,24 +1,24 @@
 plugins {
-    id('com.android.library')
+    alias(libs.plugins.android.library)
 }
 
 android {
-    namespace 'rikka.shizuku.shared'
+    namespace = "rikka.shizuku.shared"
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled = false
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 }
 
 dependencies {
-    implementation project(':aidl')
+    implementation project(":aidl")
 
-    implementation 'androidx.annotation:annotation:1.3.0'
+    implementation libs.androidx.annotation
 }
 
 ext {

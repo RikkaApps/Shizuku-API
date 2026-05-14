@@ -452,6 +452,7 @@ public class Shizuku {
      * @see #addBinderDeadListener(OnBinderDeadListener)
      */
     public static boolean pingBinder() {
+        IBinder b = binder;
         return binder != null && binder.pingBinder();
     }
 

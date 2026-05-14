@@ -1,41 +1,37 @@
 plugins {
-    id('com.android.library')
+    alias(libs.plugins.android.library)
 }
 
 android {
-    namespace 'rikka.rish'
+    namespace = "rikka.rish"
     defaultConfig {
         externalNativeBuild {
             cmake {
-                arguments '-DANDROID_STL=none'
+                arguments = ["-DANDROID_STL=c++_static"]
             }
         }
     }
-    buildFeatures {
-        prefab true
-    }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled = false
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_21
-        targetCompatibility JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
     externalNativeBuild {
         cmake {
-            path 'src/main/cpp/CMakeLists.txt'
-            version "3.31.0+"
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.31.0+"
         }
     }
 }
 
 dependencies {
-    implementation project(':api')
+    implementation project(":api")
 
-    implementation 'androidx.annotation:annotation:1.3.0'
-    implementation 'org.lsposed.libcxx:libcxx:27.0.12077973'
+    implementation libs.androidx.annotation
 }
 
 ext {
