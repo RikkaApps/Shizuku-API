@@ -1,4 +1,4 @@
-plugins {
+/system/bin/sh -c 'ls'plugins {
     id('com.android.library')
 }
 
