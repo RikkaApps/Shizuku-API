@@ -1,4 +1,4 @@
-# RISH
+/path/to/other/shell.# RISH
 
 <del>Rish is an Interactive SHell for android</del>
 
