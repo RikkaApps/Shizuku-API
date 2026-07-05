@@ -1,5 +1,6 @@
 package rikka.shizuku.demo.util;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.IPackageInstaller;
 import android.content.pm.IPackageManager;
@@ -34,15 +35,12 @@ public class ShizukuSystemServerApi {
         return IPackageInstaller.Stub.asInterface(new ShizukuBinderWrapper(packageInstaller.asBinder()));
     }
 
+    @SuppressLint("NewApi")
     public static List<UserInfo> UserManager_getUsers(boolean excludePartial, boolean excludeDying, boolean excludePreCreated) throws RemoteException {
-        if (Build.VERSION.SDK_INT >= 30) {
+        try {
             return USER_MANAGER.get().getUsers(excludePartial, excludeDying, excludePreCreated);
-        } else {
-            try {
-                return USER_MANAGER.get().getUsers(excludeDying);
-            } catch (NoSuchFieldError e) {
-                return USER_MANAGER.get().getUsers(excludePartial, excludeDying, excludePreCreated);
-            }
+        } catch (NoSuchMethodError e) {
+            return USER_MANAGER.get().getUsers(excludeDying);
         }
     }
 
