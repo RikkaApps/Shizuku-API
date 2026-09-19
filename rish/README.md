@@ -34,7 +34,7 @@ Since `rish` passes arguments directly to the remote, `rish` uses environment va
 
 ### RISH_PRESERVE_ENV
 
-| Value | Description                                                          |
+| Value | Descriptiohn                                                          |
 |-------|----------------------------------------------------------------------|
 | `0`   | Do not change environment variables of the remote process            |
 | `1`   | Replace the environment variables of the remote process with local's |
