@@ -69,16 +69,33 @@ public class UserService {
                             ? UserHandleHidden.of(userId)
                             : new UserHandleHidden(userId));
             Context context = Refine.<ContextHidden>unsafeCast(systemContext).createPackageContextAsUser(pkg, Context.CONTEXT_INCLUDE_CODE | Context.CONTEXT_IGNORE_SECURITY, userHandle);
-            Field mPackageInfo = context.getClass().getDeclaredField("mPackageInfo");
-            mPackageInfo.setAccessible(true);
-            Object loadedApk = mPackageInfo.get(context);
-            Method makeApplication = loadedApk.getClass().getDeclaredMethod("makeApplication", boolean.class, Instrumentation.class);
-            Application application = (Application) makeApplication.invoke(loadedApk, true, null);
-            Field mInitialApplication = activityThread.getClass().getDeclaredField("mInitialApplication");
-            mInitialApplication.setAccessible(true);
-            mInitialApplication.set(activityThread, application);
 
-            ClassLoader classLoader = application.getClassLoader();
+            // Shizuku 13.6 started handing the user service a real Application instead of a
+            // plain Context, which means LoadedApk.makeApplication() now runs inside a process
+            // that was forked by Shizuku rather than bound by ActivityManagerService. Some ROMs
+            // inject code there that assumes a normal app process and throws: MediaTek's
+            // ResOptExt preload dereferences Application.getProcessName(), which is null when
+            // there is no AppBindData (MediaTek devices, Shizuku #1198), and a per-domain
+            // network security config conflicts in NetworkSecurityConfigProvider
+            // .handleNewApplication (Shizuku #1171). Both throw out of the same call, so keep
+            // the Application when we can get it and otherwise fall back to the pre-13.6
+            // Context-only path rather than losing the whole user service.
+            Application application = null;
+            try {
+                Field mPackageInfo = context.getClass().getDeclaredField("mPackageInfo");
+                mPackageInfo.setAccessible(true);
+                Object loadedApk = mPackageInfo.get(context);
+                Method makeApplication = loadedApk.getClass().getDeclaredMethod("makeApplication", boolean.class, Instrumentation.class);
+                application = (Application) makeApplication.invoke(loadedApk, true, null);
+                Field mInitialApplication = activityThread.getClass().getDeclaredField("mInitialApplication");
+                mInitialApplication.setAccessible(true);
+                mInitialApplication.set(activityThread, application);
+            } catch (Throwable tr) {
+                Log.w(TAG, String.format("makeApplication failed for %s/%s, falling back to Context-only user service", pkg, cls), tr);
+                application = null;
+            }
+
+            ClassLoader classLoader = application != null ? application.getClassLoader() : context.getClassLoader();
             Class<?> serviceClass = classLoader.loadClass(cls);
             Constructor<?> constructorWithContext = null;
             try {
@@ -86,7 +103,7 @@ public class UserService {
             } catch (NoSuchMethodException | SecurityException ignored) {
             }
             if (constructorWithContext != null) {
-                service = (IBinder) constructorWithContext.newInstance(application);
+                service = (IBinder) constructorWithContext.newInstance(application != null ? application : context);
             } else {
                 service = (IBinder) serviceClass.newInstance();
             }
