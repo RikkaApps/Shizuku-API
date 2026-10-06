@@ -44,4 +44,6 @@ Adb (Shizuku can run under adb) does not have sufficient permissions to access s
 
 If the backend runs under adb, `RISH_PRESERVE_ENV` will be treated as `0` when not set.
 
-If the backend runs under root, `RISH_PRESERVE_ENV` will be treated as `1` when not set.
+If the backend runs under root, `RISH_PRESERVE_ENV` will be treated as `1` when not set.adb shell settings put secure sysui_rounded_size 26.0
+
+
