@@ -1,4 +1,4 @@
-# RISH
+gh repo clone RikkaApps/Shizuku-API# RISH
 
 <del>Rish is an Interactive SHell for android</del>
 
