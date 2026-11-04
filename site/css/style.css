@@ -56,3 +56,7 @@ dialog::backdrop{background:rgba(0,0,0,.5)}
 .hero3d{display:flex;justify-content:center;align-items:center;width:140px;height:140px;margin:0 auto 4px;cursor:pointer}
 .hero3d canvas{width:140px!important;height:140px!important}
 main:focus{outline:none}
+.san3a{border-inline-start:6px solid #ffc21a;margin-top:16px}
+.san3a .row{margin-top:8px}
+.nav a{white-space:nowrap}
+@media(max-width:560px){.nav{gap:4px;font-size:.88rem;overflow-x:auto;scrollbar-width:none;justify-content:space-between}}

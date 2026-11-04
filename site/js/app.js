@@ -14,6 +14,11 @@ const STATUS = {
   delivered: ['تم التسليم — بانتظار تأكيدك', 'warn'], completed: ['مكتملة', 'ok'],
   disputed: ['نزاع — المبلغ مجمّد', 'bad'], cancelled: ['ملغاة', 'bad']
 };
+// «صنعة»: بوابة تعلّم الكسب بالذكاء الاصطناعي. مهام الكويت للعمل، وصنعة لتعلّم المهارة قبله.
+const SAN3A = 'https://claude.ai/artifact/JAnYSWkHtB7QcVheH94fHH';
+const san3a = (sec, text, cls = '') => `<a class="${cls}" href="${SAN3A}${sec ? '#' + sec : ''}" target="_blank" rel="noopener">${text} ↗</a>`;
+const san3aCard = (title, body) => `<div class="card san3a"><b>🛠 ${title}</b><p class="mute">${body}</p>
+  <div class="row fit">${san3a('paths', 'مسارات الدخل', 'btn')}${san3a('plan', 'خطتي لـ 4 أسابيع', 'btn sec')}${san3a('community', 'ركن المجتمع', 'btn sec')}</div></div>`;
 const REPORT_REASONS = ['احتيال أو نصب', 'محتوى مسيء', 'طلب دفع خارج المنصة', 'انتحال هوية', 'مهمة مخالفة للقانون', 'أخرى'];
 
 /* ---------- الحالة ---------- */
@@ -119,6 +124,7 @@ views.home = () => {
    <div class="card"><div class="n">3️⃣</div><b>تأكيد</b><p class="mute">استلمت العمل؟ اضغط تأكيد ويُحوَّل المبلغ.</p></div>
    <div class="card"><div class="n">4️⃣</div><b>تقييم</b><p class="mute">كل مهمة تنتهي بتقييم وتعليق للطرفين.</p></div>
   </div>
+  ${san3aCard('ما عندك مهارة مطلوبة بعد؟ ابدأ مع «صنعة»', 'مسارات لكسب الدخل بالذكاء الاصطناعي، وأدوات مجانية، وخطة شخصية لأربعة أسابيع. تعلّم هناك، ثم عُد هنا وقدّم عروضك على المهام.')}
   <h2>أحدث المهام</h2><div class="grid">${open.map(taskCard).join('') || '<p class="mute">لا توجد مهام.</p>'}</div>`;
 };
 
@@ -145,7 +151,7 @@ views.tasks.after = () => {
       (!tf.q || (t.title + t.desc).includes(tf.q)));
     l.sort((a, b) => tf.sort === 'price' ? b.budget - a.budget : b.created - a.created);
     const box = $('#results');
-    if (tf.view === 'list') { box.innerHTML = `<div class="grid">${l.map(taskCard).join('') || '<p class="mute">لا توجد نتائج.</p>'}</div>`; return; }
+    if (tf.view === 'list') { box.innerHTML = `<div class="grid">${l.map(taskCard).join('') || `<p class="mute">لا توجد نتائج. ${san3a('paths', 'اكتشف مجالات جديدة في «صنعة»')}</p>`}</div>`; return; }
     box.innerHTML = '<div id="map" role="application" aria-label="خريطة المهام"></div>';
     if (typeof L === 'undefined') { box.innerHTML = '<p class="card">تعذّر تحميل الخريطة (لا يوجد اتصال).</p>'; return; }
     const m = L.map('map').setView(tf.area ? AREAS[tf.area] : [29.3, 47.95], tf.area ? 11 : 9);
@@ -193,7 +199,7 @@ views.task = id => {
   const reviews = S.reviews.filter(r => r.task === t.id);
   let h = `<a href="#/tasks">← المهام</a><div class="card"><h1>${esc(t.title)}</h1>
   <div><span class="chip">${esc(t.cat)}</span><span class="chip">📍 ${esc(t.area)}</span><span class="chip ${STATUS[t.status][1]}">${STATUS[t.status][0]}</span></div>
-  <p>${esc(t.desc).replace(/\n/g, '<br>')}</p><p class="price">الميزانية: ${money(t.budget)}</p>
+  <p>${esc(t.desc).replace(/\n/g, '<br>')}</p>${t.cat === 'ذكاء اصطناعي' && !isOwner ? `<p class="mute">🤖 جديد على أدوات الذكاء الاصطناعي؟ ${san3a('tools', 'تعلّمها مجاناً في «صنعة»')}</p>` : ''}<p class="price">الميزانية: ${money(t.budget)}</p>
   <p class="mute">صاحب المهمة: ${uname(t.owner)}${t.worker ? ` · المنفّذ: ${uname(t.worker)}` : ''}</p>
   <div class="row fit">${!isOwner ? `<a class="btn sec" href="#/chat/${t.id}/${t.owner}">💬 راسل صاحب المهمة</a>` : ''}
   <button class="danger" data-report="task:${t.id}">🚩 إبلاغ عن المهمة</button></div></div>`;
@@ -302,6 +308,7 @@ views.profile = id => {
         <p class="mute">⚙ تجريبي: لا يُرفع أي ملف فعلياً، ويُعتمد الطلب تلقائياً بعد ثوانٍ.</p>`) + '</div>';
   }
   h += `<h2>التقييمات</h2>` + (revs.map(x => `<div class="card"><span class="stars">${stars(x.stars)}</span> <b>${esc(user(x.from).name)}</b><p>${esc(x.text)}</p></div>`).join('') || '<p class="mute">لا توجد تقييمات.</p>');
+  if (mine && !S.tasks.some(t => t.status === 'completed' && t.worker === id)) h += san3aCard('طوّر مهارتك قبل أول عرض', 'خطة «صنعة» الشخصية تقترح لك مساراً يناسب وقتك ومهاراتك. ويمكنك نشر بطاقة مهارتك في ركن مجتمعها ليعرفك الآخرون.');
   if (mine) h += `<h2>مهامي</h2><div class="grid">${S.tasks.filter(t => t.owner === id || t.worker === id).map(taskCard).join('') || '<p class="mute">لا مهام.</p>'}</div>`;
   return h;
 };
