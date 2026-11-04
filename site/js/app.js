@@ -336,7 +336,8 @@ views.task = id => {
   h += t.bids.length ? t.bids.map((b, i) => {
     const r = rating(b.by), chosen = t.worker === b.by;
     return `<div class="card ${chosen ? 'escrow' : ''}"><div class="row fit"><b class="price">${money(b.price)}</b><span class="mute">التسليم ${esc(b.date)}</span></div>
-    <div>${uname(b.by)} ${r.n ? `<span class="stars">${stars(r.avg)}</span> <span class="mute">(${r.n})</span>` : '<span class="mute">لا تقييمات بعد</span>'}</div>
+    <div>${uname(b.by)} ${r.n ? `<span class="stars">${stars(r.avg)}</span> <span class="mute">(${r.n})</span>` : '<span class="mute">لا تقييمات بعد</span>'}
+    ${workCount(b.by) ? ` · <a href="#profile-${b.by}">📁 ${workCount(b.by)} أعمال</a>` : ''}</div>
     <p>${esc(b.note)}</p>
     <div class="row fit">${isOwner && t.status === 'open' ? `<button data-accept="${i}">اختيار العرض والدفع للأمانة</button>` : ''}
     ${isOwner ? `<a class="btn sec" href="#chat-${t.id}-${b.by}">💬 محادثة${unreadIn(t.id, b.by) ? ` (${unreadIn(t.id, b.by)})` : ''}</a>` : ''}
@@ -384,6 +385,107 @@ views.task.after = id => {
   };
 };
 
+/* ---------- ملف الأعمال ----------
+   نوعان: «منجزة على المنصة» تُؤخذ من المهام المكتملة وتقييماتها فلا يمكن تزييفها،
+   و«أضافها المنفّذ» لأعمال سابقة خارج المنصة، مع صورة ورابط اختياريين. */
+const MAX_WORKS = 8;
+const CAT_ICON = { 'توصيل': '🚚', 'تنظيف': '🧽', 'صيانة وإصلاح': '🔧', 'تصميم وبرمجة': '🎨', 'ترجمة وكتابة': '✍️', 'دروس وتعليم': '📚', 'تصوير': '📷', 'ذكاء اصطناعي': '🤖', 'أخرى': '🧰' };
+const SAFE_IMG = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/;
+const SAFE_URL = /^https?:\/\/[^\s"'<>]+$/i;
+const hostOf = u => { try { return SAFE_URL.test(u || '') ? new URL(u).hostname : ''; } catch { return ''; } };
+const seedPortfolio = () => [
+  { id: 'w1', by: 'u2', title: 'تركيب 3 وحدات سبليت لفيلا', desc: 'تركيب وتمديد نحاس وتصريف لثلاث غرف في مشرف، مع اختبار الضغط وتشغيل تجريبي.', cat: 'صيانة وإصلاح', month: '2026-06', img: '', link: '', at: now() - 90 * day },
+  { id: 'w2', by: 'u2', title: 'صيانة لوحة كهرباء منزلية', desc: 'استبدال قواطع تالفة وترتيب الأسلاك وتوثيق اللوحة بالأسماء.', cat: 'صيانة وإصلاح', month: '2026-03', img: '', link: '', at: now() - 200 * day },
+  { id: 'w3', by: 'u3', title: 'هوية بصرية لمقهى في السالمية', desc: 'شعار ولوحة ألوان وقوالب منشورات إنستغرام، مع دليل استخدام مختصر.', cat: 'تصميم وبرمجة', month: '2026-08', img: '', link: '', at: now() - 60 * day },
+  { id: 'w4', by: 'u3', title: '20 منشوراً بمساعدة الذكاء الاصطناعي', desc: 'كتابة محتوى تسويقي لمتجر عطور ومراجعته يدوياً قبل النشر.', cat: 'ذكاء اصطناعي', month: '2026-09', img: '', link: '', at: now() - 40 * day }
+];
+S.portfolio ||= seedPortfolio();
+const saveOk = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); return true; } catch { return false; } };
+const worksOf = id => S.portfolio.filter(w => w.by === id).sort((a, b) => (b.month || '').localeCompare(a.month || '') || b.at - a.at);
+const doneWorks = id => S.tasks.filter(t => t.status === 'completed' && t.worker === id);
+const workCount = id => worksOf(id).length + doneWorks(id).length;
+const monthLabel = m => { if (!/^\d{4}-\d{2}$/.test(m || '')) return ''; const [y, mo] = m.split('-'); return new Date(+y, +mo - 1).toLocaleDateString('ar-KW', { month: 'long', year: 'numeric' }); };
+const thumb = (img, cat) => SAFE_IMG.test(img || '') ? `<img class="wimg" src="${img}" alt="" loading="lazy">` : `<div class="wimg ph" aria-hidden="true">${CAT_ICON[cat] || '🧰'}</div>`;
+
+function portfolioSection(id, mine) {
+  const done = doneWorks(id), works = worksOf(id);
+  const doneCards = done.map(t => {
+    const rv = S.reviews.find(r => r.task === t.id && r.to === id);
+    return `<a class="card work" href="#task-${t.id}">${thumb('', t.cat)}<div class="wb"><span class="chip ok">✔ منجزة على المنصة</span>
+      <h3>${esc(t.title)}</h3><div class="mute">${esc(t.cat)} · ${esc(t.area)}</div>
+      ${rv ? `<div><span class="stars">${stars(rv.stars)}</span> <span class="mute">«${esc(rv.text.slice(0, 60))}»</span></div>` : ''}</div></a>`;
+  });
+  const own = works.map(w => `<article class="card work">${SAFE_IMG.test(w.img || '') ? `<button class="wzoom" data-wzoom="${esc(w.id)}" aria-label="تكبير صورة ${esc(w.title)}">${thumb(w.img, w.cat)}</button>` : thumb('', w.cat)}
+    <div class="wb"><span class="chip">أضافها المنفّذ</span><h3>${esc(w.title)}</h3>
+    <div class="mute">${esc(w.cat)}${monthLabel(w.month) ? ' · ' + monthLabel(w.month) : ''}</div>
+    ${w.desc ? `<p>${esc(w.desc)}</p>` : ''}
+    ${hostOf(w.link) ? `<a href="${esc(w.link)}" target="_blank" rel="noopener nofollow ugc">🔗 ${esc(hostOf(w.link))} ↗</a>` : ''}
+    <div class="row fit">${mine ? `<button class="sec" data-wedit="${esc(w.id)}">تعديل</button><button class="danger" data-wdel="${esc(w.id)}">حذف</button>`
+      : `<button class="danger" data-report="work:${esc(w.id)}">🚩 إبلاغ</button>`}</div></div></article>`);
+  const cards = [...doneCards, ...own];
+  return `<h2>ملف الأعمال <span class="mute">(${cards.length})</span></h2>
+  <p class="mute">«منجزة على المنصة» مأخوذة من مهام مكتملة وتقييمات أصحابها. «أضافها المنفّذ» أعمال سابقة يعرضها بنفسه ولم تتحقق منها المنصة.</p>
+  ${mine ? `<div class="row fit" style="margin-bottom:10px"><button id="wAdd" ${works.length >= MAX_WORKS ? 'disabled' : ''}>＋ أضف عملاً</button>
+    <span class="mute">${works.length}/${MAX_WORKS}</span></div>` : ''}
+  <div class="grid">${cards.join('') || `<p class="mute">${mine ? 'أضف أول عمل لك: صورة ووصف قصير يكفيان ليثق بك أصحاب المهام.' : 'لم يُضف أعمالاً بعد.'}</p>`}</div>`;
+}
+
+// تصغير الصورة في المتصفح قبل حفظها حتى لا تمتلئ مساحة التخزين.
+function shrinkImage(file, max = 900) {
+  return new Promise((res, rej) => {
+    if (!/^image\/(jpeg|png|webp|gif)$/.test(file.type)) return rej(new Error('type'));
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => {
+      const k = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement('canvas');
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+      let q = .8, out = c.toDataURL('image/jpeg', q);
+      while (out.length > 220000 && q > .4) { q -= .1; out = c.toDataURL('image/jpeg', q); }
+      res(out);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('decode')); };
+    img.src = url;
+  });
+}
+
+function editWork(w) {
+  const isNew = !w;
+  w ||= { id: 'w' + now().toString(36), by: me(), title: '', desc: '', cat: CATS[0], month: '', img: '', link: '', at: now() };
+  let img = w.img;
+  dialog(`<h3>${isNew ? 'أضف عملاً' : 'تعديل العمل'}</h3><form id="wf">
+  <label for="wt">العنوان</label><input id="wt" required maxlength="80" value="${esc(w.title)}" placeholder="مثال: تركيب مطبخ ألمنيوم في الجهراء">
+  <label for="wd">ماذا عملت؟</label><textarea id="wd" rows="3" maxlength="300" placeholder="المطلوب، ما قمت به، والنتيجة">${esc(w.desc)}</textarea>
+  <div class="row"><div><label for="wc">التصنيف</label><select id="wc">${optionList(CATS, w.cat)}</select></div>
+  <div><label for="wm">التاريخ</label><input id="wm" type="month" value="${esc(w.month)}" max="${new Date().toISOString().slice(0, 7)}"></div></div>
+  <label for="wi">صورة (اختياري)</label><input id="wi" type="file" accept="image/jpeg,image/png,image/webp">
+  <div id="wprev">${SAFE_IMG.test(img) ? `<img class="wimg" src="${img}" alt="">` : ''}</div>
+  <label for="wl">رابط (اختياري)</label><input id="wl" type="url" inputmode="url" maxlength="300" value="${esc(w.link)}" placeholder="https://…">
+  <p class="mute">اعرض أعمالك أنت فقط. لا تضع أرقام هواتف أو صوراً فيها بيانات عملاء. العمل المنسوب لغيرك يُحذف عند الإبلاغ.</p>
+  <p id="wst" role="status" class="mute"></p>
+  <div class="row fit"><button>حفظ</button><button type="button" class="sec" id="wcancel">إلغاء</button></div></form>`, d => {
+    $('#wcancel', d).onclick = closeDlg;
+    $('#wi', d).onchange = async e => {
+      const f = e.target.files[0]; if (!f) return;
+      $('#wst', d).textContent = 'جارٍ تجهيز الصورة…';
+      try { img = await shrinkImage(f); $('#wprev', d).innerHTML = `<img class="wimg" src="${img}" alt="">`; $('#wst', d).textContent = ''; }
+      catch { e.target.value = ''; $('#wst', d).textContent = 'تعذّرت قراءة الصورة. اختر صورة JPG أو PNG أو WebP.'; }
+    };
+    $('#wf', d).onsubmit = e => {
+      e.preventDefault();
+      const link = $('#wl', d).value.trim();
+      if (link && !hostOf(link)) { $('#wst', d).textContent = 'الرابط يجب أن يبدأ بـ https://'; return; }
+      const before = { ...w };
+      Object.assign(w, { title: $('#wt', d).value.trim(), desc: $('#wd', d).value.trim(), cat: $('#wc', d).value, month: $('#wm', d).value, img, link });
+      if (isNew) S.portfolio.push(w);
+      if (!saveOk()) {
+        if (isNew) S.portfolio.pop(); else Object.assign(w, before);
+        $('#wst', d).textContent = 'مساحة التخزين في متصفحك ممتلئة. احذف عملاً قديماً أو اختر صورة أصغر.'; return;
+      }
+      closeDlg(); toast(isNew ? 'أُضيف العمل إلى ملفك' : 'حُفظ التعديل'); route();
+    };
+  });
+}
+
 views.profile = id => {
   if (id === 'me') id = me();
   const u = S.users[id]; if (!u) return '<p class="card">المستخدم غير موجود.</p>';
@@ -403,12 +505,27 @@ views.profile = id => {
         <label for="vs">مهاراتك</label><input id="vs" value="${esc(u.skills)}" maxlength="120"><br><button>إرسال للتوثيق</button></form>
         <p class="mute">⚙ تجريبي: لا يُرفع أي ملف فعلياً، ويُعتمد الطلب تلقائياً بعد ثوانٍ.</p>`) + '</div>';
   }
+  h += portfolioSection(id, mine);
   h += `<h2>التقييمات</h2>` + (revs.map(x => `<div class="card"><span class="stars">${stars(x.stars)}</span> <b>${esc(user(x.from).name)}</b><p>${esc(x.text)}</p></div>`).join('') || '<p class="mute">لا توجد تقييمات.</p>');
   if (mine && !S.tasks.some(t => t.status === 'completed' && t.worker === id)) h += san3aCard('طوّر مهارتك قبل أول عرض', 'خطة «صنعة» الشخصية تقترح لك مساراً يناسب وقتك ومهاراتك. ويمكنك نشر بطاقة مهارتك في ركن مجتمعها ليعرفك الآخرون.');
   if (mine) h += `<h2>مهامي</h2><div class="grid">${S.tasks.filter(t => t.owner === id || t.worker === id).map(taskCard).join('') || '<p class="mute">لا مهام.</p>'}</div>`;
   return h;
 };
 views.profile.after = () => {
+  $('#wAdd') && ($('#wAdd').onclick = () => editWork());
+  document.querySelectorAll('[data-wedit]').forEach(b => b.onclick = () => editWork(S.portfolio.find(w => w.id === b.dataset.wedit && w.by === me())));
+  document.querySelectorAll('[data-wdel]').forEach(b => b.onclick = () => {
+    const w = S.portfolio.find(x => x.id === b.dataset.wdel && x.by === me()); if (!w) return;
+    dialog(`<h3>حذف «${esc(w.title)}»؟</h3><p class="mute">لا يمكن التراجع عن الحذف.</p>
+    <div class="row fit"><button class="danger" id="wyes">حذف</button><button class="sec" id="wno">إلغاء</button></div>`, d => {
+      $('#wno', d).onclick = closeDlg;
+      $('#wyes', d).onclick = () => { S.portfolio = S.portfolio.filter(x => x !== w); save(); closeDlg(); toast('حُذف العمل'); route(); };
+    });
+  });
+  document.querySelectorAll('[data-wzoom]').forEach(b => b.onclick = () => {
+    const w = S.portfolio.find(x => x.id === b.dataset.wzoom); if (!w || !SAFE_IMG.test(w.img)) return;
+    dialog(`<img class="wfull" src="${w.img}" alt="${esc(w.title)}"><h3>${esc(w.title)}</h3><p class="mute">${esc(w.desc)}</p><button class="sec" id="wz">إغلاق</button>`, d => { $('#wz', d).onclick = closeDlg; });
+  });
   const vf = $('#vf'); if (!vf) return;
   vf.onsubmit = e => {
     e.preventDefault(); const u = S.users[me()], uid = me();
