@@ -1,4 +1,4 @@
-const C='mahamm-v1',A=['./','index.html','css/style.css','js/app.js','icon.svg','manifest.webmanifest'];
+const C='mahamm-v2',A=['./','index.html','css/style.css','js/app.js','icon.svg','manifest.webmanifest'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(A)));self.skipWaiting()});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))));self.clients.claim()});
 self.addEventListener('fetch',e=>{

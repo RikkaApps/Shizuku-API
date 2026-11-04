@@ -47,3 +47,9 @@ dialog::backdrop{background:rgba(0,0,0,.5)}
 .prose p,.prose li{max-width:70ch}
 .escrow{border:2px dashed var(--pri)}
 @media(max-width:560px){.nav{order:3;flex-basis:100%;justify-content:space-around}h1{font-size:1.4rem}}
+.chat{display:flex;flex-direction:column;gap:8px;max-height:55vh;overflow-y:auto;padding:8px;background:var(--bg);border-radius:12px}
+.msg{max-width:80%;align-self:flex-start;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px 12px}
+.msg.mine{align-self:flex-end;background:var(--chip);border-color:transparent}
+.msg .mute{font-size:.75rem}
+.mbadge{background:var(--bad);color:#fff;border-radius:99px;font-size:11px;padding:0 6px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}

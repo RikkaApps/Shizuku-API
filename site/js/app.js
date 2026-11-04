@@ -44,11 +44,14 @@ function seed() {
         { status: 'completed', worker: 'u3', bids: [{ by: 'u3', price: 10, date: '2026-10-20', note: '' }], escrow: { state: 'released', amount: 10, fee: .5 } })
     ],
     reviews: [{ task: 7, from: 'u1', to: 'u3', stars: 5, text: 'سريعة ودقيقة، أنصح بها.', at: now() - 5 * day }],
-    reports: [], notifs: [], prefs: { push: false, wa: '' }
+    reports: [], notifs: [], messages: [
+      { id: 1, key: '1:u1-u2', task: 1, from: 'u2', to: 'u1', text: 'السلام عليكم، هل الوحدة الخارجية ستُركّب على السطح أم على الجدار؟', at: now() - 2 * 36e5, read: false, risky: false }
+    ], prefs: { push: false, wa: '' }
   };
 }
 let S;
 try { S = JSON.parse(localStorage.getItem(KEY)) || seed(); } catch { S = seed(); }
+S.messages ||= [];
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { } };
 
 /* ---------- أدوات ---------- */
@@ -82,6 +85,8 @@ function notify(to, text, link) {
 function updateBadge() {
   const n = S.notifs.filter(x => x.to === me() && !x.read).length, b = $('#badge');
   b.hidden = !n; b.textContent = n;
+  const m = S.messages.filter(x => x.to === me() && !x.read).length, mb = $('#mbadge');
+  mb.hidden = !m; mb.textContent = m;
 }
 
 /* ---------- نافذة حوار ---------- */
@@ -184,7 +189,8 @@ views.task = id => {
   <div><span class="chip">${esc(t.cat)}</span><span class="chip">📍 ${esc(t.area)}</span><span class="chip ${STATUS[t.status][1]}">${STATUS[t.status][0]}</span></div>
   <p>${esc(t.desc).replace(/\n/g, '<br>')}</p><p class="price">الميزانية: ${money(t.budget)}</p>
   <p class="mute">صاحب المهمة: ${uname(t.owner)}${t.worker ? ` · المنفّذ: ${uname(t.worker)}` : ''}</p>
-  <button class="danger" data-report="task:${t.id}">🚩 إبلاغ عن المهمة</button></div>`;
+  <div class="row fit">${!isOwner ? `<a class="btn sec" href="#/chat/${t.id}/${t.owner}">💬 راسل صاحب المهمة</a>` : ''}
+  <button class="danger" data-report="task:${t.id}">🚩 إبلاغ عن المهمة</button></div></div>`;
 
   if (t.escrow && t.escrow.state !== 'none') {
     const e = t.escrow, lbl = { held: 'محجوز عند المنصة 🔒', released: 'تم تحويله للمنفّذ ✔', refunded: 'أُعيد لصاحب المهمة ↩' }[e.state];
@@ -225,6 +231,7 @@ views.task = id => {
     <div>${uname(b.by)} ${r.n ? `<span class="stars">${stars(r.avg)}</span> <span class="mute">(${r.n})</span>` : '<span class="mute">لا تقييمات بعد</span>'}</div>
     <p>${esc(b.note)}</p>
     <div class="row fit">${isOwner && t.status === 'open' ? `<button data-accept="${i}">اختيار العرض والدفع للأمانة</button>` : ''}
+    ${isOwner ? `<a class="btn sec" href="#/chat/${t.id}/${b.by}">💬 محادثة${unreadIn(t.id, b.by) ? ` (${unreadIn(t.id, b.by)})` : ''}</a>` : ''}
     <button class="danger" data-report="user:${b.by}">🚩 إبلاغ</button></div></div>`;
   }).join('') : '<p class="mute">لا توجد عروض بعد.</p>';
   return h;
@@ -324,6 +331,59 @@ views.notifications.after = () => {
   };
 };
 
+
+/* ---------- المحادثة المباشرة ---------- */
+// كل محادثة مرتبطة بمهمة وبين طرفين، أحدهما صاحب المهمة.
+const pairKey = (tid, a, b) => `${tid}:${[a, b].sort().join('-')}`;
+const thread = (tid, a, b) => S.messages.filter(m => m.key === pairKey(tid, a, b));
+const unreadIn = (tid, other) => thread(tid, me(), other).filter(m => m.to === me() && !m.read).length;
+// تنبيه عند محاولة نقل التواصل أو الدفع خارج المنصة
+const RISKY = /(\+?\d[\s-]?){8,}|واتس|whats\s?app|تحويل\s*بنك|حو[ّ]?ل\s*لي|خارج\s*المنصة|كاش|ايبان|iban|@[a-z0-9_.]{3,}/i;
+const canChat = (t, a, b) => t && a !== b && S.users[a] && S.users[b] && (t.owner === a || t.owner === b);
+
+views.chat = (tid, other) => {
+  const t = task(tid);
+  if (!canChat(t, me(), other)) return '<p class="card">لا يمكن فتح هذه المحادثة. المحادثات تكون بين صاحب المهمة والمنفّذين فقط.</p>';
+  const msgs = thread(t.id, me(), other);
+  msgs.forEach(m => { if (m.to === me()) m.read = true; }); save();
+  return `<a href="#/task/${t.id}">← ${esc(t.title)}</a>
+  <div class="card"><div class="row fit" style="justify-content:space-between"><div>💬 محادثة مع ${uname(other)}</div>
+  <button class="danger" data-report="user:${other}">🚩 إبلاغ</button></div>
+  <p class="mute">🔒 الرسائل محفوظة في المنصة ويُرجع إليها عند النزاع. لا تشارك أرقام هواتف أو بيانات بنكية، ولا تدفع خارج المنصة.</p>
+  <div class="chat" id="chatBox" aria-live="polite">${msgs.map(m => `<div class="msg ${m.from === me() ? 'mine' : ''}">
+    <div>${esc(m.text).replace(/\n/g, '<br>')}</div><div class="mute">${ago(m.at)}${m.from === me() ? (m.read ? ' · ✓✓ قُرئت' : ' · ✓') : ''}</div>
+    ${m.risky ? '<div class="chip warn">⚠ تذكير: الدفع والتواصل خارج المنصة يُسقط حماية الأمانة</div>' : ''}</div>`).join('') || '<p class="mute" style="text-align:center">ابدأ المحادثة: اسأل عن التفاصيل والموعد قبل اختيار العرض.</p>'}</div>
+  <form id="cf" class="row" style="margin-top:10px"><label for="ct" class="sr">رسالتك</label>
+  <textarea id="ct" rows="2" maxlength="1000" required placeholder="اكتب رسالتك… (Enter للإرسال، Shift+Enter لسطر جديد)" style="flex:5"></textarea><button style="flex:1">إرسال</button></form></div>`;
+};
+views.chat.after = (tid, other) => {
+  const t = task(tid); if (!canChat(t, me(), other)) return;
+  const box = $('#chatBox'); box.scrollTop = box.scrollHeight;
+  const ta = $('#ct');
+  ta.focus();
+  ta.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#cf').requestSubmit(); } };
+  $('#cf').onsubmit = e => {
+    e.preventDefault();
+    const text = ta.value.trim(); if (!text) return;
+    const risky = RISKY.test(text);
+    S.messages.push({ id: now() + Math.random(), key: pairKey(t.id, me(), other), task: t.id, from: me(), to: other, text, at: now(), read: false, risky });
+    save();
+    notify(other, `رسالة من ${user(me()).name} بخصوص «${t.title}»: ${text.slice(0, 60)}`, `#/chat/${t.id}/${me()}`);
+    if (risky) toast('⚠ تنبيه: لا تشارك أرقاماً أو بيانات دفع؛ الحماية تشمل ما يتم داخل المنصة فقط');
+    route();
+  };
+};
+
+views.inbox = () => {
+  const mine = S.messages.filter(m => m.from === me() || m.to === me());
+  const threads = {};
+  mine.forEach(m => { const o = m.from === me() ? m.to : m.from; (threads[m.key] ||= { task: m.task, other: o, last: m, unread: 0 }); const th = threads[m.key]; if (m.at >= th.last.at) th.last = m; if (m.to === me() && !m.read) th.unread++; });
+  const list = Object.values(threads).sort((a, b) => b.last.at - a.last.at);
+  return `<h1>الرسائل</h1>` + (list.map(th => { const t = task(th.task); return `<a class="card notif ${th.unread ? 'unread' : ''}" style="text-decoration:none;color:inherit" href="#/chat/${th.task}/${th.other}">
+    <span><b>${esc(user(th.other).name)}</b> · <span class="mute">${esc(t?.title || '')}</span><br>${esc(th.last.text.slice(0, 80))}</span>
+    <span class="mute">${ago(th.last.at)}${th.unread ? ` <span class="chip ok">${th.unread} جديدة</span>` : ''}</span></a>`; }).join('') || '<p class="card mute">لا توجد محادثات بعد. افتح مهمة واضغط «راسل صاحب المهمة».</p>');
+};
+
 /* ---------- صفحات قانونية ---------- */
 const legalNote = '<p class="card mute">⚠ هذا نص إرشادي أولي ولا يُغني عن مراجعة محامٍ مرخّص في الكويت قبل الإطلاق الفعلي، خصوصاً بنود الدفع وحماية البيانات.</p>';
 views.terms = () => `<div class="prose"><h1>شروط الاستخدام</h1>${legalNote}
@@ -337,7 +397,7 @@ views.terms = () => `<div class="prose"><h1>شروط الاستخدام</h1>${le
 <h2>8. النزاعات</h2><p>عند فتح نزاع يُجمَّد المبلغ وتراجع الإدارة الأدلة وتقرر الاسترجاع أو الصرف.</p>
 <h2>9. المسؤولية</h2><p>لا تضمن المنصة جودة العمل، وتقتصر مسؤوليتها على إدارة الأمانة والإجراءات الموصوفة هنا بالقدر الذي يسمح به القانون.</p></div>`;
 views.privacy = () => `<div class="prose"><h1>سياسة الخصوصية</h1>${legalNote}
-<h2>البيانات التي نجمعها</h2><ul><li>الاسم ووسيلة التواصل والمنطقة.</li><li>بيانات توثيق الهوية (الرقم المدني وصورة البطاقة) لأغراض التحقق فقط.</li><li>سجل المهام والعروض والتقييمات.</li></ul>
+<h2>البيانات التي نجمعها</h2><ul><li>الاسم ووسيلة التواصل والمنطقة.</li><li>الرسائل المتبادلة داخل المنصة، وتُراجَع فقط عند بلاغ أو نزاع.</li><li>بيانات توثيق الهوية (الرقم المدني وصورة البطاقة) لأغراض التحقق فقط.</li><li>سجل المهام والعروض والتقييمات.</li></ul>
 <h2>كيف نستخدمها</h2><p>لتشغيل الخدمة، ومنع الاحتيال، وإرسال الإشعارات التي طلبتها (المتصفح أو واتساب).</p>
 <h2>المشاركة</h2><p>لا نبيع بياناتك. لا يُعرض الرقم المدني لأي مستخدم، ويظهر فقط وسم «موثّق». قد نشارك البيانات مع الجهات المختصة بموجب القانون.</p>
 <h2>حقوقك</h2><p>يمكنك طلب الاطلاع على بياناتك أو تصحيحها أو حذف حسابك عبر الدعم.</p>
@@ -372,10 +432,10 @@ document.addEventListener('click', e => {
 
 /* ---------- التوجيه ---------- */
 function route() {
-  const [, name = '', arg] = location.hash.split('/');
+  const [, name = '', ...args] = location.hash.split('/');
   const key = name || 'home', v = views[key] || views.home;
-  $('#app').innerHTML = v(arg);
-  v.after?.(arg);
+  $('#app').innerHTML = v(...args);
+  v.after?.(...args);
   window.scrollTo(0, 0); $('#app').focus({ preventScroll: true }); updateBadge();
   document.title = 'مهام الكويت';
 }
