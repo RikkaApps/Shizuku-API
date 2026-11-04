@@ -25,8 +25,8 @@
 </head>
 <body>
 <header class="top">
-  <a class="brand" href="index.html#/"><img src="icon.svg" alt="" width="28" height="28"><span>مهام الكويت</span></a>
-  <nav class="nav"><a href="index.html#/tasks">المهام</a><a href="index.html#/new">انشر مهمة</a></nav>
+  <a class="brand" href="index.html#home"><img src="icon.svg" alt="" width="28" height="28"><span>مهام الكويت</span></a>
+  <nav class="nav"><a href="index.html#tasks">المهام</a><a href="index.html#new">انشر مهمة</a></nav>
 </header>
 <main>
   <h1>🧊 مجسم الشعار ثلاثي الأبعاد</h1>
@@ -50,9 +50,9 @@
     <li><b>GLB:</b> للعرض على المواقع والتطبيقات، والواقع المعزز، وبرامج مثل Blender. يحتفظ باللون.</li>
     <li><b>STL:</b> للطباعة ثلاثية الأبعاد. الوحدات بالمليمتر والمجسم ممدد على ظهره جاهزاً للطابعة، بلا لون.</li>
   </ul>
-  <p class="mute">نسخ جاهزة: <a href="models/pin.glb" download>pin.glb</a> · <a href="models/pin.stl" download>pin.stl</a></p>
+  <p class="mute" id="ready">نسخ جاهزة: <a href="models/pin.glb" download>pin.glb</a> · <a href="models/pin.stl" download>pin.stl</a></p>
 </main>
-<footer class="foot"><a href="index.html#/">الرئيسية</a><a href="index.html#/terms">شروط الاستخدام</a><a href="index.html#/privacy">سياسة الخصوصية</a></footer>
+<footer class="foot"><a href="index.html#home">الرئيسية</a><a href="index.html#terms">شروط الاستخدام</a><a href="index.html#privacy">سياسة الخصوصية</a></footer>
 
 <script type="module">
 import { THREE, buildPin, addLights, BRAND } from './js/pin3d.js';
@@ -132,6 +132,12 @@ document.getElementById('stl').onclick = () => save(exportSTL(), 'mahamm-pin.stl
 
 // تُستخدم لتوليد النسخ الجاهزة في مجلد models/
 window.pinExport = { exportGLB, exportSTL };
+
+// عارض claude.ai يمنع الزوار من تنزيل الملفات، فنستبدل أزرار التنزيل بإشارة إلى مكانها.
+if (window.claude || /claude\.ai$|claudeusercontent\.com$/.test(location.hostname)) {
+  for (const id of ['glb', 'stl']) document.getElementById(id).hidden = true;
+  document.getElementById('ready').innerHTML = 'ملفات GLB وSTL متاحة للتنزيل من مجلد <code>site/models</code> في مستودع المشروع على GitHub (الفرع <code>claude/unemployment-website-9zax60</code>).';
+}
 </script>
 </body>
 </html>

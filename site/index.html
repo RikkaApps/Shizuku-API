@@ -9,33 +9,34 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 <header class="top">
-  <a class="brand" href="#/"><img src="icon.svg" alt="" width="28" height="28"><span>مهام الكويت</span></a>
+  <a class="brand" href="#home"><img src="icon.svg" alt="" width="28" height="28"><span>مهام الكويت</span></a>
   <nav class="nav" id="nav">
-    <a href="#/tasks">المهام</a>
-    <a href="#/new">انشر مهمة</a>
-    <a href="#/inbox">الرسائل <b class="mbadge" id="mbadge" hidden>0</b></a>
-    <a href="#/profile/me">حسابي</a>
+    <a href="#tasks">المهام</a>
+    <a href="#new">انشر مهمة</a>
+    <a href="#inbox">الرسائل <b class="mbadge" id="mbadge" hidden>0</b></a>
+    <a href="#profile-me">حسابي</a>
     <a href="https://claude.ai/artifact/JAnYSWkHtB7QcVheH94fHH" target="_blank" rel="noopener">تعلّم واربح ↗</a>
   </nav>
   <div class="tools">
     <select id="userSwitch" aria-label="تبديل الحساب التجريبي" title="حساب تجريبي"></select>
-    <a class="bell" href="#/notifications" aria-label="الإشعارات">🔔<b id="badge" hidden>0</b></a>
+    <a class="bell" href="#notifications" aria-label="الإشعارات">🔔<b id="badge" hidden>0</b></a>
   </div>
 </header>
-<div class="demo-banner">نسخة تجريبية: البيانات تُحفظ في متصفحك فقط، والدفع والتوثيق والإشعارات محاكاة. <a href="#/notifications">إعدادات</a></div>
+<div class="demo-banner">نسخة تجريبية: البيانات تُحفظ في متصفحك فقط، والدفع والتوثيق والإشعارات محاكاة. <a href="#notifications">إعدادات</a></div>
 <main id="app" tabindex="-1"></main>
 <footer class="foot">
-  <a href="#/terms">شروط الاستخدام</a><a href="#/privacy">سياسة الخصوصية</a><a href="#/refund">سياسة الاسترجاع</a><a href="#/safety">الأمان والثقة</a><a href="model.html">🧊 المجسم ثلاثي الأبعاد</a><a href="https://claude.ai/artifact/JAnYSWkHtB7QcVheH94fHH" target="_blank" rel="noopener">🛠 صنعة: تعلّم واربح</a>
+  <a href="#terms">شروط الاستخدام</a><a href="#privacy">سياسة الخصوصية</a><a href="#refund">سياسة الاسترجاع</a><a href="#safety">الأمان والثقة</a><a href="model.html">🧊 المجسم ثلاثي الأبعاد</a><a href="https://claude.ai/artifact/JAnYSWkHtB7QcVheH94fHH" target="_blank" rel="noopener">🛠 صنعة: تعلّم واربح</a>
   <button id="installBtn" class="link" hidden>📲 ثبّت التطبيق</button>
 </footer>
 <div id="toast" role="status" aria-live="polite"></div>
 <dialog id="dlg"></dialog>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="js/kuwait.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

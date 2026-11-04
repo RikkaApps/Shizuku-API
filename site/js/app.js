@@ -69,7 +69,7 @@ const ago = t => { const m = Math.round((now() - t) / 6e4); return m < 60 ? `ق�
 const rating = id => { const r = S.reviews.filter(x => x.to === id); return { n: r.length, avg: r.length ? r.reduce((a, b) => a + b.stars, 0) / r.length : 0 }; };
 const stars = n => '★'.repeat(Math.round(n)) + '☆'.repeat(5 - Math.round(n));
 const badge = id => user(id).verified ? '<span class="chip ok">✔ موثّق</span>' : '<span class="chip">غير موثّق</span>';
-const uname = id => `<a href="#/profile/${id}">${esc(user(id).name)}</a> ${badge(id)}`;
+const uname = id => `<a href="#profile-${id}">${esc(user(id).name)}</a> ${badge(id)}`;
 const me = () => S.me;
 let toastT;
 function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 3500); }
@@ -101,7 +101,7 @@ const closeDlg = () => $('#dlg').close();
 /* ---------- العروض (مكوّنات) ---------- */
 function taskCard(t) {
   const r = rating(t.owner);
-  return `<article class="card task"><h3><a class="t" href="#/task/${t.id}">${esc(t.title)}</a></h3>
+  return `<article class="card task"><h3><a class="t" href="#task-${t.id}">${esc(t.title)}</a></h3>
   <div><span class="chip">${esc(t.cat)}</span><span class="chip">📍 ${esc(t.area)}</span><span class="chip ${STATUS[t.status][1]}">${STATUS[t.status][0]}</span></div>
   <p class="mute">${esc(t.desc.slice(0, 90))}${t.desc.length > 90 ? '…' : ''}</p>
   <div class="row fit"><span class="price">${money(t.budget)}</span><span class="mute">${t.bids.length} عروض · ${ago(t.created)}</span></div>
@@ -116,7 +116,7 @@ views.home = () => {
   const open = S.tasks.filter(t => t.status === 'open').slice(0, 6);
   return `<section class="hero card"><a class="hero3d" id="hero3d" href="model.html" title="المجسم ثلاثي الأبعاد" aria-label="عرض مجسم الشعار ثلاثي الأبعاد"></a><h1>أنجز مهمتك أو اربح من مهارتك — بأمان</h1>
   <p>منصة مهام في الكويت: عروض أسعار، دفع محجوز بنظام الأمانة، تقييمات حقيقية وتوثيق هوية.</p>
-  <div class="row fit" style="justify-content:center"><a class="btn" href="#/new">انشر مهمة</a><a class="btn sec" href="#/tasks">تصفّح المهام</a></div></section>
+  <div class="row fit" style="justify-content:center"><a class="btn" href="#new">انشر مهمة</a><a class="btn sec" href="#tasks">تصفّح المهام</a></div></section>
   <h2>كيف تبني المنصة الثقة؟</h2>
   <div class="steps">
    <div class="card"><div class="n">1️⃣</div><b>عروض</b><p class="mute">المنفّذون يقدمون سعرهم وموعدهم وأنت تختار.</p></div>
@@ -155,8 +155,15 @@ views.tasks.after = () => {
     box.innerHTML = '<div id="map" role="application" aria-label="خريطة المهام"></div>';
     if (typeof L === 'undefined') { box.innerHTML = '<p class="card">تعذّر تحميل الخريطة (لا يوجد اتصال).</p>'; return; }
     const m = L.map('map').setView(tf.area ? AREAS[tf.area] : [29.3, 47.95], tf.area ? 11 : 9);
+    const pri = getComputedStyle(document.documentElement).getPropertyValue('--pri').trim() || '#0f766e';
+    // صور الخريطة من OpenStreetMap؛ إن حُجبت (مثل عارض claude.ai) تبقى حدود الكويت وأسماء المحافظات مرسومة.
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(m);
-    l.forEach(t => L.marker([t.lat, t.lng]).addTo(m).bindPopup(`<b>${esc(t.title)}</b><br>${money(t.budget)} · ${esc(t.area)}<br><a href="#/task/${t.id}">فتح</a>`));
+    if (window.KUWAIT_GEO) {
+      const kw = L.geoJSON(window.KUWAIT_GEO, { interactive: false, style: { color: pri, weight: 1.5, fillColor: pri, fillOpacity: .07 } }).addTo(m);
+      if (!tf.area) m.fitBounds(kw.getBounds(), { padding: [10, 10] });
+    }
+    Object.entries(AREAS).forEach(([n, c]) => L.tooltip({ permanent: true, direction: 'center', className: 'area-label', interactive: false }).setLatLng([c[0] + .045, c[1]]).setContent(esc(n)).addTo(m));
+    l.forEach(t => L.circleMarker([t.lat, t.lng], { radius: 9, color: '#fff', weight: 2, fillColor: pri, fillOpacity: .95 }).addTo(m).bindPopup(`<b>${esc(t.title)}</b><br>${money(t.budget)} · ${esc(t.area)}<br><a href="#task-${t.id}">فتح</a>`));
   };
   $('#fq').oninput = e => { tf.q = e.target.value; draw(); };
   $('#fa').onchange = e => { tf.area = e.target.value; draw(); };
@@ -187,9 +194,9 @@ views.new.after = () => {
     setTimeout(() => {
       const w = ['u2', 'u3', 'u4'].filter(x => x !== t.owner)[Math.floor(Math.random() * 2)];
       t.bids.push({ by: w, price: Math.max(1, Math.round(t.budget * .9)), date: new Date(now() + 2 * day).toISOString().slice(0, 10), note: 'جاهز للتنفيذ.' });
-      save(); notify(t.owner, `عرض جديد من ${user(w).name} على «${t.title}»`, `#/task/${t.id}`);
+      save(); notify(t.owner, `عرض جديد من ${user(w).name} على «${t.title}»`, `#task-${t.id}`);
     }, 6000);
-    location.hash = '#/task/' + t.id;
+    location.hash = '#task-' + t.id;
   };
 };
 
@@ -197,11 +204,11 @@ views.task = id => {
   const t = task(id); if (!t) return '<p class="card">المهمة غير موجودة.</p>';
   const isOwner = t.owner === me(), isWorker = t.worker === me();
   const reviews = S.reviews.filter(r => r.task === t.id);
-  let h = `<a href="#/tasks">← المهام</a><div class="card"><h1>${esc(t.title)}</h1>
+  let h = `<a href="#tasks">← المهام</a><div class="card"><h1>${esc(t.title)}</h1>
   <div><span class="chip">${esc(t.cat)}</span><span class="chip">📍 ${esc(t.area)}</span><span class="chip ${STATUS[t.status][1]}">${STATUS[t.status][0]}</span></div>
   <p>${esc(t.desc).replace(/\n/g, '<br>')}</p>${t.cat === 'ذكاء اصطناعي' && !isOwner ? `<p class="mute">🤖 جديد على أدوات الذكاء الاصطناعي؟ ${san3a('tools', 'تعلّمها مجاناً في «صنعة»')}</p>` : ''}<p class="price">الميزانية: ${money(t.budget)}</p>
   <p class="mute">صاحب المهمة: ${uname(t.owner)}${t.worker ? ` · المنفّذ: ${uname(t.worker)}` : ''}</p>
-  <div class="row fit">${!isOwner ? `<a class="btn sec" href="#/chat/${t.id}/${t.owner}">💬 راسل صاحب المهمة</a>` : ''}
+  <div class="row fit">${!isOwner ? `<a class="btn sec" href="#chat-${t.id}-${t.owner}">💬 راسل صاحب المهمة</a>` : ''}
   <button class="danger" data-report="task:${t.id}">🚩 إبلاغ عن المهمة</button></div></div>`;
 
   if (t.escrow && t.escrow.state !== 'none') {
@@ -234,7 +241,7 @@ views.task = id => {
     <div><label for="bp">السعر (د.ك)</label><input id="bp" type="number" min="1" step="0.5" required value="${mine?.price ?? ''}"></div>
     <div><label for="bd">موعد التسليم</label><input id="bd" type="date" required value="${mine?.date ?? ''}"></div></div>
     <label for="bn">ملاحظة</label><textarea id="bn" rows="2" maxlength="300">${esc(mine?.note ?? '')}</textarea>
-    ${user(me()).verified ? '' : `<p class="mute">المنفّذ غير الموثّق لا يمكنه تقديم عرض فوق ${VERIFY_LIMIT} د.ك. <a href="#/profile/me">وثّق هويتك</a></p>`}
+    ${user(me()).verified ? '' : `<p class="mute">المنفّذ غير الموثّق لا يمكنه تقديم عرض فوق ${VERIFY_LIMIT} د.ك. <a href="#profile-me">وثّق هويتك</a></p>`}
     <button>إرسال العرض</button></form>`;
   }
   h += t.bids.length ? t.bids.map((b, i) => {
@@ -243,14 +250,14 @@ views.task = id => {
     <div>${uname(b.by)} ${r.n ? `<span class="stars">${stars(r.avg)}</span> <span class="mute">(${r.n})</span>` : '<span class="mute">لا تقييمات بعد</span>'}</div>
     <p>${esc(b.note)}</p>
     <div class="row fit">${isOwner && t.status === 'open' ? `<button data-accept="${i}">اختيار العرض والدفع للأمانة</button>` : ''}
-    ${isOwner ? `<a class="btn sec" href="#/chat/${t.id}/${b.by}">💬 محادثة${unreadIn(t.id, b.by) ? ` (${unreadIn(t.id, b.by)})` : ''}</a>` : ''}
+    ${isOwner ? `<a class="btn sec" href="#chat-${t.id}-${b.by}">💬 محادثة${unreadIn(t.id, b.by) ? ` (${unreadIn(t.id, b.by)})` : ''}</a>` : ''}
     <button class="danger" data-report="user:${b.by}">🚩 إبلاغ</button></div></div>`;
   }).join('') : '<p class="mute">لا توجد عروض بعد.</p>';
   return h;
 };
 views.task.after = id => {
   const t = task(id); if (!t) return;
-  const set = (st, msgTo, msg) => { t.status = st; save(); if (msgTo) notify(msgTo, msg, `#/task/${t.id}`); route(); };
+  const set = (st, msgTo, msg) => { t.status = st; save(); if (msgTo) notify(msgTo, msg, `#task-${t.id}`); route(); };
   const bf = $('#bf');
   if (bf) bf.onsubmit = e => {
     e.preventDefault();
@@ -258,7 +265,7 @@ views.task.after = id => {
     if (price > VERIFY_LIMIT && !user(me()).verified) return toast(`العروض فوق ${VERIFY_LIMIT} د.ك تتطلب توثيق الهوية`);
     const b = { by: me(), price, date: $('#bd').value, note: $('#bn').value.trim() };
     const i = t.bids.findIndex(x => x.by === me()); i >= 0 ? t.bids[i] = b : t.bids.push(b);
-    save(); notify(t.owner, `عرض جديد من ${user(me()).name}: ${money(price)} على «${t.title}»`, `#/task/${t.id}`);
+    save(); notify(t.owner, `عرض جديد من ${user(me()).name}: ${money(price)} على «${t.title}»`, `#task-${t.id}`);
     toast('تم إرسال العرض'); route();
   };
   document.querySelectorAll('[data-accept]').forEach(btn => btn.onclick = () => {
@@ -284,7 +291,7 @@ views.task.after = id => {
     e.preventDefault();
     const to = t.owner === me() ? t.worker : t.owner;
     S.reviews.push({ task: t.id, from: me(), to, stars: +$('#rs').value, text: $('#rt').value.trim(), at: now() });
-    save(); notify(to, `${user(me()).name} قيّمك على «${t.title}»`, `#/profile/${to}`); toast('شكراً لتقييمك'); route();
+    save(); notify(to, `${user(me()).name} قيّمك على «${t.title}»`, `#profile-${to}`); toast('شكراً لتقييمك'); route();
   };
 };
 
@@ -317,7 +324,7 @@ views.profile.after = () => {
   vf.onsubmit = e => {
     e.preventDefault(); const u = S.users[me()], uid = me();
     u.skills = $('#vs').value.trim(); u.vstatus = 'pending'; save(); route();
-    setTimeout(() => { S.users[uid].verified = true; S.users[uid].vstatus = 'done'; save(); notify(uid, 'تم توثيق هويتك ✔', '#/profile/me'); if (location.hash.startsWith('#/profile')) route(); }, 4000);
+    setTimeout(() => { S.users[uid].verified = true; S.users[uid].vstatus = 'done'; save(); notify(uid, 'تم توثيق هويتك ✔', '#profile-me'); if (/^#\/?profile/.test(location.hash)) route(); }, 4000);
   };
 };
 
@@ -329,7 +336,7 @@ views.notifications = () => {
   <label><input type="checkbox" id="pp" style="width:auto" ${S.prefs.push ? 'checked' : ''}> إشعارات المتصفح/الجوال (الحالة: ${perm})</label>
   <label for="wa">رقم واتساب (اختياري)</label><input id="wa" inputmode="tel" placeholder="965XXXXXXXX" value="${esc(S.prefs.wa)}">
   <p class="mute">إشعارات واتساب الفعلية تحتاج خادماً وحساب WhatsApp Business API؛ هنا يمكنك فقط معاينة الرسالة. الإشعارات في الخلفية على الجوال تحتاج خادم Web Push.</p>
-  <div class="row fit"><button id="sv">حفظ</button><button class="sec" id="tst">إرسال إشعار تجريبي</button></div></div>
+  <div class="row fit"><button id="sv">حفظ</button><button class="sec" id="tst">إرسال إشعار تجريبي</button></div><p id="waOut"></p></div>
   <h2>السجل</h2>` + (list.map(n => `<a class="card notif" style="text-decoration:none;color:inherit" href="${esc(n.link)}"><span>${esc(n.text)}</span><span class="mute">${ago(n.at)}</span></a>`).join('') || '<p class="mute">لا إشعارات.</p>');
 };
 views.notifications.after = () => {
@@ -340,7 +347,7 @@ views.notifications.after = () => {
   };
   $('#tst').onclick = () => {
     notify(me(), 'هذا إشعار تجريبي من مهام الكويت');
-    if (S.prefs.wa) window.open(`https://wa.me/${S.prefs.wa}?text=${encodeURIComponent('إشعار تجريبي من مهام الكويت')}`, '_blank', 'noopener');
+    if (S.prefs.wa) $('#waOut').innerHTML = `معاينة رسالة واتساب إلى ${esc(S.prefs.wa)}: <a href="https://wa.me/${esc(S.prefs.wa)}?text=${encodeURIComponent('إشعار تجريبي من مهام الكويت')}" target="_blank" rel="noopener">افتح واتساب ↗</a>`;
   };
 };
 
@@ -359,7 +366,7 @@ views.chat = (tid, other) => {
   if (!canChat(t, me(), other)) return '<p class="card">لا يمكن فتح هذه المحادثة. المحادثات تكون بين صاحب المهمة والمنفّذين فقط.</p>';
   const msgs = thread(t.id, me(), other);
   msgs.forEach(m => { if (m.to === me()) m.read = true; }); save();
-  return `<a href="#/task/${t.id}">← ${esc(t.title)}</a>
+  return `<a href="#task-${t.id}">← ${esc(t.title)}</a>
   <div class="card"><div class="row fit" style="justify-content:space-between"><div>💬 محادثة مع ${uname(other)}</div>
   <button class="danger" data-report="user:${other}">🚩 إبلاغ</button></div>
   <p class="mute">🔒 الرسائل محفوظة في المنصة ويُرجع إليها عند النزاع. لا تشارك أرقام هواتف أو بيانات بنكية، ولا تدفع خارج المنصة.</p>
@@ -381,7 +388,7 @@ views.chat.after = (tid, other) => {
     const risky = RISKY.test(text);
     S.messages.push({ id: now() + Math.random(), key: pairKey(t.id, me(), other), task: t.id, from: me(), to: other, text, at: now(), read: false, risky });
     save();
-    notify(other, `رسالة من ${user(me()).name} بخصوص «${t.title}»: ${text.slice(0, 60)}`, `#/chat/${t.id}/${me()}`);
+    notify(other, `رسالة من ${user(me()).name} بخصوص «${t.title}»: ${text.slice(0, 60)}`, `#chat-${t.id}-${me()}`);
     if (risky) toast('⚠ تنبيه: لا تشارك أرقاماً أو بيانات دفع؛ الحماية تشمل ما يتم داخل المنصة فقط');
     route();
   };
@@ -392,7 +399,7 @@ views.inbox = () => {
   const threads = {};
   mine.forEach(m => { const o = m.from === me() ? m.to : m.from; (threads[m.key] ||= { task: m.task, other: o, last: m, unread: 0 }); const th = threads[m.key]; if (m.at >= th.last.at) th.last = m; if (m.to === me() && !m.read) th.unread++; });
   const list = Object.values(threads).sort((a, b) => b.last.at - a.last.at);
-  return `<h1>الرسائل</h1>` + (list.map(th => { const t = task(th.task); return `<a class="card notif ${th.unread ? 'unread' : ''}" style="text-decoration:none;color:inherit" href="#/chat/${th.task}/${th.other}">
+  return `<h1>الرسائل</h1>` + (list.map(th => { const t = task(th.task); return `<a class="card notif ${th.unread ? 'unread' : ''}" style="text-decoration:none;color:inherit" href="#chat-${th.task}-${th.other}">
     <span><b>${esc(user(th.other).name)}</b> · <span class="mute">${esc(t?.title || '')}</span><br>${esc(th.last.text.slice(0, 80))}</span>
     <span class="mute">${ago(th.last.at)}${th.unread ? ` <span class="chip ok">${th.unread} جديدة</span>` : ''}</span></a>`; }).join('') || '<p class="card mute">لا توجد محادثات بعد. افتح مهمة واضغط «راسل صاحب المهمة».</p>');
 };
@@ -445,7 +452,8 @@ document.addEventListener('click', e => {
 
 /* ---------- التوجيه ---------- */
 function route() {
-  const [, name = '', ...args] = location.hash.split('/');
+  // روابط الصفحات بالشكل #task-7 أو #chat-1-u2 (عارض claude.ai يمرّر الأسماء البسيطة فقط)، مع قبول الشكل القديم #/task/7.
+  const [name = '', ...args] = location.hash.replace(/^#\/?/, '').split(/[-/]/);
   const key = name || 'home', v = views[key] || views.home;
   $('#app').innerHTML = v(...args);
   v.after?.(...args);
