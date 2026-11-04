@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>مجسم الشعار</title>
+<meta name="description" content="مجسم ثلاثي الأبعاد لشعار مهام الكويت: عرض تفاعلي وتنزيل بصيغتي GLB وSTL.">
+<meta name="theme-color" content="#0f766e">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .viewer{position:relative;height:min(70vh,560px);border-radius:14px;border:1px solid var(--line);overflow:hidden;
+    background:radial-gradient(circle at 50% 40%,var(--card),var(--bg));touch-action:none}
+  .viewer canvas{display:block;width:100%;height:100%}
+  .viewer .hint{position:absolute;bottom:8px;inset-inline:0;text-align:center;font-size:.8rem;color:var(--mute);pointer-events:none}
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}
+  .controls input[type=color]{width:44px;height:38px;padding:2px}
+  .specs{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+  .specs div{background:var(--chip);border-radius:10px;padding:8px 12px}
+  .specs b{display:block;font-size:1.1rem}
+  #status{min-height:1.5em}
+</style>
+<script type="importmap">{"imports":{"three":"./vendor/three/three.module.min.js"}}</script>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="index.html#/"><img src="icon.svg" alt="" width="28" height="28"><span>مهام الكويت</span></a>
+  <nav class="nav"><a href="index.html#/tasks">المهام</a><a href="index.html#/new">انشر مهمة</a></nav>
+</header>
+<main>
+  <h1>🧊 مجسم الشعار ثلاثي الأبعاد</h1>
+  <p class="mute">اسحب للتدوير، واستخدم العجلة أو إصبعين للتكبير. يمكنك تنزيل المجسم للطباعة ثلاثية الأبعاد أو لاستخدامه في برامج التصميم.</p>
+  <div class="viewer" id="viewer"><span class="hint">↻ اسحب للتدوير</span></div>
+  <div class="controls">
+    <button id="spin" aria-pressed="true">⏸ إيقاف الدوران</button>
+    <label class="row fit" style="margin:0;gap:6px;font-weight:400">اللون <input type="color" id="color" value="#0f766e"></label>
+    <button class="sec" id="reset">↺ إعادة الضبط</button>
+    <button id="glb">⬇ تنزيل GLB</button>
+    <button id="stl">⬇ تنزيل STL للطباعة</button>
+  </div>
+  <p id="status" class="mute" role="status" aria-live="polite"></p>
+
+  <h2>المواصفات</h2>
+  <div class="specs">
+    <div>الارتفاع<b>44.6 مم</b></div><div>العرض<b>31 مم</b></div><div>السماكة<b>10 مم</b></div><div>قطر الثقب<b>7 مم</b></div><div>الحجم<b>≈ 8.4 سم³</b></div>
+  </div>
+  <h2>أي صيغة أختار؟</h2>
+  <ul>
+    <li><b>GLB:</b> للعرض على المواقع والتطبيقات، والواقع المعزز، وبرامج مثل Blender. يحتفظ باللون.</li>
+    <li><b>STL:</b> للطباعة ثلاثية الأبعاد. الوحدات بالمليمتر والمجسم ممدد على ظهره جاهزاً للطابعة، بلا لون.</li>
+  </ul>
+  <p class="mute">نسخ جاهزة: <a href="models/pin.glb" download>pin.glb</a> · <a href="models/pin.stl" download>pin.stl</a></p>
+</main>
+<footer class="foot"><a href="index.html#/">الرئيسية</a><a href="index.html#/terms">شروط الاستخدام</a><a href="index.html#/privacy">سياسة الخصوصية</a></footer>
+
+<script type="module">
+import { THREE, buildPin, addLights, BRAND } from './js/pin3d.js';
+import { OrbitControls } from './vendor/three/OrbitControls.js';
+import { GLTFExporter } from './vendor/three/GLTFExporter.js';
+import { STLExporter } from './vendor/three/STLExporter.js';
+
+const box = document.getElementById('viewer');
+const status = document.getElementById('status');
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+box.prepend(renderer.domElement);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(35, 1, 1, 1000);
+addLights(scene);
+const pin = buildPin();
+scene.add(pin);
+
+// ظل ناعم تحت الدبوس
+const shadow = new THREE.Mesh(
+  new THREE.CircleGeometry(14, 48),
+  new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.12 })
+);
+shadow.rotation.x = -Math.PI / 2;
+shadow.position.y = -25;
+shadow.scale.set(1, 0.6, 1);
+scene.add(shadow);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.minDistance = 50;
+controls.maxDistance = 250;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+controls.autoRotate = !reduce;
+controls.autoRotateSpeed = 2.5;
+const home = () => { camera.position.set(45, 15, 95); controls.target.set(0, 0, 0); controls.update(); };
+home();
+
+function resize() {
+  const w = box.clientWidth, h = box.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(box);
+resize();
+renderer.setAnimationLoop(() => { controls.update(); renderer.render(scene, camera); });
+
+const spin = document.getElementById('spin');
+const setSpin = on => { controls.autoRotate = on; spin.textContent = on ? '⏸ إيقاف الدوران' : '▶ تشغيل الدوران'; spin.setAttribute('aria-pressed', on); };
+setSpin(!reduce);
+spin.onclick = () => setSpin(!controls.autoRotate);
+document.getElementById('color').oninput = e => pin.material.color.set(e.target.value);
+document.getElementById('reset').onclick = () => { home(); pin.material.color.set(BRAND); document.getElementById('color').value = BRAND; };
+
+// التصدير: نصدّر الدبوس وحده بلا الظل.
+function exportGLB() {
+  return new Promise((res, rej) => new GLTFExporter().parse(pin, res, rej, { binary: true }));
+}
+function exportSTL() {
+  // STL يُقرأ في برامج الطباعة على أن Z للأعلى: الشكل في المستوى XY والسماكة على Z، أي ممدد على ظهره.
+  return new STLExporter().parse(pin, { binary: true }).buffer;
+}
+function save(buf, name, type) {
+  const url = URL.createObjectURL(new Blob([buf], { type }));
+  const a = Object.assign(document.createElement('a'), { href: url, download: name });
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  status.textContent = `✔ تم تجهيز ${name} (${(buf.byteLength / 1024).toFixed(0)} ك.ب)`;
+}
+document.getElementById('glb').onclick = async () => {
+  try { save(await exportGLB(), 'mahamm-pin.glb', 'model/gltf-binary'); }
+  catch (e) { status.textContent = 'تعذّر التصدير: ' + e.message; }
+};
+document.getElementById('stl').onclick = () => save(exportSTL(), 'mahamm-pin.stl', 'model/stl');
+
+// تُستخدم لتوليد النسخ الجاهزة في مجلد models/
+window.pinExport = { exportGLB, exportSTL };
+</script>
+</body>
+</html>

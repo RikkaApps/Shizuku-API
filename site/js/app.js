@@ -109,7 +109,7 @@ const views = {};
 
 views.home = () => {
   const open = S.tasks.filter(t => t.status === 'open').slice(0, 6);
-  return `<section class="hero card"><h1>أنجز مهمتك أو اربح من مهارتك — بأمان</h1>
+  return `<section class="hero card"><a class="hero3d" id="hero3d" href="model.html" title="المجسم ثلاثي الأبعاد" aria-label="عرض مجسم الشعار ثلاثي الأبعاد"></a><h1>أنجز مهمتك أو اربح من مهارتك — بأمان</h1>
   <p>منصة مهام في الكويت: عروض أسعار، دفع محجوز بنظام الأمانة، تقييمات حقيقية وتوثيق هوية.</p>
   <div class="row fit" style="justify-content:center"><a class="btn" href="#/new">انشر مهمة</a><a class="btn sec" href="#/tasks">تصفّح المهام</a></div></section>
   <h2>كيف تبني المنصة الثقة؟</h2>
@@ -120,6 +120,12 @@ views.home = () => {
    <div class="card"><div class="n">4️⃣</div><b>تقييم</b><p class="mute">كل مهمة تنتهي بتقييم وتعليق للطرفين.</p></div>
   </div>
   <h2>أحدث المهام</h2><div class="grid">${open.map(taskCard).join('') || '<p class="mute">لا توجد مهام.</p>'}</div>`;
+};
+
+// الدبوس ثلاثي الأبعاد؛ إن تعذّر تحميله (مثلاً عند فتح الملف مباشرة بلا خادم) تظهر الأيقونة العادية.
+views.home.after = () => {
+  const el = $('#hero3d');
+  import('./pin3d.js').then(m => m.mountHero(el)).catch(() => { el.innerHTML = '<img src="icon.svg" alt="" width="96" height="96">'; });
 };
 
 let tf = { q: '', area: '', cat: '', view: 'list', sort: 'new' };

@@ -53,3 +53,6 @@ dialog::backdrop{background:rgba(0,0,0,.5)}
 .msg .mute{font-size:.75rem}
 .mbadge{background:var(--bad);color:#fff;border-radius:99px;font-size:11px;padding:0 6px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.hero3d{display:flex;justify-content:center;align-items:center;width:140px;height:140px;margin:0 auto 4px;cursor:pointer}
+.hero3d canvas{width:140px!important;height:140px!important}
+main:focus{outline:none}
