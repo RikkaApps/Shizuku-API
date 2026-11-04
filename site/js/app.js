@@ -173,15 +173,104 @@ views.tasks.after = () => {
   draw();
 };
 
-views.new = () => `<h1>انشر مهمة</h1><form class="card" id="nf">
+/* ---------- مساعد كتابة المهمة ----------
+   في عارض claude.ai يكتبها Claude عبر قدرة «sample» على حساب الزائر وبعد إذنه.
+   خارج العارض، أو إن رفض الزائر، يملأ قالب جاهز الحقول نفسها دون ذكاء اصطناعي. */
+const samplePromise = window.claude?.use ? window.claude.use('sample').catch(() => null) : Promise.resolve(null);
+let aiOff = false; // يصبح true إن رفض الزائر السماح أو لم يكن Claude متاحاً لحسابه
+const CAT_HINTS = [
+  ['توصيل', /توصيل|طرد|مشوار|أوصل|اوصل|شحن/], ['تنظيف', /تنظيف|نظاف|غسيل|ترتيب/],
+  ['صيانة وإصلاح', /تركيب|صيانة|تصليح|إصلاح|اصلاح|مكيف|كهرب|سباك|نجار|صبغ|دهان/],
+  ['تصميم وبرمجة', /تصميم|شعار|موقع|برمج|تطبيق|لوقو/], ['ترجمة وكتابة', /ترجم|كتابة|تدقيق|مقال|محتوى/],
+  ['دروس وتعليم', /درس|دروس|تدريس|معلم|مدرس|تقوية/], ['تصوير', /تصوير|صور|فيديو|مونتاج/],
+  ['ذكاء اصطناعي', /ذكاء|\bAI\b|شات|بوت/i]
+];
+function templateTask({ need, when, more, area }) {
+  const cat = (CAT_HINTS.find(([, re]) => re.test(need + ' ' + more)) || ['أخرى'])[0];
+  const title = need.replace(/\s+/g, ' ').trim().replace(/[.،!؟]+$/, '').slice(0, 60);
+  const desc = [`المطلوب: ${need.trim()}`, `الموقع: ${area}`, `الموعد: ${when}`, more.trim() && `تفاصيل: ${more.trim()}`,
+    'في عرضك اذكر خبرتك بأعمال مشابهة، وما يشمله السعر، وموعد التسليم.'].filter(Boolean).join('\n');
+  return { title, desc, cat };
+}
+async function aiTask(sample, { need, when, more, area, budget }, signal) {
+  const prompt = `اكتب إعلان مهمة لمنصة مهام في الكويت انطلاقاً من طلب صاحب المهمة أدناه.
+اكتب بعربية واضحة قريبة من لهجة أهل الكويت دون مبالغة، ولا تخترع تفاصيل لم يذكرها؛ إن نقصت معلومة مهمة اكتب ما يحتاج المنفّذ أن يسأل عنه.
+لا تضع أرقام هواتف أو حسابات أو روابط.
+أجب بكائن JSON فقط بهذا الشكل:
+{"title": "عنوان قصير محدد حتى 60 حرفاً", "desc": "وصف من 3 إلى 6 أسطر: المطلوب، المكان، الموعد، ما يجب أن يذكره المنفّذ في عرضه", "cat": "أحد التصنيفات بالضبط: ${CATS.join('، ')}", "budget_min": رقم بالدينار الكويتي, "budget_max": رقم, "budget_note": "جملة قصيرة تشرح ما يؤثر في السعر"}
+
+الطلب: ${need}
+المنطقة: ${area}
+الموعد: ${when}
+${more ? 'تفاصيل إضافية: ' + more : ''}
+${budget ? 'ميزانية صاحب المهمة: ' + budget + ' د.ك' : 'لم يحدد ميزانية؛ اقترح نطاقاً معقولاً لسوق الكويت.'}`;
+  const r = await sample.json(prompt, { signal, modelTier: 'quick' });
+  const num = v => (Number.isFinite(+v) && +v > 0 ? Math.round(+v) : null);
+  return {
+    title: String(r?.title || '').slice(0, 80), desc: String(r?.desc || '').slice(0, 800),
+    cat: CATS.includes(r?.cat) ? r.cat : null, min: num(r?.budget_min), max: num(r?.budget_max),
+    note: String(r?.budget_note || '').slice(0, 160)
+  };
+}
+function openAssistant() {
+  let ctl = null;
+  dialog(`<h3>✨ ساعدني في كتابة المهمة</h3>
+  <label for="aiNeed">ماذا تحتاج؟</label><textarea id="aiNeed" rows="2" maxlength="300" placeholder="مثال: أبي أحد يركّب لي مكيف سبليت في الصالة"></textarea>
+  <label for="aiWhen">متى تحتاجه؟</label><select id="aiWhen">${optionList(['اليوم أو غداً', 'خلال هذا الأسبوع', 'خلال شهر', 'الموعد مرن'])}</select>
+  <label for="aiMore">تفاصيل تهمّك (اختياري)</label><input id="aiMore" maxlength="200" placeholder="مثال: المواد متوفرة، الدور الثاني بدون مصعد">
+  <p class="mute" id="aiMode">…</p><p id="aiStatus" role="status"></p>
+  <div class="row fit"><button id="aiGo">اكتب لي المهمة</button><button class="sec" id="aiStop" hidden>إيقاف</button><button class="sec" id="aiClose">إغلاق</button></div>`, d => {
+    const st = $('#aiStatus', d), go = $('#aiGo', d), stop = $('#aiStop', d);
+    samplePromise.then(s => { $('#aiMode', d).textContent = s && !aiOff ? 'يكتبها Claude من حسابك على claude.ai؛ في أول مرة يُطلب منك السماح.' : 'يعمل هنا بقالب جاهز دون ذكاء اصطناعي. في نسخة claude.ai يكتبها Claude.'; });
+    $('#aiNeed', d).focus();
+    $('#aiClose', d).onclick = () => { ctl?.abort(); closeDlg(); };
+    stop.onclick = () => ctl?.abort();
+    go.onclick = async () => {
+      const input = { need: $('#aiNeed', d).value.trim(), when: $('#aiWhen', d).value, more: $('#aiMore', d).value.trim(), area: $('#na').value, budget: +$('#nb').value || 0 };
+      if (input.need.length < 4) { st.textContent = 'اكتب في سطر ما الذي تحتاجه.'; $('#aiNeed', d).focus(); return; }
+      const sample = aiOff ? null : await samplePromise;
+      let out = null;
+      if (sample) {
+        ctl = new AbortController(); go.disabled = true; stop.hidden = false; st.textContent = 'جارٍ الكتابة…';
+        try { out = await aiTask(sample, input, ctl.signal); }
+        catch (e) {
+          const msg = {
+            cancelled: '', rate_limited: 'طلبات كثيرة الآن. انتظر قليلاً ثم حاول مرة أخرى.',
+            invalid_json: 'لم يكتمل النص. اضغط «اكتب لي المهمة» مرة أخرى.', refused: 'لم يقبل Claude هذا الطلب. غيّر صياغته وحاول مرة أخرى.',
+            session_expired: 'انتهت جلستك في claude.ai. سجّل الدخول ثم حاول مرة أخرى.'
+          }[e?.code];
+          if (['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed'].includes(e?.code)) {
+            aiOff = true; $('#aiMode', d).textContent = 'Claude غير متاح هنا، فاستخدمنا القالب الجاهز.';
+          } else { st.textContent = msg ?? 'تعذّر الاتصال. حاول مرة أخرى.'; return; }
+        } finally { go.disabled = false; stop.hidden = true; ctl = null; }
+      }
+      if (!out || !out.title || !out.desc) out = { ...templateTask(input), min: null, max: null, note: '' };
+      $('#nt').value = out.title; $('#nd').value = out.desc;
+      if (out.cat) $('#nc').value = out.cat;
+      const hint = $('#nbHint');
+      if (out.min && out.max) {
+        if (!$('#nb').value) $('#nb').value = Math.round((out.min + out.max) / 2);
+        hint.textContent = `💡 ميزانية تقديرية: ${out.min}–${out.max} د.ك. ${out.note}`; hint.hidden = false;
+      }
+      closeDlg(); toast('راجع النص وعدّل ما تريد قبل النشر'); $('#nt').focus();
+    };
+  });
+}
+
+views.new = () => `<h1>انشر مهمة</h1>
+ <div class="card ai"><div><b>✨ مساعد كتابة المهمة</b><p class="mute">جاوب على سؤالين ويكتب لك عنواناً ووصفاً واضحاً يجذب منفّذين جادّين. يمكنك تعديل كل شيء قبل النشر.</p></div>
+ <button type="button" class="sec" id="aiOpen">ساعدني في الكتابة</button></div>
+ <form class="card" id="nf">
  <label for="nt">العنوان</label><input id="nt" required maxlength="80">
  <label for="nd">الوصف</label><textarea id="nd" required rows="4" maxlength="800" placeholder="التفاصيل، الموعد المطلوب، أي شروط"></textarea>
  <div class="row"><div><label for="nc">التصنيف</label><select id="nc">${optionList(CATS)}</select></div>
  <div><label for="na">المنطقة</label><select id="na">${optionList(Object.keys(AREAS))}</select></div>
  <div><label for="nb">الميزانية (د.ك)</label><input id="nb" type="number" min="1" step="0.5" required></div></div>
+ <p class="mute" id="nbHint" hidden></p>
  <p class="mute">لحمايتك: لا تشارك رقم بطاقتك أو كلمات المرور، ولا تدفع خارج المنصة.</p>
  <button>نشر المهمة</button></form>`;
 views.new.after = () => {
+  $('#aiOpen').onclick = openAssistant;
   $('#nf').onsubmit = e => {
     e.preventDefault();
     const area = $('#na').value, c = AREAS[area];

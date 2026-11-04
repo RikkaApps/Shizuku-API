@@ -65,3 +65,6 @@ main:focus{outline:none}
 .san3a .row{margin-top:8px}
 .nav a{white-space:nowrap}
 @media(max-width:560px){.nav{gap:4px;font-size:.88rem;overflow-x:auto;scrollbar-width:none;justify-content:space-between}}
+.card.ai{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border:1px dashed var(--pri)}
+.card.ai>div{flex:1;min-width:220px}.card.ai p{margin:4px 0 0}
+#nbHint{margin:8px 0 0}
