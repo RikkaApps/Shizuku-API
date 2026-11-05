@@ -1,0 +1,67 @@
+taskAffinity=com.mediatek.engineermode targetActivity=null persistableMode=PERSIST_ROOT_ONLY
+
+launchMode=0 flags=0x10200 privateFlags=0x2 theme=0x7f0f0163
+
+screenOrientation=1 configChanges=0x3 softInputMode=0x0
+
+lockTaskLaunchMode=LOCK_TASK_LAUNCH_MODE_DEFAULT
+
+resizeMode=RESIZE_MODE_UNRESIZEABLE
+
+ApplicationInfo:
+  name=com.mediatek.engineermode.EmApplication
+
+  packageName=com.mediatek.engineermode
+
+  labelRes=0x7f0e00ff nonLocalizedLabel=null icon=0x0 colorIcon=0x0 banner=0x0
+
+  className=com.mediatek.engineermode.EmApplication
+
+  processName=com.mediatek.engineermode
+
+  taskAffinity=com.mediatek.engineermode
+
+  uid=10182 flags=0x20883ec5 privateFlags=0x8c700800 theme=0x103006e
+
+  requiresSmallestWidthDp=0 compatibleWidthLimitDp=0 largestWidthLimitDp=0
+
+  sourceDir=/data/app/~~hjMKC3lGQCpraD6Fwk9Zsg==/com.mediatek.engineermode-6QaNEGvRUCJWTICLWTaNag==/base.apk
+
+  resourceDirs=[/product/overlay/NavigationBarModeGestural/NavigationBarModeGesturalOverlay.apk, /tr_product/app/IconDefaultShape/IconDefaultShape.apk]
+
+  overlayPaths=[/product/overlay/NavigationBarModeGestural/NavigationBarModeGesturalOverlay.apk, /tr_product/app/IconDefaultShape/IconDefaultShape.apk, /data/resource-cache/com.android.systemui-neutral-1GNV.frro, /data/resource-cache/com.android.systemui-accent-uqnI.frro, /data/resource-cache/com.android.systemui-dynamic-xqgd.frro]
+
+  seinfo=platform:targetSdkVersion=36:partition=system_ext
+
+  seinfoUser=:complete
+
+  dataDir=/data/user/0/com.mediatek.engineermode
+
+  deviceProtectedDataDir=/data/user_de/0/com.mediatek.engineermode
+
+  credentialProtectedDataDir=/data/user/0/com.mediatek.engineermode
+
+  enabled=true minSdkVersion=36 targetSdkVersion=36 versionCode=2 targetSandboxVersion=1
+
+  supportsRtl=false
+
+  fullBackupContent=true
+
+  crossProfile=false
+
+  HiddenApiEnforcementPolicy=0
+
+  usesNonSdkApi=true
+
+  allowsPlaybackCapture=true
+
+  nativeHeapZeroInitialized=0
+
+  enableOnBackInvokedCallback=true
+
+  allowCrossUidActivitySwitchFromBelow=true
+
+  mPageSizeAppCompatFlags=0
+
+  createTimestamp=212639329
+
