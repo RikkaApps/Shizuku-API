@@ -1,1 +1,1 @@
-{"name":"سوق صنعة","short_name":"صنعة","lang":"ar","dir":"rtl","start_url":"./index.html#/","scope":"./","display":"standalone","background_color":"#f2f3f6","theme_color":"#0d1526","icons":[{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}
+{"name":"سوق صنعة","short_name":"صنعة","lang":"ar","dir":"rtl","start_url":"./index.html#home","scope":"./","display":"standalone","background_color":"#f2f3f6","theme_color":"#0d1526","icons":[{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}

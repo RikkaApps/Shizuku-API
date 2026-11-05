@@ -5,15 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>مجسم الشعار</title>
 <meta name="description" content="مجسم ثلاثي الأبعاد لشعار صنعة: عرض تفاعلي وتنزيل بصيغتي GLB وSTL.">
-<meta name="theme-color" content="#0f766e">
+<meta name="theme-color" content="#0d1526">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="css/style.css">
 <style>
   .viewer{position:relative;height:min(70vh,560px);border-radius:14px;border:1px solid var(--line);overflow:hidden;
-    background:radial-gradient(circle at 50% 40%,var(--card),var(--bg));touch-action:none}
+    background:radial-gradient(circle at 50% 40%,var(--night-2),var(--night));touch-action:none}
   .viewer canvas{display:block;width:100%;height:100%}
-  .viewer .hint{position:absolute;bottom:8px;inset-inline:0;text-align:center;font-size:.8rem;color:var(--mute);pointer-events:none}
+  .viewer .hint{position:absolute;bottom:8px;inset-inline:0;text-align:center;font-size:.8rem;color:var(--on-night-mute);pointer-events:none}
   .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}
   .controls input[type=color]{width:44px;height:38px;padding:2px}
   .specs{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
@@ -34,7 +34,7 @@
   <div class="viewer" id="viewer"><span class="hint">↻ اسحب للتدوير</span></div>
   <div class="controls">
     <button id="spin" aria-pressed="true">⏸ إيقاف الدوران</button>
-    <label class="row fit" style="margin:0;gap:6px;font-weight:400">اللون <input type="color" id="color" value="#0f766e"></label>
+    <label class="row fit" style="margin:0;gap:6px;font-weight:400">اللون <input type="color" id="color" value="#ffc21a"></label>
     <button class="sec" id="reset">↺ إعادة الضبط</button>
     <button id="glb">⬇ تنزيل GLB</button>
     <button id="stl">⬇ تنزيل STL للطباعة</button>
@@ -75,7 +75,7 @@ scene.add(pin);
 // ظل ناعم تحت الدبوس
 const shadow = new THREE.Mesh(
   new THREE.CircleGeometry(14, 48),
-  new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.12 })
+  new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35 })
 );
 shadow.rotation.x = -Math.PI / 2;
 shadow.position.y = -25;
