@@ -25,6 +25,7 @@ CDN = {
     "../vendor/three/three.module.min.js": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js",
     "./vendor/three/three.module.min.js": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js",
     "./vendor/three/OrbitControls.js": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js",
+    "../vendor/three/OrbitControls.js": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js",
     "./vendor/three/GLTFExporter.js": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/exporters/GLTFExporter.js",
     "./vendor/three/STLExporter.js": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/exporters/STLExporter.js",
 }
@@ -42,6 +43,7 @@ pages = {
     "index.html": head + "\n" + body.strip() + "\n",
     "model.html": (SITE / "model.html").read_text(encoding="utf-8"),
     "js/pin3d.js": (SITE / "js/pin3d.js").read_text(encoding="utf-8"),
+    "js/map3d.js": (SITE / "js/map3d.js").read_text(encoding="utf-8"),
 }
 for name, text in pages.items():
     text = to_cdn(text)

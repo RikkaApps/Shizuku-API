@@ -99,58 +99,83 @@ function dialog(html, onOpen) { const d = $('#dlg'); d.innerHTML = html; d.showM
 const closeDlg = () => $('#dlg').close();
 
 /* ---------- العروض (مكوّنات) ---------- */
+// تسمية قصيرة للحالة داخل البطاقات (النص الكامل في صفحة المهمة)
+const STATUS_SHORT = { open: 'مفتوحة', assigned: 'قيد التنفيذ', delivered: 'بانتظار التأكيد', completed: 'مكتملة', disputed: 'نزاع', cancelled: 'ملغاة' };
 function taskCard(t) {
-  const r = rating(t.owner);
-  return `<article class="card task"><h3><a class="t" href="#task-${t.id}">${esc(t.title)}</a></h3>
-  <div><span class="chip">${esc(t.cat)}</span><span class="chip">📍 ${esc(t.area)}</span><span class="chip ${STATUS[t.status][1]}">${STATUS[t.status][0]}</span></div>
-  <p class="mute">${esc(t.desc.slice(0, 90))}${t.desc.length > 90 ? '…' : ''}</p>
-  <div class="row fit"><span class="price">${money(t.budget)}</span><span class="mute">${t.bids.length} عروض · ${ago(t.created)}</span></div>
-  <div class="mute">${esc(user(t.owner).name)} ${r.n ? `<span class="stars">${stars(r.avg)}</span>` : ''}</div></article>`;
+  return `<article class="card task">
+  <div class="task-top"><span class="cat">${esc(t.cat)}</span><span class="pill ${STATUS[t.status][1]}">${STATUS_SHORT[t.status]}</span></div>
+  <h3><a class="t" href="#task-${t.id}">${esc(t.title)}</a></h3>
+  <p>${esc(t.desc.slice(0, 90))}${t.desc.length > 90 ? '…' : ''}</p>
+  <div class="task-foot"><span class="price">${+t.budget} <small>د.ك</small></span>
+  <span class="meta">${esc(t.area)} · ${t.bids.length} عروض<br>${esc(user(t.owner).name)} · ${ago(t.created)}</span></div></article>`;
 }
 const optionList = (arr, sel) => arr.map(a => `<option ${a === sel ? 'selected' : ''}>${esc(a)}</option>`).join('');
 
 /* ---------- الصفحات ---------- */
 const views = {};
 
-views.home = () => {
-  const open = S.tasks.filter(t => t.status === 'open').slice(0, 6);
-  return `<section class="hero card"><a class="hero3d" id="hero3d" href="model.html" title="المجسم ثلاثي الأبعاد" aria-label="عرض مجسم الشعار ثلاثي الأبعاد"></a><h1>أنجز مهمتك أو اربح من مهارتك — بأمان</h1>
-  <p>منصة مهام في الكويت: عروض أسعار، دفع محجوز بنظام الأمانة، تقييمات حقيقية وتوثيق هوية.</p>
-  <div class="row fit" style="justify-content:center"><a class="btn" href="#new">انشر مهمة</a><a class="btn sec" href="#tasks">تصفّح المهام</a></div></section>
-  <h2>كيف تبني المنصة الثقة؟</h2>
-  <div class="steps">
-   <div class="card"><div class="n">1️⃣</div><b>عروض</b><p class="mute">المنفّذون يقدمون سعرهم وموعدهم وأنت تختار.</p></div>
-   <div class="card"><div class="n">2️⃣</div><b>أمانة</b><p class="mute">المبلغ يُحجز عند المنصة ولا يصل للمنفّذ إلا بتأكيدك.</p></div>
-   <div class="card"><div class="n">3️⃣</div><b>تأكيد</b><p class="mute">استلمت العمل؟ اضغط تأكيد ويُحوَّل المبلغ.</p></div>
-   <div class="card"><div class="n">4️⃣</div><b>تقييم</b><p class="mute">كل مهمة تنتهي بتقييم وتعليق للطرفين.</p></div>
-  </div>
-  ${san3aCard('ما عندك مهارة مطلوبة بعد؟ ابدأ مع «صنعة»', 'مسارات لكسب الدخل بالذكاء الاصطناعي، وأدوات مجانية، وخطة شخصية لأربعة أسابيع. تعلّم هناك، ثم عُد هنا وقدّم عروضك على المهام.')}
-  <h2>أحدث المهام</h2><div class="grid">${open.map(taskCard).join('') || '<p class="mute">لا توجد مهام.</p>'}</div>`;
-};
+// الخريطة ثلاثية الأبعاد تُحمَّل عند الحاجة؛ إن تعذّرت (لا WebGL، أو فتح الملف بلا خادم) تظهر رسالة بديلة.
+const LEGEND3D = `<p class="m3d-hint">اسحب لتدوير الخريطة · مرّر على دبوس لترى المهمة</p>
+  <p class="legend"><span><i style="background:var(--gold)"></i>مفتوحة</span><span><i style="background:var(--pri)"></i>قيد التنفيذ</span><span><i style="background:var(--on-night-mute)"></i>مكتملة</span><span>ارتفاع الدبوس = الميزانية</span></p>`;
+function mount3D(el, list) {
+  return import('./map3d.js').then(m => m.mountMap3D(el, list, { areas: AREAS })).catch(() => {
+    if (el.isConnected) el.innerHTML = '<div class="hero-fallback">تعذّر عرض الخريطة ثلاثية الأبعاد على هذا الجهاز. جرّب عرض «خريطة» أو «قائمة» في صفحة المهام.</div>';
+    return null;
+  });
+}
 
-// الدبوس ثلاثي الأبعاد؛ إن تعذّر تحميله (مثلاً عند فتح الملف مباشرة بلا خادم) تظهر الأيقونة العادية.
-views.home.after = () => {
-  const el = $('#hero3d');
-  import('./pin3d.js').then(m => m.mountHero(el)).catch(() => { el.innerHTML = '<img src="icon.svg" alt="" width="96" height="96">'; });
+views.home = () => {
+  const open = S.tasks.filter(t => t.status === 'open');
+  const sum = open.reduce((a, t) => a + (+t.budget || 0), 0);
+  const verified = Object.values(S.users).filter(u => u.verified).length;
+  return `<section class="hero">
+   <div class="hero-copy">
+    <p class="eyebrow">منصة مهام · الكويت</p>
+    <h1>أنجز مهمتك، أو <em>اربح من مهارتك</em>.</h1>
+    <p class="lead">عروض أسعار من منفّذين قريبين منك، ومبلغك محجوز بنظام الأمانة حتى تستلم العمل وتؤكده.</p>
+    <div class="cta"><a class="btn gold" href="#new">انشر مهمة</a><a class="btn sec" href="#tasks">تصفّح المهام</a></div>
+    <dl class="stats"><div><dt>مهمة مفتوحة</dt><dd>${open.length}</dd></div><div><dt>د.ك في المهام المفتوحة</dt><dd>${sum}</dd></div><div><dt>منفّذ موثّق</dt><dd>${verified}</dd></div></dl>
+   </div>
+   <div class="hero-3d" id="hero3d">${LEGEND3D}</div>
+  </section>
+  <h2>كيف تعمل الأمانة؟</h2>
+  <ol class="flow">
+   <li><b>عروض</b><p>المنفّذون يقدّمون سعرهم وموعدهم، وأنت تختار.</p></li>
+   <li><b>أمانة</b><p>تدفع، فيُحجز المبلغ عند المنصة ولا يصل للمنفّذ بعد.</p></li>
+   <li><b>تسليم وتأكيد</b><p>استلمت العمل؟ أكّد فيُحوَّل المبلغ. لم يعجبك؟ افتح نزاعاً.</p></li>
+   <li><b>تقييم</b><p>كل طرف يقيّم الآخر، فتبني السمعة ثقة من يأتي بعدك.</p></li>
+  </ol>
+  ${san3aCard('ما عندك مهارة مطلوبة بعد؟ ابدأ مع «صنعة»', 'مسارات لكسب الدخل بالذكاء الاصطناعي، وأدوات مجانية، وخطة شخصية لأربعة أسابيع. تعلّم هناك، ثم عُد هنا وقدّم عروضك على المهام.')}
+  <div class="sect-head"><h2>أحدث المهام</h2><a href="#tasks">كل المهام ←</a></div>
+  <div class="grid">${open.slice(0, 6).map(taskCard).join('') || '<p class="mute">لا توجد مهام مفتوحة.</p>'}</div>`;
 };
+views.home.after = () => { mount3D($('#hero3d'), S.tasks.filter(t => t.status !== 'cancelled')); };
 
 let tf = { q: '', area: '', cat: '', view: 'list', sort: 'new' };
-views.tasks = () => `<h1>المهام</h1>
- <div class="card"><div class="row">
+views.tasks = () => `<div class="sect-head"><h1>المهام</h1><span class="mute" id="count"></span></div>
+ <div class="card"><div class="filters">
   <div><label for="fq">بحث</label><input id="fq" value="${esc(tf.q)}" placeholder="مثال: تركيب"></div>
   <div><label for="fa">المنطقة</label><select id="fa"><option value="">كل الكويت</option>${optionList(Object.keys(AREAS), tf.area)}</select></div>
   <div><label for="fc">التصنيف</label><select id="fc"><option value="">الكل</option>${optionList(CATS, tf.cat)}</select></div>
   <div><label for="fs">الترتيب</label><select id="fs"><option value="new" ${tf.sort === 'new' ? 'selected' : ''}>الأحدث</option><option value="price" ${tf.sort === 'price' ? 'selected' : ''}>الأعلى ميزانية</option></select></div>
  </div></div>
- <div class="tabs"><button data-v="list" class="${tf.view === 'list' ? 'on' : ''}">☰ قائمة</button><button data-v="map" class="${tf.view === 'map' ? 'on' : ''}">🗺 خريطة</button></div>
+ <div class="tabs" role="group" aria-label="طريقة العرض">${[['list', 'قائمة'], ['map', 'خريطة'], ['3d', 'مجسّم 3D']].map(([v, n]) => `<button data-v="${v}" class="${tf.view === v ? 'on' : ''}" aria-pressed="${tf.view === v}">${n}</button>`).join('')}</div>
  <div id="results"></div>`;
 views.tasks.after = () => {
+  let m3 = null; // المجسّم يبقى عند تغيير الفلاتر وتُحدَّث دبابيسه فقط
   const draw = () => {
     let l = S.tasks.filter(t => t.status !== 'cancelled' &&
       (!tf.area || t.area === tf.area) && (!tf.cat || t.cat === tf.cat) &&
       (!tf.q || (t.title + t.desc).includes(tf.q)));
     l.sort((a, b) => tf.sort === 'price' ? b.budget - a.budget : b.created - a.created);
     const box = $('#results');
+    $('#count').textContent = `${l.length} مهمة`;
+    if (tf.view === '3d') {
+      if (m3 && m3.el.isConnected) { m3.p.then(i => i?.setTasks(l)); return; }
+      box.innerHTML = `<div class="map3d" id="m3">${LEGEND3D}</div>`;
+      m3 = { el: $('#m3'), p: mount3D($('#m3'), l) };
+      return;
+    }
     if (tf.view === 'list') { box.innerHTML = `<div class="grid">${l.map(taskCard).join('') || `<p class="mute">لا توجد نتائج. ${san3a('paths', 'اكتشف مجالات جديدة في «صنعة»')}</p>`}</div>`; return; }
     box.innerHTML = '<div id="map" role="application" aria-label="خريطة المهام"></div>';
     if (typeof L === 'undefined') { box.innerHTML = '<p class="card">تعذّر تحميل الخريطة (لا يوجد اتصال).</p>'; return; }
@@ -663,10 +688,35 @@ function route() {
   const key = name || 'home', v = views[key] || views.home;
   $('#app').innerHTML = v(...args);
   v.after?.(...args);
-  window.scrollTo(0, 0); $('#app').focus({ preventScroll: true }); updateBadge();
+  window.scrollTo(0, 0); $('#app').focus({ preventScroll: true }); updateBadge(); markNav(key, args);
   document.title = 'مهام الكويت';
 }
 window.addEventListener('hashchange', route);
+
+// إبراز القسم الحالي في القائمة العلوية
+function markNav(name, args) {
+  const cur = name === 'profile' ? (args[0] === 'me' || args[0] === S.me ? 'profile' : '') : name;
+  document.querySelectorAll('[data-nav]').forEach(a => {
+    const on = a.dataset.nav.split(' ').includes(cur);
+    a.classList.toggle('on', on);
+    on ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current');
+  });
+}
+
+// ميل خفيف ثلاثي الأبعاد لبطاقات المهام مع حركة الفأرة (لا يعمل على اللمس أو مع «تقليل الحركة»)
+if (matchMedia('(hover: hover) and (pointer: fine)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  let tilted = null;
+  const reset = () => { if (tilted) tilted.style.transform = ''; tilted = null; };
+  document.addEventListener('pointermove', e => {
+    const c = e.target.closest?.('.task');
+    if (c !== tilted) reset();
+    if (!c) return;
+    tilted = c;
+    const r = c.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
+    c.style.transform = `perspective(900px) rotateX(${(-y * 6).toFixed(2)}deg) rotateY(${(x * 7).toFixed(2)}deg) translateY(-3px)`;
+  });
+  document.addEventListener('pointerout', e => { if (!e.relatedTarget) reset(); });
+}
 
 function initUserSwitch() {
   const s = $('#userSwitch');
