@@ -525,6 +525,24 @@
             transition: width 0.3s ease;
         }
 
+        /* Mobile Protocol Selector */
+        .mobile-protocol-selector {
+            display: none;
+            margin-bottom: 20px;
+        }
+
+        .mobile-protocol-selector select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            background: white;
+            color: var(--primary);
+            cursor: pointer;
+        }
+
         /* Responsive Design */
         @media (max-width: 1200px) {
             .container {
@@ -533,6 +551,10 @@
 
             .sidebar, .details-panel {
                 display: none;
+            }
+
+            .mobile-protocol-selector {
+                display: block;
             }
         }
 
@@ -555,6 +577,21 @@
 
             .flow-table tr {
                 grid-template-columns: 1fr 1fr;
+            }
+
+            .content-header {
+                margin-bottom: 15px;
+                padding-bottom: 15px;
+            }
+
+            .step-indicator {
+                font-size: 11px;
+                gap: 10px;
+            }
+
+            .step-badge {
+                padding: 3px 8px;
+                font-size: 10px;
             }
         }
 
@@ -666,6 +703,18 @@
                 </div>
                 <h1 class="content-title" id="protocol-title">HTTP</h1>
                 <p class="content-subtitle" id="protocol-subtitle">بروتوكول نقل النصوص الفائقة</p>
+            </div>
+
+            <div class="mobile-protocol-selector">
+                <label for="mobile-protocol-select" style="display: block; margin-bottom: 8px; font-size: 12px; color: var(--text-light); font-weight: 600;">اختر البروتوكول:</label>
+                <select id="mobile-protocol-select">
+                    <option value="http">HTTP - نقل النصوص الفائقة</option>
+                    <option value="https">HTTPS - النقل الآمن</option>
+                    <option value="dns">DNS - نظام أسماء النطاقات</option>
+                    <option value="tcp">TCP - التحكم في النقل</option>
+                    <option value="ip">IP - بروتوكول الإنترنت</option>
+                    <option value="tls">TLS - طبقة الأمان</option>
+                </select>
             </div>
 
             <div class="network-viz">
@@ -851,6 +900,7 @@
 
         // DOM Elements
         const protocolItems = document.querySelectorAll('.protocol-item');
+        const mobileSelect = document.getElementById('mobile-protocol-select');
         const playBtn = document.getElementById('play-btn');
         const pauseBtn = document.getElementById('pause-btn');
         const protocolTitle = document.getElementById('protocol-title');
@@ -863,15 +913,31 @@
         let isPlaying = false;
         let packetAnimationId = null;
 
-        // Protocol Selection
+        // Protocol Selection - Desktop
         protocolItems.forEach(item => {
             item.addEventListener('click', () => {
                 protocolItems.forEach(p => p.classList.remove('active'));
                 item.classList.add('active');
                 currentProtocol = item.dataset.protocol;
                 updateProtocolInfo();
+                if (mobileSelect) {
+                    mobileSelect.value = currentProtocol;
+                }
             });
         });
+
+        // Protocol Selection - Mobile
+        if (mobileSelect) {
+            mobileSelect.addEventListener('change', (e) => {
+                currentProtocol = e.target.value;
+                protocolItems.forEach(p => p.classList.remove('active'));
+                const activeItem = document.querySelector(`[data-protocol="${currentProtocol}"]`);
+                if (activeItem) {
+                    activeItem.classList.add('active');
+                }
+                updateProtocolInfo();
+            });
+        }
 
         function updateProtocolInfo() {
             const proto = protocols[currentProtocol];
