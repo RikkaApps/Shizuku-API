@@ -1,5 +1,5 @@
 'use strict';
-/* مهام الكويت — نموذج تجريبي. كل الحالة في localStorage؛ الدفع/التوثيق/الإشعارات محاكاة. */
+/* صنعة · سوق المهام — نموذج تجريبي. كل الحالة في localStorage؛ الدفع/التوثيق/الإشعارات محاكاة. */
 
 const KEY = 'mahamm_v1';
 const FEE = 0.05;               // عمولة المنصة
@@ -14,7 +14,7 @@ const STATUS = {
   delivered: ['تم التسليم — بانتظار تأكيدك', 'warn'], completed: ['مكتملة', 'ok'],
   disputed: ['نزاع — المبلغ مجمّد', 'bad'], cancelled: ['ملغاة', 'bad']
 };
-// «صنعة»: بوابة تعلّم الكسب بالذكاء الاصطناعي. مهام الكويت للعمل، وصنعة لتعلّم المهارة قبله.
+// صنعة قسمان بهوية واحدة: «تعلّم» (صفحة صنعة) لتعلّم المهارة، و«سوق المهام» (هذا الموقع) للعمل بها.
 const SAN3A = 'https://claude.ai/artifact/JAnYSWkHtB7QcVheH94fHH';
 const san3a = (sec, text, cls = '') => `<a class="${cls}" href="${SAN3A}${sec ? '#' + sec : ''}" target="_blank" rel="noopener">${text} ↗</a>`;
 const san3aCard = (title, body) => `<div class="card san3a"><b>🛠 ${title}</b><p class="mute">${body}</p>
@@ -81,8 +81,8 @@ function notify(to, text, link) {
   if (to === me()) {
     toast('🔔 ' + text);
     if (S.prefs.push && 'Notification' in window && Notification.permission === 'granted') {
-      navigator.serviceWorker?.ready.then(r => r.showNotification('مهام الكويت', { body: text, icon: 'icon.svg', data: location.pathname + link }))
-        .catch(() => new Notification('مهام الكويت', { body: text }));
+      navigator.serviceWorker?.ready.then(r => r.showNotification('صنعة', { body: text, icon: 'icon.svg', data: location.pathname + link }))
+        .catch(() => new Notification('صنعة', { body: text }));
     }
   }
   updateBadge();
@@ -124,13 +124,23 @@ function mount3D(el, list) {
   });
 }
 
+// مقترحات الأسبوع: نفس الاختيار ونفس الترتيب في صفحة «صنعة · تعلّم» (المولّد العشوائي نفسه ورقم الأسبوع نفسه).
+function weeklyTips(n = 6) {
+  const T = window.SAN3A_TIPS || [];
+  let seed = Math.floor(Date.now() / (7 * 24 * 60 * 60000)) * 2654435761 % 4294967296;
+  const r = () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const a = T.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a.slice(0, n);
+}
+
 views.home = () => {
   const open = S.tasks.filter(t => t.status === 'open');
   const sum = open.reduce((a, t) => a + (+t.budget || 0), 0);
   const verified = Object.values(S.users).filter(u => u.verified).length;
   return `<section class="hero">
    <div class="hero-copy">
-    <p class="eyebrow">منصة مهام · الكويت</p>
+    <p class="eyebrow">صنعة · سوق المهام في الكويت</p>
     <h1>أنجز مهمتك، أو <em>اربح من مهارتك</em>.</h1>
     <p class="lead">عروض أسعار من منفّذين قريبين منك، ومبلغك محجوز بنظام الأمانة حتى تستلم العمل وتؤكده.</p>
     <div class="cta"><a class="btn gold" href="#new">انشر مهمة</a><a class="btn sec" href="#tasks">تصفّح المهام</a></div>
@@ -138,6 +148,7 @@ views.home = () => {
    </div>
    <div class="hero-3d" id="hero3d">${LEGEND3D}</div>
   </section>
+  <div class="numbered">
   <h2>كيف تعمل الأمانة؟</h2>
   <ol class="flow">
    <li><b>عروض</b><p>المنفّذون يقدّمون سعرهم وموعدهم، وأنت تختار.</p></li>
@@ -145,9 +156,13 @@ views.home = () => {
    <li><b>تسليم وتأكيد</b><p>استلمت العمل؟ أكّد فيُحوَّل المبلغ. لم يعجبك؟ افتح نزاعاً.</p></li>
    <li><b>تقييم</b><p>كل طرف يقيّم الآخر، فتبني السمعة ثقة من يأتي بعدك.</p></li>
   </ol>
-  ${san3aCard('ما عندك مهارة مطلوبة بعد؟ ابدأ مع «صنعة»', 'مسارات لكسب الدخل بالذكاء الاصطناعي، وأدوات مجانية، وخطة شخصية لأربعة أسابيع. تعلّم هناك، ثم عُد هنا وقدّم عروضك على المهام.')}
+  ${san3aCard('ما عندك مهارة مطلوبة بعد؟ ابدأ مع «صنعة · تعلّم»', 'مسارات لكسب الدخل بالذكاء الاصطناعي، وأدوات مجانية، وخطة شخصية لأربعة أسابيع. تعلّم هناك، ثم عُد هنا وقدّم عروضك على المهام.')}
   <div class="sect-head"><h2>أحدث المهام</h2><a href="#tasks">كل المهام ←</a></div>
-  <div class="grid">${open.slice(0, 6).map(taskCard).join('') || '<p class="mute">لا توجد مهام مفتوحة.</p>'}</div>`;
+  <div class="grid">${open.slice(0, 6).map(taskCard).join('') || '<p class="mute">لا توجد مهام مفتوحة.</p>'}</div>
+  <div class="sect-head"><h2>مقترحات هذا الأسبوع</h2>${san3a('pulse', 'كل المقترحات في صنعة · تعلّم')}</div>
+  <p class="tips-note">ست أفكار من 100 مقترح للعمل والكسب، تتجدد كل خميس.</p>
+  <div class="grid feed">${weeklyTips().map(p => `<article class="card" data-g="${esc(p.g)}"><span class="tag">${esc(p.g)}</span><h3>${esc(p.t)}</h3><p class="mute">${esc(p.b)}</p></article>`).join('')}</div>
+  </div>`;
 };
 views.home.after = () => { mount3D($('#hero3d'), S.tasks.filter(t => t.status !== 'cancelled')); };
 
@@ -176,7 +191,7 @@ views.tasks.after = () => {
       m3 = { el: $('#m3'), p: mount3D($('#m3'), l) };
       return;
     }
-    if (tf.view === 'list') { box.innerHTML = `<div class="grid">${l.map(taskCard).join('') || `<p class="mute">لا توجد نتائج. ${san3a('paths', 'اكتشف مجالات جديدة في «صنعة»')}</p>`}</div>`; return; }
+    if (tf.view === 'list') { box.innerHTML = `<div class="grid">${l.map(taskCard).join('') || `<p class="mute">لا توجد نتائج. ${san3a('paths', 'اكتشف مجالات جديدة في «صنعة · تعلّم»')}</p>`}</div>`; return; }
     box.innerHTML = '<div id="map" role="application" aria-label="خريطة المهام"></div>';
     if (typeof L === 'undefined') { box.innerHTML = '<p class="card">تعذّر تحميل الخريطة (لا يوجد اتصال).</p>'; return; }
     const m = L.map('map').setView(tf.area ? AREAS[tf.area] : [29.3, 47.95], tf.area ? 11 : 9);
@@ -320,7 +335,7 @@ views.task = id => {
   const reviews = S.reviews.filter(r => r.task === t.id);
   let h = `<a href="#tasks">← المهام</a><div class="card"><h1>${esc(t.title)}</h1>
   <div><span class="chip">${esc(t.cat)}</span><span class="chip">📍 ${esc(t.area)}</span><span class="chip ${STATUS[t.status][1]}">${STATUS[t.status][0]}</span></div>
-  <p>${esc(t.desc).replace(/\n/g, '<br>')}</p>${t.cat === 'ذكاء اصطناعي' && !isOwner ? `<p class="mute">🤖 جديد على أدوات الذكاء الاصطناعي؟ ${san3a('tools', 'تعلّمها مجاناً في «صنعة»')}</p>` : ''}<p class="price">الميزانية: ${money(t.budget)}</p>
+  <p>${esc(t.desc).replace(/\n/g, '<br>')}</p>${t.cat === 'ذكاء اصطناعي' && !isOwner ? `<p class="mute">🤖 جديد على أدوات الذكاء الاصطناعي؟ ${san3a('tools', 'تعلّمها مجاناً في «صنعة · تعلّم»')}</p>` : ''}<p class="price">الميزانية: ${money(t.budget)}</p>
   <p class="mute">صاحب المهمة: ${uname(t.owner)}${t.worker ? ` · المنفّذ: ${uname(t.worker)}` : ''}</p>
   <div class="row fit">${!isOwner ? `<a class="btn sec" href="#chat-${t.id}-${t.owner}">💬 راسل صاحب المهمة</a>` : ''}
   <button class="danger" data-report="task:${t.id}">🚩 إبلاغ عن المهمة</button></div></div>`;
@@ -532,7 +547,7 @@ views.profile = id => {
   }
   h += portfolioSection(id, mine);
   h += `<h2>التقييمات</h2>` + (revs.map(x => `<div class="card"><span class="stars">${stars(x.stars)}</span> <b>${esc(user(x.from).name)}</b><p>${esc(x.text)}</p></div>`).join('') || '<p class="mute">لا توجد تقييمات.</p>');
-  if (mine && !S.tasks.some(t => t.status === 'completed' && t.worker === id)) h += san3aCard('طوّر مهارتك قبل أول عرض', 'خطة «صنعة» الشخصية تقترح لك مساراً يناسب وقتك ومهاراتك. ويمكنك نشر بطاقة مهارتك في ركن مجتمعها ليعرفك الآخرون.');
+  if (mine && !S.tasks.some(t => t.status === 'completed' && t.worker === id)) h += san3aCard('طوّر مهارتك قبل أول عرض', 'خطة «صنعة · تعلّم» الشخصية تقترح لك مساراً يناسب وقتك ومهاراتك. ويمكنك نشر بطاقة مهارتك في ركن مجتمعها ليعرفك الآخرون.');
   if (mine) h += `<h2>مهامي</h2><div class="grid">${S.tasks.filter(t => t.owner === id || t.worker === id).map(taskCard).join('') || '<p class="mute">لا مهام.</p>'}</div>`;
   return h;
 };
@@ -577,8 +592,8 @@ views.notifications.after = () => {
     save(); toast('تم الحفظ'); route();
   };
   $('#tst').onclick = () => {
-    notify(me(), 'هذا إشعار تجريبي من مهام الكويت');
-    if (S.prefs.wa) $('#waOut').innerHTML = `معاينة رسالة واتساب إلى ${esc(S.prefs.wa)}: <a href="https://wa.me/${esc(S.prefs.wa)}?text=${encodeURIComponent('إشعار تجريبي من مهام الكويت')}" target="_blank" rel="noopener">افتح واتساب ↗</a>`;
+    notify(me(), 'هذا إشعار تجريبي من صنعة');
+    if (S.prefs.wa) $('#waOut').innerHTML = `معاينة رسالة واتساب إلى ${esc(S.prefs.wa)}: <a href="https://wa.me/${esc(S.prefs.wa)}?text=${encodeURIComponent('إشعار تجريبي من صنعة')}" target="_blank" rel="noopener">افتح واتساب ↗</a>`;
   };
 };
 
@@ -638,7 +653,7 @@ views.inbox = () => {
 /* ---------- صفحات قانونية ---------- */
 const legalNote = '<p class="card mute">⚠ هذا نص إرشادي أولي ولا يُغني عن مراجعة محامٍ مرخّص في الكويت قبل الإطلاق الفعلي، خصوصاً بنود الدفع وحماية البيانات.</p>';
 views.terms = () => `<div class="prose"><h1>شروط الاستخدام</h1>${legalNote}
-<h2>1. طبيعة المنصة</h2><p>«مهام الكويت» وسيط يربط أصحاب المهام بالمنفّذين، وليست طرفاً في العمل نفسه ولا صاحبة عمل للمنفّذين.</p>
+<h2>1. طبيعة المنصة</h2><p>«صنعة» وسيط يربط أصحاب المهام بالمنفّذين، وليست طرفاً في العمل نفسه ولا صاحبة عمل للمنفّذين.</p>
 <h2>2. الحسابات</h2><p>يجب أن يكون عمرك 18 سنة فأكثر وأن تقدم معلومات صحيحة. تحتفظ المنصة بحق تعليق أي حساب مخالف.</p>
 <h2>3. العروض والاتفاق</h2><p>يقدّم المنفّذ سعره وموعده، ويُعدّ اختيار صاحب المهمة للعرض وإيداع المبلغ في الأمانة اتفاقاً ملزماً بينهما.</p>
 <h2>4. نظام الأمانة</h2><p>يُحجز المبلغ لدى المنصة عند اختيار العرض، ويُحوَّل للمنفّذ بعد تأكيد صاحب المهمة الاستلام، أو تلقائياً بعد 72 ساعة من التسليم دون اعتراض. تُخصم عمولة المنصة (5%) من المنفّذ.</p>
@@ -689,7 +704,7 @@ function route() {
   $('#app').innerHTML = v(...args);
   v.after?.(...args);
   window.scrollTo(0, 0); $('#app').focus({ preventScroll: true }); updateBadge(); markNav(key, args);
-  document.title = 'مهام الكويت';
+  document.title = 'سوق صنعة';
 }
 window.addEventListener('hashchange', route);
 

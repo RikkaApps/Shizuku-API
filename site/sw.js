@@ -1,4 +1,4 @@
-const C='mahamm-v7',A=['./','index.html','js/map3d.js','vendor/three/OrbitControls.js','js/kuwait.js','vendor/leaflet/leaflet.js','vendor/leaflet/leaflet.css','model.html','js/pin3d.js','vendor/three/three.module.min.js','css/style.css','js/app.js','icon.svg','manifest.webmanifest'];
+const C='mahamm-v8',A=['./','index.html','js/suggestions.js','js/map3d.js','vendor/three/OrbitControls.js','js/kuwait.js','vendor/leaflet/leaflet.js','vendor/leaflet/leaflet.css','model.html','js/pin3d.js','vendor/three/three.module.min.js','css/style.css','js/app.js','icon.svg','manifest.webmanifest'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(A)));self.skipWaiting()});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))));self.clients.claim()});
 self.addEventListener('fetch',e=>{

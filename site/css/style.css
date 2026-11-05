@@ -1,32 +1,33 @@
-/* Layout: sticky glass header; a night-sea hero panel that holds a live 3D relief of Kuwait;
-   a calm, cool work surface below where cards carry status as pills and prices as figures. */
+/* صنعة: هوية واحدة لصفحة «تعلّم» و«سوق المهام» — كحلي «دفتر الورشة»، أصفر الصنعة، وفيروزي للإشارات.
+   Layout: sticky glass header over a hazard-tape strip; a navy hero holding the live 3D relief of Kuwait;
+   numbered sections with yellow badges; ticket-style suggestion cards like the learning page. */
 :root{
-  --bg:#eef3f3; --surface:#ffffff; --surface-2:#f6f9f9; --ink:#0c1d21; --mute:#55696e; --line:#d5e0e1;
-  --pri:#0b7a74; --pri-ink:#ffffff; --pri-soft:#e0f0ee;
-  --gold:#b97c0a; --gold-ink:#231600; --gold-soft:#f7ecd5;
-  --night:#071b20; --night-2:#0e2c33; --on-night:#e8f2f2; --on-night-mute:#94aeb2; --night-line:#1f444d; --land:#cbb68c;
-  --ok:#157a3e; --warn:#9a5600; --bad:#b4232a; --chip:#e5eeee; --star:#c98a12; --glass:rgba(255,255,255,.78);
-  --font-display:"Reem Kufi","Readex Pro",Tahoma,"Segoe UI",sans-serif;
-  --font-body:"Readex Pro",system-ui,Tahoma,"Segoe UI",Arial,sans-serif;
-  --r:16px; --r-sm:10px;
-  --shadow:0 1px 2px rgba(12,29,33,.06),0 10px 28px -16px rgba(12,29,33,.28);
-  --shadow-lift:0 2px 4px rgba(12,29,33,.06),0 22px 40px -18px rgba(12,29,33,.35);
+  --bg:#f2f3f6; --surface:#ffffff; --surface-2:#f8f9fb; --ink:#0d1526; --mute:#55607a; --line:#d8dce6;
+  --pri:#0f766e; --pri-ink:#ffffff; --pri-soft:#e3f1ef;
+  --gold:#ffc21a; --gold-ink:#1a1400; --gold-text:#8a5a00; --gold-soft:#fff4cf;
+  --night:#0d1526; --night-2:#16223a; --on-night:#f2f3f6; --on-night-mute:#aab3c8; --night-line:#24314d; --land:#cdb98a;
+  --ok:#157a3e; --warn:#9a5600; --bad:#b4232a; --chip:#e8ebf1; --star:#d99f00; --glass:rgba(242,243,246,.84);
+  --font-display:"Lalezar","Tajawal",system-ui,sans-serif;
+  --font-body:"IBM Plex Sans Arabic","Tajawal",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r:14px; --r-sm:10px;
+  --shadow:0 1px 2px rgba(13,21,38,.06),0 10px 28px -16px rgba(13,21,38,.28);
+  --shadow-lift:0 2px 4px rgba(13,21,38,.06),0 22px 40px -18px rgba(13,21,38,.35);
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){
-  --bg:#081215; --surface:#0f1d21; --surface-2:#132429; --ink:#e4eeee; --mute:#93a9ad; --line:#21363b;
-  --pri:#35c3b5; --pri-ink:#03201d; --pri-soft:#123430;
-  --gold:#f0b43c; --gold-ink:#231600; --gold-soft:#2b220f;
-  --night:#040e11; --night-2:#0b2228; --night-line:#173840; --land:#b39b6b;
-  --ok:#4fd08a; --warn:#f2b553; --bad:#f2777d; --chip:#16292e; --star:#f0b43c; --glass:rgba(15,29,33,.8);
+  --bg:#0a0f1c; --surface:#131b2e; --surface-2:#18213a; --ink:#eef1f7; --mute:#9aa5bf; --line:#27324b;
+  --pri:#34d3b8; --pri-ink:#04201c; --pri-soft:#12302f;
+  --gold-text:#ffc21a; --gold-soft:#2b2512;
+  --night:#060a14; --night-2:#0e1730; --night-line:#1a2440; --land:#b8a274;
+  --ok:#4fd08a; --warn:#f2b553; --bad:#f2777d; --chip:#1a2338; --star:#ffc21a; --glass:rgba(10,15,28,.82);
   --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 30px -16px rgba(0,0,0,.7);
   --shadow-lift:0 2px 4px rgba(0,0,0,.4),0 24px 44px -18px rgba(0,0,0,.8);
   color-scheme:dark}}
 :root[data-theme=dark]{
-  --bg:#081215; --surface:#0f1d21; --surface-2:#132429; --ink:#e4eeee; --mute:#93a9ad; --line:#21363b;
-  --pri:#35c3b5; --pri-ink:#03201d; --pri-soft:#123430;
-  --gold:#f0b43c; --gold-ink:#231600; --gold-soft:#2b220f;
-  --night:#040e11; --night-2:#0b2228; --night-line:#173840; --land:#b39b6b;
-  --ok:#4fd08a; --warn:#f2b553; --bad:#f2777d; --chip:#16292e; --star:#f0b43c; --glass:rgba(15,29,33,.8);
+  --bg:#0a0f1c; --surface:#131b2e; --surface-2:#18213a; --ink:#eef1f7; --mute:#9aa5bf; --line:#27324b;
+  --pri:#34d3b8; --pri-ink:#04201c; --pri-soft:#12302f;
+  --gold-text:#ffc21a; --gold-soft:#2b2512;
+  --night:#060a14; --night-2:#0e1730; --night-line:#1a2440; --land:#b8a274;
+  --ok:#4fd08a; --warn:#f2b553; --bad:#f2777d; --chip:#1a2338; --star:#ffc21a; --glass:rgba(10,15,28,.82);
   --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 30px -16px rgba(0,0,0,.7);
   --shadow-lift:0 2px 4px rgba(0,0,0,.4),0 24px 44px -18px rgba(0,0,0,.8);
   color-scheme:dark}
@@ -150,7 +151,7 @@ label{display:block;margin:12px 0 5px;font-weight:600;font-size:.9rem}
 .flow li{counter-increment:step;position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;box-shadow:var(--shadow)}
 .flow li::before{content:counter(step,arabic-indic);display:grid;place-items:center;width:38px;height:38px;border-radius:12px;margin-bottom:10px;
   font-family:var(--font-display);font-size:1.25rem;font-weight:700;background:var(--pri-soft);color:var(--pri)}
-.flow li:nth-child(2)::before{background:var(--gold-soft);color:var(--gold)}
+.flow li:nth-child(2)::before{background:var(--gold);color:var(--gold-ink)}
 .flow b{font-family:var(--font-display);font-size:1.08rem}
 .flow p{color:var(--mute);font-size:.92rem;margin:4px 0 0}
 @media (max-width:820px){.flow{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -174,7 +175,7 @@ label{display:block;margin:12px 0 5px;font-weight:600;font-size:.9rem}
 .task .price{font-family:var(--font-display);font-size:1.45rem;line-height:1}
 .task .price small{font-family:var(--font-body);font-size:.8rem;color:var(--mute);font-weight:500}
 .task .meta{font-size:.82rem;color:var(--mute);text-align:end}
-.pill{font-size:.75rem;font-weight:600;padding:2px 10px;border-radius:99px;white-space:nowrap;background:var(--gold-soft);color:var(--gold)}
+.pill{font-size:.75rem;font-weight:600;padding:2px 10px;border-radius:99px;white-space:nowrap;background:var(--gold-soft);color:var(--gold-text)}
 .pill.warn{background:var(--pri-soft);color:var(--pri)}
 .pill.ok{background:var(--chip);color:var(--mute)}
 .pill.bad{background:color-mix(in srgb,var(--bad) 13%,transparent);color:var(--bad)}
@@ -233,3 +234,30 @@ dialog h3{margin-bottom:6px}
 
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
 @media (max-width:520px){.m3d-hint{display:none}.legend{inset-inline:10px;justify-content:center;border-radius:12px}}
+
+/* ---------- صنعة: عناصر مشتركة مع صفحة التعلّم ---------- */
+/* «لاله‌زار» بوزن واحد؛ نمنع التسميك الصناعي في كل ما يستخدمه */
+h1,h2,h3,.brand,.stats dd,.flow b,.flow li::before,.task .price,.m3d-tip b,.san3a b,.card.ai b{font-weight:400}
+h1,h2,h3{letter-spacing:0}
+.brand span{font-size:1.45rem;line-height:1}
+.brand-tag{font-family:var(--font-body);font-size:.72rem;font-weight:600;color:var(--gold-ink);background:var(--gold);border-radius:99px;padding:1px 9px;align-self:center}
+.hazard{height:10px;background:repeating-linear-gradient(-45deg,var(--gold) 0 16px,var(--night) 16px 32px)}
+.eyebrow{color:var(--gold)}
+.hero h1{font-weight:400;letter-spacing:0}
+.hero h1 em{color:var(--gold)}
+/* ترقيم الأقسام بشارة صفراء، كما في صفحة التعلّم */
+.numbered{counter-reset:sec}
+.numbered h2{display:flex;align-items:baseline;gap:12px}
+.numbered h2::before{counter-increment:sec;content:counter(sec,arabic-indic);font-size:.62em;color:var(--gold-ink);background:var(--gold);
+  min-width:1.9em;text-align:center;border-radius:6px;padding:0 6px;line-height:1.7}
+/* بطاقات المقترحات على شكل تذاكر */
+.feed .card{position:relative;border-radius:6px 14px 14px 6px;padding-inline-start:28px;--tc:var(--pri)}
+.feed .card::before{content:"";position:absolute;inset-block:12px;inset-inline-start:12px;border-inline-start:2px dotted var(--line)}
+.feed .card[data-g="فكرة"]{--tc:#0f766e}.feed .card[data-g="مهارة"]{--tc:#6d4bd0}.feed .card[data-g="فرصة"]{--tc:#b45309}
+.feed .card[data-g="خطوة"]{--tc:#1d6fd1}.feed .card[data-g="أداة"]{--tc:#a1307a}.feed .card[data-g="تنبيه"]{--tc:#c0352b}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .feed .card{--tc:#2a9d8f}}
+:root[data-theme=dark] .feed .card{--tc:#2a9d8f}
+.feed .tag{display:inline-block;font-size:.76rem;font-weight:600;color:#fff;background:var(--tc);border-radius:4px;padding:0 9px;margin-bottom:4px}
+.feed h3{font-size:1.15rem}
+.feed p{margin:4px 0 0}
+.tips-note{color:var(--mute);font-size:.85rem;margin:-4px 0 12px}
