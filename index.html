@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocol Explorer - تعلم كيف يعمل الإنترنت</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-light: #3b82f6;
+            --secondary: #1e40af;
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --bg-dark: #0f172a;
+            --bg-light: #f8fafc;
+            --text-dark: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, #1a2847 100%);
+            color: var(--text-dark);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 280px 1fr 350px;
+            gap: 20px;
+        }
+
+        /* Sidebar - البروتوكولات */
+        .sidebar {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .protocol-category {
+            margin-bottom: 25px;
+        }
+
+        .category-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-light);
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .protocol-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .protocol-item:hover {
+            background: var(--bg-light);
+        }
+
+        .protocol-item.active {
+            background: var(--primary);
+            color: white;
+            border-left-color: var(--secondary);
+        }
+
+        .protocol-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            background: currentColor;
+            opacity: 0.3;
+        }
+
+        .protocol-item.active .protocol-icon {
+            opacity: 1;
+        }
+
+        .protocol-name {
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .protocol-desc {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.active-proto {
+            background: var(--success);
+        }
+
+        .status-indicator.inactive {
+            background: #cbd5e1;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Main Content */
+        .main-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .content-header {
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 20px;
+        }
+
+        .step-indicator {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 13px;
+            color: var(--text-light);
+        }
+
+        .step-badge {
+            background: var(--primary);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .content-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 10px;
+        }
+
+        .content-subtitle {
+            font-size: 14px;
+            color: var(--text-light);
+        }
+
+        /* Network Visualization */
+        .network-viz {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .viz-container {
+            position: relative;
+            width: 90%;
+            height: 100%;
+            max-width: 600px;
+        }
+
+        .device {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .device-icon {
+            width: 80px;
+            height: 60px;
+            background: var(--primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .device:hover .device-icon {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.5);
+        }
+
+        .device-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-dark);
+            text-align: center;
+            max-width: 100px;
+        }
+
+        .device-ip {
+            font-size: 11px;
+            color: var(--text-light);
+            background: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+
+        .device.client {
+            left: 10%;
+            top: 30%;
+        }
+
+        .device.server {
+            right: 10%;
+            top: 30%;
+        }
+
+        .device.router {
+            left: 50%;
+            top: 5%;
+            transform: translateX(-50%);
+        }
+
+        /* Connection Lines */
+        svg.connections {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .connection-line {
+            stroke: var(--border);
+            stroke-width: 2;
+            fill: none;
+            stroke-dasharray: 5,5;
+        }
+
+        /* Packet Animation */
+        .packet {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: var(--primary);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.6);
+            z-index: 10;
+        }
+
+        .packet-animate {
+            animation: movePacket 3s linear infinite;
+        }
+
+        @keyframes movePacket {
+            0% {
+                left: 15%;
+                top: 35%;
+            }
+            50% {
+                opacity: 0.8;
+            }
+            100% {
+                left: 75%;
+                top: 35%;
+            }
+        }
+
+        /* Packet Flow Table */
+        .packet-flow {
+            margin-top: 30px;
+            border-top: 2px solid var(--border);
+            padding-top: 20px;
+        }
+
+        .flow-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .flow-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .flow-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary);
+        }
+
+        .btn-primary:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+        }
+
+        .flow-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: block;
+        }
+
+        .flow-table thead {
+            background: var(--bg-light);
+            position: sticky;
+            top: 0;
+            display: block;
+        }
+
+        .flow-table tbody {
+            display: block;
+            overflow-y: auto;
+            max-height: 150px;
+        }
+
+        .flow-table tr {
+            display: grid;
+            grid-template-columns: 1fr 1fr 2fr 1.5fr 2fr;
+            gap: 10px;
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            align-items: center;
+        }
+
+        .flow-table thead tr {
+            padding: 12px;
+            font-weight: 600;
+            color: var(--text-light);
+            text-transform: uppercase;
+            font-size: 11px;
+        }
+
+        .flow-table tbody tr:hover {
+            background: var(--bg-light);
+        }
+
+        .flow-cell {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 10px;
+            background: var(--primary);
+            color: white;
+        }
+
+        .badge.from-client {
+            background: var(--primary);
+        }
+
+        .badge.from-server {
+            background: var(--success);
+        }
+
+        /* Right Sidebar - Step Details */
+        .details-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .details-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        .step-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: var(--bg-light);
+            border-radius: 8px;
+            border-left: 3px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .step-item.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border-left-color: var(--secondary);
+        }
+
+        .step-number {
+            font-size: 12px;
+            font-weight: 700;
+            opacity: 0.7;
+            margin-bottom: 5px;
+        }
+
+        .step-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .step-desc {
+            font-size: 12px;
+            opacity: 0.8;
+            line-height: 1.5;
+        }
+
+        .step-item.active .step-desc {
+            opacity: 1;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .progress-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--success) 100%);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* Mobile Protocol Selector */
+        .mobile-protocol-selector {
+            display: none;
+            margin-bottom: 20px;
+        }
+
+        .mobile-protocol-selector select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            background: white;
+            color: var(--primary);
+            cursor: pointer;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar, .details-panel {
+                display: none;
+            }
+
+            .mobile-protocol-selector {
+                display: block;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .main-content {
+                padding: 15px;
+            }
+
+            .content-title {
+                font-size: 20px;
+            }
+
+            .network-viz {
+                min-height: 300px;
+            }
+
+            .flow-table tr {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .content-header {
+                margin-bottom: 15px;
+                padding-bottom: 15px;
+            }
+
+            .step-indicator {
+                font-size: 11px;
+                gap: 10px;
+            }
+
+            .step-badge {
+                padding: 3px 8px;
+                font-size: 10px;
+            }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-light);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-light);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar - البروتوكولات -->
+        <div class="sidebar">
+            <div class="sidebar-title">
+                <span>🌐</span>
+                <span>البروتوكولات</span>
+            </div>
+
+            <div class="protocol-category">
+                <div class="category-label">
+                    <span>جميع البروتوكولات</span>
+                    <span id="all-count">0</span>
+                </div>
+            </div>
+
+            <div class="protocol-category">
+                <div class="category-label">
+                    <span>تطبيقات</span>
+                    <span id="app-count">3</span>
+                </div>
+                <div class="protocol-item active" data-protocol="http">
+                    <div class="status-indicator active-proto"></div>
+                    <div>
+                        <div class="protocol-name">HTTP</div>
+                        <div class="protocol-desc">نقل النصوص الفائقة</div>
+                    </div>
+                </div>
+                <div class="protocol-item" data-protocol="https">
+                    <div class="status-indicator inactive"></div>
+                    <div>
+                        <div class="protocol-name">HTTPS</div>
+                        <div class="protocol-desc">نقل آمن</div>
+                    </div>
+                </div>
+                <div class="protocol-item" data-protocol="dns">
+                    <div class="status-indicator inactive"></div>
+                    <div>
+                        <div class="protocol-name">DNS</div>
+                        <div class="protocol-desc">نظام أسماء النطاقات</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="protocol-category">
+                <div class="category-label">
+                    <span>أساسيات</span>
+                    <span id="core-count">2</span>
+                </div>
+                <div class="protocol-item" data-protocol="tcp">
+                    <div class="status-indicator inactive"></div>
+                    <div>
+                        <div class="protocol-name">TCP</div>
+                        <div class="protocol-desc">التحكم في النقل</div>
+                    </div>
+                </div>
+                <div class="protocol-item" data-protocol="ip">
+                    <div class="status-indicator inactive"></div>
+                    <div>
+                        <div class="protocol-name">IP</div>
+                        <div class="protocol-desc">بروتوكول الإنترنت</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="protocol-category">
+                <div class="category-label">
+                    <span>أمان</span>
+                    <span id="sec-count">1</span>
+                </div>
+                <div class="protocol-item" data-protocol="tls">
+                    <div class="status-indicator inactive"></div>
+                    <div>
+                        <div class="protocol-name">TLS</div>
+                        <div class="protocol-desc">طبقة الأمان</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="content-header">
+                <div class="step-indicator">
+                    <span class="step-badge">الخطوة 2 من 6</span>
+                    <span>🔍 اكتشاف العنوان</span>
+                </div>
+                <h1 class="content-title" id="protocol-title">HTTP</h1>
+                <p class="content-subtitle" id="protocol-subtitle">بروتوكول نقل النصوص الفائقة</p>
+            </div>
+
+            <div class="mobile-protocol-selector">
+                <label for="mobile-protocol-select" style="display: block; margin-bottom: 8px; font-size: 12px; color: var(--text-light); font-weight: 600;">اختر البروتوكول:</label>
+                <select id="mobile-protocol-select">
+                    <option value="http">HTTP - نقل النصوص الفائقة</option>
+                    <option value="https">HTTPS - النقل الآمن</option>
+                    <option value="dns">DNS - نظام أسماء النطاقات</option>
+                    <option value="tcp">TCP - التحكم في النقل</option>
+                    <option value="ip">IP - بروتوكول الإنترنت</option>
+                    <option value="tls">TLS - طبقة الأمان</option>
+                </select>
+            </div>
+
+            <div class="network-viz">
+                <svg class="connections" id="connections"></svg>
+                <div class="viz-container" id="viz-container">
+                    <div class="device client">
+                        <div class="device-icon">💻</div>
+                        <div class="device-label">جهاز العميل</div>
+                        <div class="device-ip">192.168.1.10</div>
+                    </div>
+
+                    <div class="device router">
+                        <div class="device-icon">🔌</div>
+                        <div class="device-label">جهاز التوجيه</div>
+                        <div class="device-ip">192.168.1.1</div>
+                    </div>
+
+                    <div class="device server">
+                        <div class="device-icon">🖥️</div>
+                        <div class="device-label">خادم الويب</div>
+                        <div class="device-ip">8.8.8.8</div>
+                    </div>
+
+                    <div class="packet" id="packet">📦</div>
+                </div>
+            </div>
+
+            <div class="packet-flow">
+                <div class="flow-header">
+                    <div class="flow-title">📊 تدفق الحزم</div>
+                    <div class="flow-controls">
+                        <button class="btn btn-primary" id="play-btn">▶ تشغيل</button>
+                        <button class="btn btn-primary" id="pause-btn" disabled>⏸ إيقاف مؤقت</button>
+                    </div>
+                </div>
+                <table class="flow-table">
+                    <thead>
+                        <tr>
+                            <th>الرقم</th>
+                            <th>الوقت</th>
+                            <th>المصدر</th>
+                            <th>الوجهة</th>
+                            <th>البروتوكول والمعلومات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="flow-tbody">
+                        <tr>
+                            <td class="flow-cell">1</td>
+                            <td class="flow-cell">0 ملي</td>
+                            <td class="flow-cell"><span class="badge from-client">العميل</span></td>
+                            <td class="flow-cell">التوجيه</td>
+                            <td class="flow-cell">DHCP - اكتشاف</td>
+                        </tr>
+                        <tr>
+                            <td class="flow-cell">2</td>
+                            <td class="flow-cell">10 ملي</td>
+                            <td class="flow-cell"><span class="badge from-server">التوجيه</span></td>
+                            <td class="flow-cell">العميل</td>
+                            <td class="flow-cell">DHCP - عرض</td>
+                        </tr>
+                        <tr>
+                            <td class="flow-cell">3</td>
+                            <td class="flow-cell">20 ملي</td>
+                            <td class="flow-cell"><span class="badge from-client">العميل</span></td>
+                            <td class="flow-cell">التوجيه</td>
+                            <td class="flow-cell">DHCP - طلب</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Right Sidebar - Details -->
+        <div class="details-panel">
+            <div class="details-title">تفاصيل الخطوة</div>
+
+            <div class="step-item active">
+                <div class="step-number">الخطوة 1 من 4</div>
+                <div class="step-name">🔍 اكتشاف</div>
+                <div class="step-desc">يقوم جهاز العميل ببث رسالة اكتشاف DHCP لطلب عنوان IP من التوجيه</div>
+            </div>
+
+            <div class="step-item">
+                <div class="step-number">الخطوة 2 من 4</div>
+                <div class="step-name">📢 عرض</div>
+                <div class="step-desc">يستقبل التوجيه الطلب ويرسل عرضاً بعنوان IP وتفاصيل الشبكة</div>
+            </div>
+
+            <div class="step-item">
+                <div class="step-number">الخطوة 3 من 4</div>
+                <div class="step-name">✅ طلب</div>
+                <div class="step-desc">يقوم العميل بتأكيد قبول العنوان المقترح من التوجيه</div>
+            </div>
+
+            <div class="step-item">
+                <div class="step-number">الخطوة 4 من 4</div>
+                <div class="step-name">✔️ تأكيد</div>
+                <div class="step-desc">يرسل التوجيه تأكيد النهائي بأن العميل حصل على عنوان IP صحيح</div>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-label">
+                    <span>تقدم التعلم</span>
+                    <span id="progress-percent">34%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 34%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Protocol Data
+        const protocols = {
+            http: {
+                title: 'HTTP',
+                subtitle: 'بروتوكول نقل النصوص الفائقة',
+                description: 'بروتوكول يستخدم لنقل صفحات الويب والمحتويات عبر الإنترنت بدون تشفير',
+                steps: [
+                    { number: '1', name: '🔍 الاتصال', desc: 'يطلب العميل الاتصال بالخادم على المنفذ 80' },
+                    { number: '2', name: '📤 الطلب', desc: 'يرسل العميل طلب GET للحصول على الملف' },
+                    { number: '3', name: '📥 الرد', desc: 'يرسل الخادم محتوى الصفحة والمعلومات' },
+                    { number: '4', name: '✅ انتهاء', desc: 'يتم إغلاق الاتصال بعد نقل البيانات' }
+                ]
+            },
+            https: {
+                title: 'HTTPS',
+                subtitle: 'بروتوكول نقل آمن',
+                description: 'نسخة آمنة من HTTP تستخدم TLS لتشفير البيانات',
+                steps: [
+                    { number: '1', name: '🔒 مصافحة TLS', desc: 'يتم تأسيس اتصال آمن مع تبادل المفاتيح' },
+                    { number: '2', name: '🔐 تشفير', desc: 'تشفير كل البيانات قبل الإرسال' },
+                    { number: '3', name: '📤 نقل آمن', desc: 'نقل البيانات المشفرة بين العميل والخادم' },
+                    { number: '4', name: '🔓 فك التشفير', desc: 'فك تشفير البيانات على الطرف الآخر' }
+                ]
+            },
+            dns: {
+                title: 'DNS',
+                subtitle: 'نظام أسماء النطاقات',
+                description: 'بروتوكول يحول أسماء الموارد (google.com) إلى عناوين IP (8.8.8.8)',
+                steps: [
+                    { number: '1', name: '❓ استعلام', desc: 'العميل يسأل "ما عنوان IP لـ google.com؟"' },
+                    { number: '2', name: '🔍 بحث', desc: 'خادم DNS يبحث في قاعدة البيانات' },
+                    { number: '3', name: '📍 نتيجة', desc: 'خادم DNS يرسل عنوان IP المطابق' },
+                    { number: '4', name: '✅ استخدام', desc: 'العميل يستخدم العنوان للاتصال بالخادم' }
+                ]
+            },
+            tcp: {
+                title: 'TCP',
+                subtitle: 'بروتوكول التحكم في النقل',
+                description: 'بروتوكول يضمن نقل البيانات بشكل موثوق وبالترتيب الصحيح',
+                steps: [
+                    { number: '1', name: '🤝 مصافحة', desc: 'ثلاث رسائل للاتصال (SYN, SYN-ACK, ACK)' },
+                    { number: '2', name: '📤 إرسال', desc: 'إرسال البيانات في أجزاء صغيرة (حزم)' },
+                    { number: '3', name: '✅ تأكيد', desc: 'الطرف الآخر يؤكد استقبال كل حزمة' },
+                    { number: '4', name: '🔚 إغلاق', desc: 'إغلاق الاتصال برسائل وداعية' }
+                ]
+            },
+            ip: {
+                title: 'IP',
+                subtitle: 'بروتوكول الإنترنت',
+                description: 'بروتوكول أساسي يحدد كيفية توجيه البيانات عبر الشبكات',
+                steps: [
+                    { number: '1', name: '📦 تغليف', desc: 'تحزيم البيانات بعناوين IP للمصدر والوجهة' },
+                    { number: '2', name: '🛣️ توجيه', desc: 'أجهزة التوجيه تختار أفضل مسار' },
+                    { number: '3', name: '🌍 إرسال', desc: 'إرسال الحزم عبر الشبكات المختلفة' },
+                    { number: '4', name: '📍 وصول', desc: 'وصول الحزم للعنوان المقصود' }
+                ]
+            },
+            tls: {
+                title: 'TLS',
+                subtitle: 'بروتوكول أمان النقل',
+                description: 'بروتوكول تشفير يوفر الخصوصية والمصادقة على الإنترنت',
+                steps: [
+                    { number: '1', name: '🔑 تبادل المفاتيح', desc: 'تبادل آمن للمفاتيح العامة' },
+                    { number: '2', name: '🔐 اتفاق', desc: 'اتفاق على خوارزمية التشفير المستخدمة' },
+                    { number: '3', name: '🔒 تشفير', desc: 'تشفير جميع البيانات المرسلة' },
+                    { number: '4', name: '✅ آمن', desc: 'الاتصال آمن من التجسس والتعديل' }
+                ]
+            }
+        };
+
+        // DOM Elements
+        const protocolItems = document.querySelectorAll('.protocol-item');
+        const mobileSelect = document.getElementById('mobile-protocol-select');
+        const playBtn = document.getElementById('play-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const protocolTitle = document.getElementById('protocol-title');
+        const protocolSubtitle = document.getElementById('protocol-subtitle');
+        const flowTbody = document.getElementById('flow-tbody');
+        const stepsContainer = document.querySelectorAll('.step-item');
+        const packet = document.getElementById('packet');
+
+        let currentProtocol = 'http';
+        let isPlaying = false;
+        let packetAnimationId = null;
+
+        // Protocol Selection - Desktop
+        protocolItems.forEach(item => {
+            item.addEventListener('click', () => {
+                protocolItems.forEach(p => p.classList.remove('active'));
+                item.classList.add('active');
+                currentProtocol = item.dataset.protocol;
+                updateProtocolInfo();
+                if (mobileSelect) {
+                    mobileSelect.value = currentProtocol;
+                }
+            });
+        });
+
+        // Protocol Selection - Mobile
+        if (mobileSelect) {
+            mobileSelect.addEventListener('change', (e) => {
+                currentProtocol = e.target.value;
+                protocolItems.forEach(p => p.classList.remove('active'));
+                const activeItem = document.querySelector(`[data-protocol="${currentProtocol}"]`);
+                if (activeItem) {
+                    activeItem.classList.add('active');
+                }
+                updateProtocolInfo();
+            });
+        }
+
+        function updateProtocolInfo() {
+            const proto = protocols[currentProtocol];
+            protocolTitle.textContent = proto.title;
+            protocolSubtitle.textContent = proto.subtitle;
+
+            // Update steps
+            stepsContainer.forEach((step, index) => {
+                if (index < proto.steps.length) {
+                    const stepData = proto.steps[index];
+                    step.innerHTML = `
+                        <div class="step-number">الخطوة ${stepData.number} من ${proto.steps.length}</div>
+                        <div class="step-name">${stepData.name}</div>
+                        <div class="step-desc">${stepData.desc}</div>
+                    `;
+                    step.classList.remove('active');
+                    if (index === 0) step.classList.add('active');
+                }
+            });
+        }
+
+        // Animation Controls
+        playBtn.addEventListener('click', () => {
+            isPlaying = true;
+            playBtn.disabled = true;
+            pauseBtn.disabled = false;
+            animatePacket();
+            animateSteps();
+        });
+
+        pauseBtn.addEventListener('click', () => {
+            isPlaying = false;
+            playBtn.disabled = false;
+            pauseBtn.disabled = true;
+            if (packetAnimationId) {
+                cancelAnimationFrame(packetAnimationId);
+            }
+        });
+
+        function animatePacket() {
+            packet.classList.add('packet-animate');
+        }
+
+        function animateSteps() {
+            let stepIndex = 0;
+            const interval = setInterval(() => {
+                if (!isPlaying) {
+                    clearInterval(interval);
+                    return;
+                }
+
+                stepsContainer.forEach(step => step.classList.remove('active'));
+                if (stepsContainer[stepIndex]) {
+                    stepsContainer[stepIndex].classList.add('active');
+                }
+
+                stepIndex++;
+                if (stepIndex >= stepsContainer.length) {
+                    stepIndex = 0;
+                }
+            }, 1000);
+        }
+
+        // Draw connections
+        function drawConnections() {
+            const svg = document.getElementById('connections');
+            svg.innerHTML = '';
+
+            const client = document.querySelector('.device.client');
+            const router = document.querySelector('.device.router');
+            const server = document.querySelector('.device.server');
+            const container = document.getElementById('viz-container');
+
+            const containerRect = container.getBoundingClientRect();
+            const clientRect = client.getBoundingClientRect();
+            const routerRect = router.getBoundingClientRect();
+            const serverRect = server.getBoundingClientRect();
+
+            function createLine(from, to) {
+                const x1 = from.left - containerRect.left + from.width / 2;
+                const y1 = from.top - containerRect.top + from.height / 2;
+                const x2 = to.left - containerRect.left + to.width / 2;
+                const y2 = to.top - containerRect.top + to.height / 2;
+
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', x1);
+                line.setAttribute('y1', y1);
+                line.setAttribute('x2', x2);
+                line.setAttribute('y2', y2);
+                line.setAttribute('class', 'connection-line');
+                svg.appendChild(line);
+            }
+
+            createLine(clientRect, routerRect);
+            createLine(routerRect, serverRect);
+        }
+
+        window.addEventListener('resize', drawConnections);
+        drawConnections();
+
+        // Initialize
+        updateProtocolInfo();
+    </script>
+</body>
+</html>
