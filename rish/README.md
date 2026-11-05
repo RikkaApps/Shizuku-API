@@ -3,7 +3,7 @@
 <del>Rish is an Interactive SHell for android</del>
 
 ## Description
-
+ههه تت
 `rish` is an Android program for interacting with a shell that runs on a high-privileged daemon process.
 
 Currently, Shizuku and Sui are two available backends.
