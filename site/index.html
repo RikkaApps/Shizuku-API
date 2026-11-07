@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>سوق صنعة</title>
+<meta name="description" content="صنعة: سوق مهام في الكويت: عروض أسعار، دفع آمن بنظام الأمانة، تقييمات وتوثيق هوية، وخريطة ثلاثية الأبعاد للمهام.">
+<meta name="theme-color" content="#0d1526">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lalezar&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Tajawal:wght@400;700&display=swap">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="css/style.css">
+<script type="importmap">{"imports":{"three":"./vendor/three/three.module.min.js"}}</script>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="#home"><img src="icon.svg" alt="" width="32" height="32"><span>صنعة</span><small class="brand-tag">سوق المهام</small></a>
+  <nav class="nav" id="nav" aria-label="الأقسام">
+    <a href="#tasks" data-nav="tasks">المهام</a>
+    <a href="#new" data-nav="new">انشر مهمة</a>
+    <a href="#inbox" data-nav="inbox chat">الرسائل <b class="mbadge" id="mbadge" hidden>0</b></a>
+    <a href="#profile-me" data-nav="profile">حسابي</a>
+    <a href="https://claude.ai/artifact/JAnYSWkHtB7QcVheH94fHH" target="_blank" rel="noopener">تعلّم ↗</a>
+  </nav>
+  <div class="tools">
+    <select id="userSwitch" aria-label="تبديل الحساب التجريبي" title="حساب تجريبي"></select>
+    <a class="bell" href="#notifications" aria-label="الإشعارات"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><b id="badge" hidden>0</b></a>
+  </div>
+</header>
+<div class="hazard" aria-hidden="true"></div>
+<div class="demo-banner">نسخة تجريبية: البيانات تُحفظ في متصفحك فقط، والدفع والتوثيق والإشعارات محاكاة. <a href="#notifications">الإعدادات</a></div>
+<main id="app" tabindex="-1"></main>
+<footer class="foot">
+  <a href="#terms">شروط الاستخدام</a><a href="#privacy">سياسة الخصوصية</a><a href="#refund">سياسة الاسترجاع</a><a href="#safety">الأمان والثقة</a><a href="model.html">مجسّم الشعار</a><a href="https://claude.ai/artifact/JAnYSWkHtB7QcVheH94fHH" target="_blank" rel="noopener">صنعة · تعلّم ↗</a>
+  <button id="installBtn" class="link" hidden>ثبّت التطبيق</button>
+</footer>
+<div id="toast" role="status" aria-live="polite"></div>
+<dialog id="dlg"></dialog>
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="js/kuwait.js"></script>
+<script src="js/suggestions.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
