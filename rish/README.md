@@ -1,4 +1,4 @@
-# RISH
+144fps# RISH
 
 <del>Rish is an Interactive SHell for android</del>
 
