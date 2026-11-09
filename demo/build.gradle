@@ -4,22 +4,21 @@ plugins {
 }
 
 android {
+    enableKotlin = false
     namespace 'rikka.shizuku.demo'
     defaultConfig {
         applicationId "rikka.shizuku.demo"
         versionCode 1
         versionName api_version_name
         externalNativeBuild {
-            cmake {
-                abiFilters "armeabi-v7a", 'arm64-v8a', 'x86', 'x86_64'
-                cppFlags "-std=c++17"
-                arguments '-DANDROID_TOOLCHAIN=clang', '-DANDROID_STL=c++_static'
+            ndkBuild {
+                arguments += "-j${Runtime.getRuntime().availableProcessors()}"
             }
         }
     }
     externalNativeBuild {
-        cmake {
-            path "src/main/cpp/CMakeLists.txt"
+        ndkBuild {
+            path("src/main/cpp/Android.mk")
         }
     }
     buildFeatures {
@@ -27,14 +26,16 @@ android {
         viewBinding = true
         aidl true
     }
-    signingConfigs {
-        sign
-    }
     buildTypes {
         release {
-            minifyEnabled true
-            shrinkResources true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            vcsInfo.include = false
+            signingConfig = signingConfigs["debug"]
+            optimization {
+                enable = true
+                keepRules {
+                    includeDefault = false
+                }
+            }
         }
     }
     compileOptions {
@@ -42,9 +43,18 @@ android {
         targetCompatibility JavaVersion.VERSION_21
     }
     packaging {
+        resources {
+            excludes += "**"
+        }
         jniLibs {
             useLegacyPackaging true
         }
+    }
+    lint {
+        checkReleaseBuilds = false
+    }
+    dependenciesInfo {
+        includeInApk = false
     }
 }
 
@@ -55,5 +65,5 @@ dependencies {
     implementation project(':provider') // required by Shizuku only
 
     compileOnly project(':demo-hidden-api-stub')
-    implementation 'org.lsposed.hiddenapibypass:hiddenapibypass:6.1' // bypass hidden api restriction, https://github.com/LSPosed/AndroidHiddenApiBypass
+    implementation 'org.lsposed.hiddenapibypass:hiddenapibypass:6.2' // bypass hidden api restriction
 }

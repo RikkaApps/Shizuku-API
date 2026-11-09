@@ -1,11 +1,5 @@
 apply from: 'manifest.gradle'
 
-allprojects {
-    tasks.withType(Javadoc) {
-        options.addStringOption('Xdoclint:none', '-quiet')
-    }
-}
-
 subprojects {
     afterEvaluate { project ->
         if (!(it.findProperty('publishLibrary') ?: false)) {
@@ -58,7 +52,7 @@ subprojects {
             repositories {
                 maven {
                     name 'ossrh'
-                    url 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
+                    url 'https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/'
                     credentials(PasswordCredentials)
                 }
             }
@@ -86,10 +80,6 @@ subprojects {
             }
         }
     }
-}
-
-task clean(type: Delete) {
-    delete rootProject.buildDir
 }
 
 ext {

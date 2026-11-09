@@ -1,0 +1,6 @@
+-keepclassmembers class rikka.shizuku.demo.service.UserService {
+    public <init>(...);
+}
+-keepclasseswithmembers,allowshrinking,includedescriptorclasses class * {
+    native <methods>;
+}

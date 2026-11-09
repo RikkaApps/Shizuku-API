@@ -4,6 +4,7 @@ plugins {
 }
 
 android {
+    enableKotlin = false
     namespace 'rikka.shizuku.server'
     buildTypes {
         release {
@@ -18,8 +19,6 @@ android {
 
 dependencies {
     implementation 'androidx.annotation:annotation:1.3.0'
-    implementation 'androidx.core:core:1.16.0'
-    implementation 'dev.rikka.rikkax.parcelablelist:parcelablelist:2.0.1'
 
     api project(':aidl')
     api project(':shared')

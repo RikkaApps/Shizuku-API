@@ -3,30 +3,25 @@ plugins {
 }
 
 android {
+    enableKotlin = false
     namespace 'rikka.rish'
     defaultConfig {
         externalNativeBuild {
-            cmake {
-                arguments '-DANDROID_STL=none'
+            ndkBuild {
+                arguments += "-j${Runtime.getRuntime().availableProcessors()}"
             }
         }
     }
     buildFeatures {
         prefab true
     }
-    buildTypes {
-        release {
-            minifyEnabled false
-        }
-    }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_21
         targetCompatibility JavaVersion.VERSION_21
     }
     externalNativeBuild {
-        cmake {
-            path 'src/main/cpp/CMakeLists.txt'
-            version "3.31.0+"
+        ndkBuild {
+            path("src/main/cpp/Android.mk")
         }
     }
 }
@@ -35,7 +30,7 @@ dependencies {
     implementation project(':api')
 
     implementation 'androidx.annotation:annotation:1.3.0'
-    implementation 'org.lsposed.libcxx:libcxx:27.0.12077973'
+    implementation 'org.lsposed.libcxx:libcxx:30.0.16248370'
 }
 
 ext {
