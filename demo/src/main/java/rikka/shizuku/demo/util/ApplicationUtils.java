@@ -1,11 +1,8 @@
 package rikka.shizuku.demo.util;
 
-import android.annotation.SuppressLint;
+import android.app.ActivityThread;
 import android.app.Application;
 import android.os.Build;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 public class ApplicationUtils {
 
@@ -23,15 +20,7 @@ public class ApplicationUtils {
         if (Build.VERSION.SDK_INT >= 28)
             return Application.getProcessName();
         else {
-            try {
-                @SuppressLint("PrivateApi")
-                Class<?> activityThread = Class.forName("android.app.ActivityThread");
-                @SuppressLint("DiscouragedPrivateApi")
-                Method method = activityThread.getDeclaredMethod("currentProcessName");
-                return (String) method.invoke(null);
-            } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-                throw new RuntimeException(e);
-            }
+            return ActivityThread.currentProcessName();
         }
     }
 }

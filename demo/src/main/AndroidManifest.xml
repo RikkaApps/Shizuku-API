@@ -1,18 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
         android:name=".DemoApplication"
-        android:allowBackup="false"
+        android:icon="@android:drawable/sym_def_app_icon"
         android:label="Demo for Shizuku &amp; Sui"
-        android:supportsRtl="true"
-        android:theme="@android:style/Theme.DeviceDefault"
-        tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".DemoActivity"
-            android:exported="true">
+        android:theme="@android:style/Theme.DeviceDefault">
+        <activity
+            android:name=".DemoActivity"
+            android:exported="true"
+            android:label="Demo"
+            android:taskAffinity="">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".DemoActivity2"
+            android:exported="true"
+            android:label="Demo2"
+            android:process=":process2"
+            android:taskAffinity="">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

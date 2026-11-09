@@ -5,8 +5,9 @@ import android.content.Context;
 import android.os.Build;
 import android.util.Log;
 
-import org.lsposed.hiddenapibypass.HiddenApiBypass;
+import org.lsposed.hiddenapibypass.LSPass;
 
+import rikka.shizuku.ShizukuProvider;
 import rikka.shizuku.demo.util.ApplicationUtils;
 import rikka.sui.Sui;
 
@@ -22,7 +23,8 @@ public class DemoApplication extends Application {
         isSui = Sui.init(BuildConfig.APPLICATION_ID);
         if (!isSui) {
             // If this is a multi-process application
-            //ShizukuProvider.enableMultiProcessSupport( /* is current process the same process of ShizukuProvider's */ );
+            var isMain = BuildConfig.APPLICATION_ID.equals(ApplicationUtils.getProcessName());
+            ShizukuProvider.enableMultiProcessSupport(isMain);
         }
     }
 
@@ -34,7 +36,7 @@ public class DemoApplication extends Application {
 
         if (!isSui) {
             // If this is a multi-process application
-            //ShizukuProvider.requestBinderForNonProviderProcess(this);
+            ShizukuProvider.requestBinderForNonProviderProcess(this);
         }
     }
 
@@ -42,7 +44,7 @@ public class DemoApplication extends Application {
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            HiddenApiBypass.addHiddenApiExemptions("L");
+            LSPass.setHiddenApiExemptions("");
         }
         ApplicationUtils.setApplication(this);
 

@@ -69,6 +69,8 @@ public class DemoActivity extends Activity {
 
         super.onCreate(savedInstanceState);
 
+        getActionBar().setSubtitle(ApplicationUtils.getProcessName());
+
         binding = MainActivityBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
