@@ -47,7 +47,8 @@ public class UserService extends IUserService.Stub {
 
     @Override
     public String doSomething() throws RemoteException {
-        return "pid=" + Os.getpid() + ", uid=" + Os.getuid() + ", " + stringFromJNI();
+        return "pid=" + Os.getpid() + ", uid=" + Os.getuid() +
+                ", context=" + getContext() + ", " + stringFromJNI();
     }
 
     static {
@@ -55,4 +56,6 @@ public class UserService extends IUserService.Stub {
     }
 
     public static native String stringFromJNI();
+
+    public static native String getContext();
 }

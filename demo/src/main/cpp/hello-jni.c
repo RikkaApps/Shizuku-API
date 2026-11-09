@@ -15,6 +15,7 @@
  *
  */
 #include <string.h>
+#include <sys/xattr.h>
 #include <jni.h>
 
 /* This is a trivial JNI example where we use a native method
@@ -24,7 +25,7 @@
  *   hello-jni/app/src/main/java/com/example/hellojni/HelloJni.java
  */
 JNIEXPORT jstring JNICALL
-Java_rikka_shizuku_demo_service_UserService_stringFromJNI(JNIEnv *env, jclass clazz) {
+Java_rikka_shizuku_demo_service_UserService_stringFromJNI(JNIEnv *env, jclass) {
 #if defined(__arm__)
     #if defined(__ARM_ARCH_7A__)
     #if defined(__ARM_NEON__)
@@ -58,4 +59,37 @@ Java_rikka_shizuku_demo_service_UserService_stringFromJNI(JNIEnv *env, jclass cl
 #endif
 
     return (*env)->NewStringUTF(env, "Hello from JNI !  Compiled with ABI " ABI ".");
+}
+
+jstring get_context(JNIEnv *env, jclass) {
+    char context[1024];
+    ssize_t size = getxattr("/proc/self", "security.selinux", context, sizeof(context) - 1);
+    if (size < 0) {
+        size = 0;
+    }
+    context[size] = '\0';
+    return (*env)->NewStringUTF(env, context);
+}
+
+jint JNI_OnLoad(JavaVM *jvm, void *v __unused) {
+    JNIEnv *env;
+    jclass clazz;
+
+    if ((*jvm)->GetEnv(jvm, (void **) &env, JNI_VERSION_1_6) != JNI_OK) {
+        return JNI_ERR;
+    }
+
+    if ((clazz = (*env)->FindClass(env, "rikka/shizuku/demo/service/UserService")) == NULL) {
+        return JNI_ERR;
+    }
+
+    JNINativeMethod methods[] = {
+            {"getContext", "()Ljava/lang/String;", get_context},
+    };
+
+    if ((*env)->RegisterNatives(env, clazz, methods, 1) < 0) {
+        return JNI_ERR;
+    }
+
+    return JNI_VERSION_1_6;
 }
