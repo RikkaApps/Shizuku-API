@@ -9,7 +9,7 @@ import androidx.annotation.RequiresApi;
 
 public interface IIntentSender extends IInterface {
 
-    int send(int code, Intent intent, String resolvedType,
+    void send(int code, Intent intent, String resolvedType,
              IIntentReceiver finishedReceiver, String requiredPermission, Bundle options);
 
     @RequiresApi(26)

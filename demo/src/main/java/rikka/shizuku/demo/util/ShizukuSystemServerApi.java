@@ -35,13 +35,15 @@ public class ShizukuSystemServerApi {
     }
 
     public static List<UserInfo> UserManager_getUsers(boolean excludePartial, boolean excludeDying, boolean excludePreCreated) throws RemoteException {
-        if (Build.VERSION.SDK_INT >= 30) {
-            return USER_MANAGER.get().getUsers(excludePartial, excludeDying, excludePreCreated);
+        IUserManager um = USER_MANAGER.get();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && Build.VERSION.SDK_INT < Build.VERSION_CODES.BAKLAVA) {
+            return um.getUsers(excludePartial, excludeDying, excludePreCreated);
         } else {
             try {
-                return USER_MANAGER.get().getUsers(excludeDying);
-            } catch (NoSuchFieldError e) {
-                return USER_MANAGER.get().getUsers(excludePartial, excludeDying, excludePreCreated);
+                return um.getUsers(excludeDying);
+            } catch (NoSuchMethodError e) {
+                // noinspection NewApi
+                return um.getUsers(excludePartial, excludeDying, excludePreCreated);
             }
         }
     }

@@ -11,9 +11,8 @@ public abstract class IIntentSenderAdaptor extends IIntentSender.Stub {
     public abstract void send(Intent intent);
 
     @Override
-    public int send(int code, Intent intent, String resolvedType, IIntentReceiver finishedReceiver, String requiredPermission, Bundle options) {
+    public void send(int code, Intent intent, String resolvedType, IIntentReceiver finishedReceiver, String requiredPermission, Bundle options) {
         send(intent);
-        return 0;
     }
 
     @Override
