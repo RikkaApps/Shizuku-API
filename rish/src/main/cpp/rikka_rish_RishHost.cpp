@@ -3,6 +3,7 @@
 #include <termios.h>
 #include <fcntl.h>
 #include <cstdlib>
+#include <atomic>
 #include <wait.h>
 #include <android/log.h>
 #include <pthread.h>
@@ -56,7 +57,7 @@ static void initVectorFromBlock(const char **vector, const char *block, int coun
 }
 
 static jintArray RishHost_startHost(
-        JNIEnv *env, jclass clazz,
+        JNIEnv *env, jclass,
         jbyteArray argBlock, jint argc,
         jbyteArray envBlock, jint envc,
         jbyteArray dirBlock,
@@ -246,11 +247,11 @@ static jintArray RishHost_startHost(
     }
 }
 
-static void RishHost_setWindowSize(JNIEnv *env, jclass clazz, jint ptmx, jlong size) {
+static void RishHost_setWindowSize(JNIEnv *, jclass, jint ptmx, jlong size) {
     setWindowSize(ptmx, size);
 }
 
-static jint RishHost_waitFor(JNIEnv *env, jclass clazz, jint pid) {
+static jint RishHost_waitFor(JNIEnv *, jclass, jint pid) {
     if (pid < 0)
         return -1;
 

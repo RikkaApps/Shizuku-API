@@ -2,7 +2,7 @@
 #include "rikka_rish_RishTerminal.h"
 #include "rikka_rish_RishHost.h"
 
-JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *) {
     JNIEnv *env = nullptr;
 
     if (vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK)

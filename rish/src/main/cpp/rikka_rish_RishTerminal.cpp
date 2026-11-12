@@ -3,6 +3,7 @@
 #include <termios.h>
 #include <fcntl.h>
 #include <cstdlib>
+#include <atomic>
 #include <android/log.h>
 #include <pthread.h>
 #include "logging.h"
@@ -24,7 +25,7 @@ static int64_t getWindowSize(int fd) {
     return screen_size;
 }
 
-static jbyte RishTerminal_prepare(JNIEnv *env, jclass clazz) {
+static jbyte RishTerminal_prepare(JNIEnv *, jclass) {
     jbyte atty = 0;
     if (isatty(STDIN_FILENO)) atty |= ATTY_IN;
     if (isatty(STDOUT_FILENO)) atty |= ATTY_OUT;
@@ -44,7 +45,7 @@ static jbyte RishTerminal_prepare(JNIEnv *env, jclass clazz) {
 }
 
 static jint RishTerminal_start(
-        JNIEnv *env, jclass clazz, jbyte tty,
+        JNIEnv *, jclass, jbyte tty,
         jint stdin_pipe, jint stdout_pipe, jint stderr_pipe) {
 
     int tty_fd;
@@ -96,7 +97,7 @@ static jint RishTerminal_start(
         transfer_async(stderr_pipe, STDERR_FILENO/*, func*/);
     }
 
-    auto sigwinch_handler = [](int sig) {
+    auto sigwinch_handler = [](int) {
         if (pthread_mutex_unlock(&winch_mutex) != 0) {
             PLOGE("pthread_mutex_unlock");
         }
@@ -107,7 +108,7 @@ static jint RishTerminal_start(
     return tty_fd;
 }
 
-static jlong RishTerminal_waitForWindowSizeChange(JNIEnv *env, jclass clazz, jint fd) {
+static jlong RishTerminal_waitForWindowSizeChange(JNIEnv *, jclass, jint fd) {
     if (pthread_mutex_lock(&winch_mutex) != 0) {
         PLOGE("pthread_mutex_lock");
     }
@@ -115,7 +116,7 @@ static jlong RishTerminal_waitForWindowSizeChange(JNIEnv *env, jclass clazz, jin
     return (jlong) getWindowSize(fd);
 }
 
-static void RishTerminal_waitForProcessExit(JNIEnv *env, jclass clazz) {
+static void RishTerminal_waitForProcessExit(JNIEnv *, jclass) {
     if (pthread_mutex_lock(&mutex) != 0) {
         PLOGE("pthread_mutex_lock");
     }
