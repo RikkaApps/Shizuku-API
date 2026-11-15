@@ -5,6 +5,7 @@ import android.app.Application;
 import android.app.Instrumentation;
 import android.content.Context;
 import android.content.ContextHidden;
+import android.content.pm.ApplicationInfo;
 import android.ddm.DdmHandleAppName;
 import android.os.Build;
 import android.os.IBinder;
@@ -72,6 +73,36 @@ public class UserService {
             Field mPackageInfo = context.getClass().getDeclaredField("mPackageInfo");
             mPackageInfo.setAccessible(true);
             Object loadedApk = mPackageInfo.get(context);
+            // MediaTek/OEM compatibility (Shizuku#1198): this helper runs via
+            // app_process, not ActivityThread.bindApplication(). Some OEM
+            // LoadedApk builds call Application.getProcessName().equals(...)
+            // even when the process name is null. Populate AppBindData first.
+            try {
+                Class<?> bindDataClass = Class.forName("android.app.ActivityThread$AppBindData");
+                Constructor<?> bindDataConstructor = bindDataClass.getDeclaredConstructor();
+                bindDataConstructor.setAccessible(true);
+                Object bindData = bindDataConstructor.newInstance();
+
+                Field processNameField = bindDataClass.getDeclaredField("processName");
+                processNameField.setAccessible(true);
+                // Avoid running OEM resource preload meant for real app processes.
+                processNameField.set(bindData, name != null ? name : pkg + ":user_service");
+
+                Field appInfoField = bindDataClass.getDeclaredField("appInfo");
+                appInfoField.setAccessible(true);
+                // Also prevents ActivityThread.currentPackageName() from NPE.
+                appInfoField.set(bindData, new ApplicationInfo());
+
+                Field boundApplicationField = ActivityThread.class.getDeclaredField("mBoundApplication");
+                boundApplicationField.setAccessible(true);
+                if (boundApplicationField.get(activityThread) == null) {
+                    boundApplicationField.set(activityThread, bindData);
+                    Log.i(TAG, "initialized ActivityThread process state for OEM compatibility");
+                }
+            } catch (Throwable compatibilityError) {
+                Log.w(TAG, "unable to initialize OEM process state", compatibilityError);
+            }
+
             Method makeApplication = loadedApk.getClass().getDeclaredMethod("makeApplication", boolean.class, Instrumentation.class);
             Application application = (Application) makeApplication.invoke(loadedApk, true, null);
             Field mInitialApplication = activityThread.getClass().getDeclaredField("mInitialApplication");
