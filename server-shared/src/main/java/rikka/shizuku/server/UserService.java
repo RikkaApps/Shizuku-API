@@ -1,12 +1,9 @@
 package rikka.shizuku.server;
 
 import android.app.ActivityThread;
-import android.app.Application;
-import android.app.Instrumentation;
 import android.content.Context;
 import android.content.ContextHidden;
 import android.ddm.DdmHandleAppName;
-import android.os.Build;
 import android.os.IBinder;
 import android.os.UserHandle;
 import android.os.UserHandleHidden;
@@ -14,10 +11,6 @@ import android.util.Log;
 import android.util.Pair;
 
 import androidx.annotation.Nullable;
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 
 import dev.rikka.tools.refine.Refine;
 
@@ -51,50 +44,31 @@ public class UserService {
             }
         }
 
-        int userId = uid / 100000;
-
         Log.i(TAG, String.format("starting service %s/%s...", pkg, cls));
 
-        IBinder service;
-
         try {
-            ActivityThread activityThread = ActivityThread.systemMain();
-            Context systemContext = activityThread.getSystemContext();
+            Context systemContext = ActivityThread.systemMain().getSystemContext();
 
-            DdmHandleAppName.setAppName(name != null ? name : pkg + ":user_service", userId);
+            DdmHandleAppName.setAppName(name != null ? name : pkg + ":user_service", 0);
 
-            //noinspection InstantiationOfUtilityClass
-            UserHandle userHandle = Refine.unsafeCast(
-                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
-                            ? UserHandleHidden.of(userId)
-                            : new UserHandleHidden(userId));
-            Context context = Refine.<ContextHidden>unsafeCast(systemContext).createPackageContextAsUser(pkg, Context.CONTEXT_INCLUDE_CODE | Context.CONTEXT_IGNORE_SECURITY, userHandle);
-            Field mPackageInfo = context.getClass().getDeclaredField("mPackageInfo");
-            mPackageInfo.setAccessible(true);
-            Object loadedApk = mPackageInfo.get(context);
-            Method makeApplication = loadedApk.getClass().getDeclaredMethod("makeApplication", boolean.class, Instrumentation.class);
-            Application application = (Application) makeApplication.invoke(loadedApk, true, null);
-            Field mInitialApplication = activityThread.getClass().getDeclaredField("mInitialApplication");
-            mInitialApplication.setAccessible(true);
-            mInitialApplication.set(activityThread, application);
-
-            ClassLoader classLoader = application.getClassLoader();
+            UserHandle userHandle = Refine.unsafeCast(UserHandleHidden.of(uid / 100000));
+            var flags = Context.CONTEXT_INCLUDE_CODE | Context.CONTEXT_IGNORE_SECURITY;
+            Context context = Refine.<ContextHidden>unsafeCast(systemContext)
+                    .createPackageContextAsUser(pkg, flags, userHandle);
+            ClassLoader classLoader = context.getClassLoader();
             Class<?> serviceClass = classLoader.loadClass(cls);
-            Constructor<?> constructorWithContext = null;
             try {
-                constructorWithContext = serviceClass.getConstructor(Context.class);
-            } catch (NoSuchMethodException | SecurityException ignored) {
+                var constructorWithContext = serviceClass.getConstructor(Context.class);
+                var service = (IBinder) constructorWithContext.newInstance(context);
+                return new Pair<>(service, token);
+            } catch (ReflectiveOperationException ignored) {
             }
-            if (constructorWithContext != null) {
-                service = (IBinder) constructorWithContext.newInstance(application);
-            } else {
-                service = (IBinder) serviceClass.newInstance();
-            }
+            var constructor = serviceClass.getConstructor();
+            var service = (IBinder) constructor.newInstance();
+            return new Pair<>(service, token);
         } catch (Throwable tr) {
-            Log.w(TAG, String.format("unable to start service %s/%s...", pkg, cls), tr);
+            Log.e(TAG, String.format("unable to start service %s/%s...", pkg, cls), tr);
             return null;
         }
-
-        return new Pair<>(service, token);
     }
 }
