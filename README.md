@@ -122,7 +122,7 @@ private boolean checkPermission(int code) {
 }
 ```
 
-### Differents of the privilege betweent ADB and ROOT
+### Differences of the privilege between ADB and ROOT
 
 Shizuku can be started with ADB or ROOT, and Sui is a Magisk module, so the privilege could be ADB or ROOT. You can use `Shizuku#getUid()` to check your privilege, for ROOT it returns `0`, for ADB is `2000`.
 

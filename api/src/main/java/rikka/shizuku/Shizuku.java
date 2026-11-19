@@ -323,7 +323,7 @@ public class Shizuku {
      * </ul>
      * <p>
      *
-     * @param listener OnBinderReceivedListener
+     * @param listener OnBinderDeadListener
      */
     public static void addBinderDeadListener(@NonNull OnBinderDeadListener listener) {
         addBinderDeadListener(listener, null);
@@ -332,7 +332,7 @@ public class Shizuku {
     /**
      * Add a listener that will be called when binder is dead.
      *
-     * @param listener OnBinderReceivedListener
+     * @param listener OnBinderDeadListener
      * @param handler  Where the listener would be called. If null, the listener will be called in main thread.
      */
     public static void addBinderDeadListener(@NonNull OnBinderDeadListener listener, @Nullable Handler handler) {
@@ -378,7 +378,7 @@ public class Shizuku {
      * </ul>
      * <p>
      *
-     * @param listener OnBinderReceivedListener
+     * @param listener OnRequestPermissionResultListener
      */
     public static void addRequestPermissionResultListener(@NonNull OnRequestPermissionResultListener listener) {
         addRequestPermissionResultListener(listener, null);
@@ -387,7 +387,7 @@ public class Shizuku {
     /**
      * Add a listener to receive the result of {@link #requestPermission(int)}.
      *
-     * @param listener OnBinderReceivedListener
+     * @param listener OnRequestPermissionResultListener
      * @param handler  Where the listener would be called. If null, the listener will be called in main thread.
      */
     public static void addRequestPermissionResultListener(@NonNull OnRequestPermissionResultListener listener, @Nullable Handler handler) {
