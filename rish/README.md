@@ -1,4 +1,4 @@
-# RISH
+668# RISH
 
 <del>Rish is an Interactive SHell for android</del>
 
