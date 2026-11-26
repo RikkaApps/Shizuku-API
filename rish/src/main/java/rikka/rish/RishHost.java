@@ -60,7 +60,8 @@ public class RishHost {
     private final int stderr;
     private int pid;
     private int ptmx;
-    private int exitCode = Integer.MAX_VALUE;
+    private volatile int exitCode = Integer.MAX_VALUE;
+    private Thread waiter;
 
     public RishHost(
             String[] args, String[] env, String dir,
@@ -96,14 +97,27 @@ public class RishHost {
         pid = result[0];
         ptmx = result[1];
 
-        new Thread(() -> exitCode = waitFor(pid)).start();
+        waiter = new Thread(() -> exitCode = waitFor(pid));
+        waiter.start();
     }
 
     public int getPid() {
         return pid;
     }
 
+    /**
+     * Returns the exit code, waiting for the child to be reaped first. The client asks right
+     * after it sees EOF on the output, which can happen before waitFor() returns.
+     */
     public int getExitCode() {
+        Thread waiter = this.waiter;
+        if (waiter != null) {
+            try {
+                waiter.join();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
         return exitCode;
     }
 

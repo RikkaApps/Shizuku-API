@@ -2,6 +2,7 @@ package rikka.rish;
 
 import android.os.Parcel;
 import android.os.RemoteException;
+import android.os.SystemClock;
 import android.system.ErrnoException;
 import android.system.Os;
 import android.util.Log;
@@ -125,12 +126,24 @@ public class RishTerminal {
     private int requestExitCode() throws RemoteException {
         Log.d(TAG, "requestExitCode");
 
+        // waitForProcessExit() returns on stdout EOF, which can be observed before the host
+        // has reaped the child; older hosts then still report RishHost's initial
+        // Integer.MAX_VALUE, which System.exit() would turn into 255. Retry briefly.
+        int exitCode = requestExitCodeOnce();
+        for (int i = 0; exitCode == Integer.MAX_VALUE && i < 50; i++) {
+            SystemClock.sleep(20);
+            exitCode = requestExitCodeOnce();
+        }
+        return exitCode;
+    }
+
+    private int requestExitCodeOnce() throws RemoteException {
         Parcel data = Parcel.obtain();
         Parcel reply = Parcel.obtain();
 
         try {
             data.writeInterfaceToken(RishConfig.getInterfaceToken());
-            RishConfig.getBinder().transact(RishConfig.getTransactionCode(RishConfig.TRANSACTION_getExitCode), data, null, 0);
+            RishConfig.getBinder().transact(RishConfig.getTransactionCode(RishConfig.TRANSACTION_getExitCode), data, reply, 0);
             reply.readException();
             return reply.readInt();
         } finally {
